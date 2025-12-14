@@ -2,123 +2,123 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here.
 All colors MUST be HSL.
 */
 
 @layer base {
   :root {
-    /* Background & Surfaces */
-    --background: 220 10% 97%;
-    --foreground: 220 70% 15%;
+    /* Surfaces - Warm Linen Background */
+    --background: 24 89% 95%;
+    --foreground: 165 90% 20%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 65% 18%;
+    --card-foreground: 165 80% 22%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 65% 18%;
+    --popover-foreground: 165 80% 22%;
 
-    /* Primary Gold */
-    --primary: 45 90% 52%;
-    --primary-foreground: 220 70% 15%;
+    /* Primary - Sea Green */
+    --primary: 165 100% 28%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary Navy */
-    --secondary: 220 75% 32%;
+    /* Secondary - Cayenne Red */
+    --secondary: 18 85% 54%;
     --secondary-foreground: 0 0% 100%;
 
-    /* Muted Navy-Gray */
-    --muted: 220 12% 90%;
-    --muted-foreground: 220 35% 30%;
+    /* Muted - Light Linen */
+    --muted: 24 60% 90%;
+    --muted-foreground: 165 50% 30%;
 
-    /* Accent Gold */
-    --accent: 45 80% 55%;
-    --accent-foreground: 220 70% 15%;
+    /* Accent - Metallic Gold */
+    --accent: 45 56% 56%;
+    --accent-foreground: 165 90% 20%;
 
-    /* Destructive */
-    --destructive: 0 84.2% 60.2%;
+    /* Destructive/CTA - Lipstick Red */
+    --destructive: 345 100% 49%;
     --destructive-foreground: 0 0% 100%;
 
     /* Borders & Inputs */
-    --border: 220 20% 85%;
-    --input: 220 15% 90%;
-    --ring: 45 90% 52%;
+    --border: 24 50% 85%;
+    --input: 24 60% 92%;
+    --ring: 165 100% 28%;
 
     --radius: 0.75rem;
 
     /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(45 90% 52%) 0%, hsl(220 75% 32%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 10% 98%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(165 100% 28%) 0%, hsl(45 56% 56%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(24 89% 97%) 100%);
 
     /* Shadows */
-    --shadow-soft: 0 4px 20px -2px hsl(220 70% 15% / 0.08);
-    --shadow-card: 0 8px 30px -4px hsl(220 70% 15% / 0.12);
-    --shadow-hover: 0 12px 40px -4px hsl(45 90% 52% / 0.3);
+    --shadow-soft: 0 4px 20px -2px hsl(165 90% 20% / 0.08);
+    --shadow-card: 0 8px 30px -4px hsl(165 90% 20% / 0.12);
+    --shadow-hover: 0 12px 40px -4px hsl(165 100% 28% / 0.3);
 
     /* Sidebar */
-    --sidebar-background: 220 15% 96%;
-    --sidebar-foreground: 220 60% 20%;
-    --sidebar-primary: 220 75% 32%;
+    --sidebar-background: 24 70% 93%;
+    --sidebar-foreground: 165 80% 22%;
+    --sidebar-primary: 165 100% 28%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 12% 92%;
-    --sidebar-accent-foreground: 220 70% 15%;
-    --sidebar-border: 220 20% 88%;
-    --sidebar-ring: 45 90% 52%;
+    --sidebar-accent: 24 50% 88%;
+    --sidebar-accent-foreground: 165 90% 20%;
+    --sidebar-border: 24 40% 82%;
+    --sidebar-ring: 165 100% 28%;
   }
 
   .dark {
-    /* Dark Background & Surfaces */
-    --background: 220 40% 8%;
-    --foreground: 220 10% 95%;
+    /* Dark Surfaces - Deep Green */
+    --background: 165 60% 10%;
+    --foreground: 24 70% 95%;
 
-    --card: 220 35% 12%;
-    --card-foreground: 220 10% 95%;
+    --card: 165 50% 15%;
+    --card-foreground: 24 70% 95%;
 
-    --popover: 220 35% 12%;
-    --popover-foreground: 220 10% 95%;
+    --popover: 165 50% 15%;
+    --popover-foreground: 24 70% 95%;
 
-    /* Primary Gold (same) */
-    --primary: 45 90% 52%;
-    --primary-foreground: 220 70% 15%;
+    /* Primary - Sea Green (brighter) */
+    --primary: 165 100% 35%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary Navy (lighter in dark mode) */
-    --secondary: 220 60% 45%;
-    --secondary-foreground: 220 10% 95%;
+    /* Secondary - Cayenne Red */
+    --secondary: 18 85% 54%;
+    --secondary-foreground: 0 0% 100%;
 
-    /* Muted Navy-Gray */
-    --muted: 220 30% 20%;
-    --muted-foreground: 220 15% 70%;
+    /* Muted */
+    --muted: 165 40% 20%;
+    --muted-foreground: 24 30% 70%;
 
-    /* Accent Gold */
-    --accent: 45 80% 55%;
-    --accent-foreground: 220 70% 15%;
+    /* Accent - Metallic Gold */
+    --accent: 45 56% 56%;
+    --accent-foreground: 165 60% 10%;
 
-    /* Destructive */
-    --destructive: 0 75% 55%;
+    /* Destructive - Lipstick Red */
+    --destructive: 345 100% 49%;
     --destructive-foreground: 0 0% 100%;
 
     /* Borders & Inputs */
-    --border: 220 25% 25%;
-    --input: 220 25% 25%;
-    --ring: 45 90% 52%;
+    --border: 165 40% 25%;
+    --input: 165 40% 25%;
+    --ring: 165 100% 35%;
 
     /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(45 90% 52%) 0%, hsl(220 60% 45%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(220 35% 12%) 0%, hsl(220 35% 15%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(165 100% 35%) 0%, hsl(45 56% 56%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(165 50% 15%) 0%, hsl(165 50% 18%) 100%);
 
     /* Shadows */
     --shadow-soft: 0 4px 20px -2px hsl(0 0% 0% / 0.4);
     --shadow-card: 0 8px 30px -4px hsl(0 0% 0% / 0.5);
-    --shadow-hover: 0 12px 40px -4px hsl(45 90% 52% / 0.35);
+    --shadow-hover: 0 12px 40px -4px hsl(165 100% 35% / 0.35);
 
     /* Sidebar */
-    --sidebar-background: 220 40% 10%;
-    --sidebar-foreground: 220 15% 85%;
-    --sidebar-primary: 45 90% 52%;
-    --sidebar-primary-foreground: 220 70% 15%;
-    --sidebar-accent: 220 30% 18%;
-    --sidebar-accent-foreground: 220 15% 85%;
-    --sidebar-border: 220 25% 22%;
-    --sidebar-ring: 45 90% 52%;
+    --sidebar-background: 165 60% 12%;
+    --sidebar-foreground: 24 50% 85%;
+    --sidebar-primary: 165 100% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 165 40% 18%;
+    --sidebar-accent-foreground: 24 50% 85%;
+    --sidebar-border: 165 40% 22%;
+    --sidebar-ring: 165 100% 35%;
   }
 }
 
