@@ -1,0 +1,144 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Find orders that are shipped and have passed the auto-release date
+    const now = new Date().toISOString();
+    const { data: ordersToRelease, error: ordersError } = await supabase
+      .from('orders')
+      .select(`
+        id,
+        vendor_id,
+        status,
+        shipped_at,
+        auto_release_at,
+        payout_amount,
+        commission_amount,
+        escrow_transactions(id, status, release_amount, commission_amount)
+      `)
+      .eq('status', 'shipped')
+      .lte('auto_release_at', now)
+      .is('escrow_transactions.status', 'held');
+
+    if (ordersError) {
+      throw ordersError;
+    }
+
+    if (!ordersToRelease || ordersToRelease.length === 0) {
+      return new Response(
+        JSON.stringify({ message: 'No orders ready for auto-release', count: 0 }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const releasedOrders = [];
+    const failedOrders = [];
+
+    for (const order of ordersToRelease) {
+      try {
+        const escrow = order.escrow_transactions?.[0];
+        if (!escrow || escrow.status !== 'held') {
+          continue;
+        }
+
+        // Update escrow status to released
+        const { error: escrowError } = await supabase
+          .from('escrow_transactions')
+          .update({
+            status: 'released',
+            released_at: now,
+          })
+          .eq('id', escrow.id);
+
+        if (escrowError) {
+          throw escrowError;
+        }
+
+        // Update order status to completed
+        const { error: orderError } = await supabase
+          .from('orders')
+          .update({
+            status: 'completed',
+          })
+          .eq('id', order.id);
+
+        if (orderError) {
+          throw orderError;
+        }
+
+        // Create payout record
+        const { error: payoutError } = await supabase
+          .from('payouts')
+          .insert({
+            order_id: order.id,
+            vendor_id: order.vendor_id,
+            status: 'pending',
+            method: 'mpesa',
+            amount_ksh: escrow.release_amount,
+            commission_amount: escrow.commission_amount,
+          });
+
+        if (payoutError) {
+          console.error(`Failed to create payout for order ${order.id}:`, payoutError);
+        }
+
+        // Record commission in ledger
+        const { error: commissionError } = await supabase
+          .from('commission_ledger')
+          .insert({
+            order_id: order.id,
+            vendor_id: order.vendor_id,
+            commission_rate: 10, // 10% commission
+            commission_amount: escrow.commission_amount,
+            notes: 'Auto-released after 72 hours post-shipment (no buyer confirmation)',
+          });
+
+        if (commissionError) {
+          console.error(`Failed to record commission for order ${order.id}:`, commissionError);
+        }
+
+        releasedOrders.push(order.id);
+        console.log(`Auto-released escrow for order ${order.id}`);
+      } catch (error) {
+        console.error(`Failed to auto-release order ${order.id}:`, error);
+        failedOrders.push({ orderId: order.id, error: error instanceof Error ? error.message : 'Unknown error' });
+      }
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        released: releasedOrders.length,
+        failed: failedOrders.length,
+        releasedOrders,
+        failedOrders,
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    console.error('Error in auto-release-escrow:', error);
+    return new Response(
+      JSON.stringify({
+        error: error instanceof Error ? error.message : 'Failed to process auto-release',
+      }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+});
+
