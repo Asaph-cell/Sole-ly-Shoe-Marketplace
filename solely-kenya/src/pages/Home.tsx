@@ -49,7 +49,7 @@ const Home = () => {
 
   const fetchCategoryCounts = async () => {
     try {
-      const categories = ['sneakers', 'casual', 'sports', 'formal'];
+      const categories = ['sneakers', 'casual', 'sports', 'formal', "women's"];
       const counts: Record<string, number> = {};
 
       for (const category of categories) {
@@ -74,6 +74,7 @@ const Home = () => {
     { name: "Casual", key: "casual" },
     { name: "Sports", key: "sports" },
     { name: "Formal", key: "formal" },
+    { name: "Women's", key: "women's" },
   ];
 
   return (

@@ -220,6 +220,7 @@ const VendorAddProduct = () => {
                       <SelectItem value="formal">Formal</SelectItem>
                       <SelectItem value="running">Running</SelectItem>
                       <SelectItem value="boots">Boots</SelectItem>
+                      <SelectItem value="women's">Women's</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
