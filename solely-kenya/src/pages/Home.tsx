@@ -92,7 +92,7 @@ const Home = () => {
         <div className="container mx-auto px-4 relative z-10">
           <ScrollReveal mode="aggressive" delay={0.2}>
             <div className="max-w-2xl">
-              <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight min-h-[3.6em] md:min-h-[2.4em]">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
                 <DynamicHeroText
                   texts={[
                     "Find Your Perfect Shoes in Kenya",
@@ -103,7 +103,7 @@ const Home = () => {
                   className="text-primary block mt-2"
                 />
               </h1>
-              <p className="text-xl text-muted-foreground mb-8">
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8">
                 Kenya's secure commission-based marketplace. Shop with escrow protection or start selling with zero upfront fees. Your payment is safe until you confirm delivery.
               </p>
               <div className="flex flex-wrap gap-4">
@@ -176,18 +176,18 @@ const Home = () => {
             <h2 className="text-4xl font-bold mb-4">Shop by Style</h2>
             <p className="text-muted-foreground text-lg">Find the perfect shoes for every occasion</p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             {categories.map((category, index) => (
               <ScrollReveal key={category.name} mode="zoom-in" delay={index * 0.1} className="w-full">
                 <Link
                   to={`/shop?category=${category.key}`}
                   className="group block"
                 >
-                  <div className="bg-gradient-card border-2 border-border rounded-xl p-8 text-center hover:shadow-hover hover:border-primary transition-all duration-300">
-                    <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
+                  <div className="bg-gradient-card border-2 border-border rounded-xl p-6 sm:p-8 text-center hover:shadow-hover hover:border-primary transition-all duration-300 min-h-[140px] sm:min-h-[160px] flex flex-col justify-center">
+                    <h3 className="text-lg sm:text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
                       {category.name}
                     </h3>
-                    <p className="text-muted-foreground">
+                    <p className="text-sm sm:text-base text-foreground font-medium">
                       {categoryCounts[category.key] || 0} {categoryCounts[category.key] === 1 ? 'item' : 'items'}
                     </p>
                   </div>
@@ -210,7 +210,7 @@ const Home = () => {
               <Link to="/shop">View All</Link>
             </Button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {loading ? (
               <div className="col-span-full text-center py-8 text-muted-foreground">
                 Loading products...

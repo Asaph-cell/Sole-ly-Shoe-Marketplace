@@ -5,7 +5,8 @@ import ProductCard from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Filter } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Filter, X } from "lucide-react";
 
 const Shop = () => {
   const [searchParams] = useSearchParams();
@@ -124,19 +125,19 @@ const Shop = () => {
   }
 
   return (
-    <div className="min-h-screen py-8">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen py-4 sm:py-8">
+      <div className="container mx-auto px-3 sm:px-4">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Shop All Shoes</h1>
-          <p className="text-muted-foreground">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">Shop All Shoes</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Browse our collection of {filteredProducts.length} amazing shoes from trusted vendors across Kenya
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Filters Sidebar */}
-          <aside className="lg:col-span-1">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
+          {/* Filters Sidebar - Desktop */}
+          <aside className="hidden lg:block lg:col-span-1">
             <div className="bg-card border-2 border-border rounded-xl p-6 shadow-soft sticky top-24">
               <div className="flex items-center gap-2 mb-6">
                 <Filter className="h-5 w-5 text-primary" />
@@ -255,13 +256,145 @@ const Shop = () => {
             </div>
           </aside>
 
+          {/* Mobile Filter Button */}
+          <div className="lg:hidden fixed bottom-20 right-4 z-40">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button size="lg" className="rounded-full shadow-lg h-14 px-6">
+                  <Filter className="h-5 w-5 mr-2" />
+                  Filters
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="h-[85vh] overflow-y-auto">
+                <SheetHeader className="mb-6">
+                  <SheetTitle className="flex items-center gap-2">
+                    <Filter className="h-5 w-5 text-primary" />
+                    Filter Shoes
+                  </SheetTitle>
+                </SheetHeader>
+
+                <div className="space-y-6 pb-6">
+                  {/* Brand Filter */}
+                  <div>
+                    <label className="text-sm font-semibold mb-3 block">Brand</label>
+                    <Select value={selectedBrand} onValueChange={setSelectedBrand}>
+                      <SelectTrigger className="h-12">
+                        <SelectValue placeholder="Select brand" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Brands</SelectItem>
+                        {uniqueBrands.map((brand) => (
+                          <SelectItem key={brand} value={brand.toLowerCase()}>
+                            {brand}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Category Filter */}
+                  <div>
+                    <label className="text-sm font-semibold mb-3 block">Category</label>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger className="h-12">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {uniqueCategories.map((cat) => (
+                          <SelectItem key={cat} value={cat.toLowerCase()}>
+                            {cat}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Size Filter */}
+                  <div>
+                    <label className="text-sm font-semibold mb-3 block">Size</label>
+                    <Select value={selectedSize} onValueChange={setSelectedSize}>
+                      <SelectTrigger className="h-12">
+                        <SelectValue placeholder="Select size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Sizes</SelectItem>
+                        {uniqueSizes.map((size) => (
+                          <SelectItem key={size} value={size}>
+                            {size}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Condition Filter */}
+                  <div>
+                    <label className="text-sm font-semibold mb-3 block">Condition</label>
+                    <Select value={selectedCondition} onValueChange={setSelectedCondition}>
+                      <SelectTrigger className="h-12">
+                        <SelectValue placeholder="Select condition" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Conditions</SelectItem>
+                        <SelectItem value="new">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                            New
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="like_new">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                            Like New
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="good">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
+                            Good
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="fair">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+                            Fair
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Price Range */}
+                  <div>
+                    <label className="text-sm font-semibold mb-3 block">
+                      Price Range: KES {priceRange[0].toLocaleString()} - KES {priceRange[1].toLocaleString()}
+                    </label>
+                    <Slider
+                      defaultValue={[0, 20000]}
+                      max={20000}
+                      step={500}
+                      value={priceRange}
+                      onValueChange={setPriceRange}
+                      className="mt-4"
+                    />
+                  </div>
+
+                  <Button className="w-full h-12" variant="outline" onClick={resetFilters}>
+                    Reset Filters
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+
           {/* Products Grid */}
           <main className="lg:col-span-3">
             {/* Sort Options */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-              <p className="text-muted-foreground">Showing {filteredProducts.length} of {products.length} results</p>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+              <p className="text-sm sm:text-base text-foreground font-medium">Showing {filteredProducts.length} of {products.length} results</p>
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-full sm:w-[200px] h-11">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
@@ -278,7 +411,7 @@ const Shop = () => {
                 <p className="text-muted-foreground">No products found matching your filters.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {filteredProducts.map((product) => (
                   <ProductCard
                     key={product.id}
