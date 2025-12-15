@@ -266,6 +266,7 @@ const Orders = () => {
       const { data, error } = await supabase.functions.invoke('pesapal-initiate-payment', {
         body: {
           orderId: order.id,
+          cancellationUrl: `${window.location.origin}/orders/${order.id}?cancelled=true`,
         }
       });
 

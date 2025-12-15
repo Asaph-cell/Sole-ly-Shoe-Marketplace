@@ -307,6 +307,7 @@ const Checkout = () => {
       const { data: pesapalResponse, error: pesapalError } = await supabase.functions.invoke("pesapal-initiate-payment", {
         body: {
           orderId: order.id,
+          cancellationUrl: `${window.location.origin}/orders/${order.id}?cancelled=true`,
         },
       });
 
