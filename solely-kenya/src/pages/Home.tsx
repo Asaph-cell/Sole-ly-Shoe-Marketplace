@@ -87,7 +87,7 @@ const Home = () => {
             alt="Colorful shoes collection"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-background/98 via-background/95 to-background/70"></div>
         </div>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <ScrollReveal mode="aggressive" delay={0.2}>
