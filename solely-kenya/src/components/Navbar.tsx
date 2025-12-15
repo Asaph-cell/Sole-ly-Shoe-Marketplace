@@ -61,7 +61,7 @@ const Navbar = () => {
             <img
               src={logo}
               alt="Solely Marketplace"
-              className="h-10 w-auto transition-transform group-hover:scale-105"
+              className="h-12 w-auto transition-transform group-hover:scale-105"
             />
           </Link>
 
