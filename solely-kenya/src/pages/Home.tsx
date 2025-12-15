@@ -103,8 +103,6 @@ const Home = () => {
                   className="block mt-2"
                   style={{
                     color: '#8f6700',
-                    WebkitTextStroke: '2px hsl(45, 69%, 50%)',
-                    paintOrder: 'stroke fill',
                   }}
                 />
               </h1>
