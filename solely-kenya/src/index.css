@@ -200,3 +200,69 @@ All colors MUST be HSL.
   overflow-x: hidden;
   max-width: 100vw;
 }
+
+/* Floating Shoes Animation */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--rotation, 0deg));
+  }
+
+  50% {
+    transform: translateY(-20px) rotate(calc(var(--rotation, 0deg) + 5deg));
+  }
+}
+
+@keyframes float-gentle {
+
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-15px) scale(1.02);
+  }
+}
+
+.floating-shoe {
+  animation: float-gentle 6s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Hero Shimmer Effect */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.hero-shimmer {
+  background: linear-gradient(90deg,
+      transparent 0%,
+      hsla(45, 69%, 50%, 0.1) 25%,
+      hsla(45, 69%, 50%, 0.2) 50%,
+      hsla(45, 69%, 50%, 0.1) 75%,
+      transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 8s linear infinite;
+}
+
+/* Parallax layer z-index */
+.z-5 {
+  z-index: 5;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+
+  .floating-shoe,
+  .hero-shimmer {
+    animation: none;
+  }
+}

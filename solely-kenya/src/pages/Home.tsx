@@ -5,9 +5,10 @@ import ProductCard from "@/components/ProductCard";
 import { Shield, Lock, TrendingUp, DollarSign, LayoutDashboard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import heroImage from "@/assets/hero-shoes.jpg";
 import { DynamicHeroText } from "@/components/DynamicHeroText";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import FloatingShoes from "@/components/FloatingShoes";
+import ParallaxHero from "@/components/ParallaxHero";
 
 const Home = () => {
   const { isVendor } = useAuth();
@@ -79,16 +80,11 @@ const Home = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden">
-      {/* Hero Section */}
-      <section className="relative h-auto min-h-[500px] sm:h-[600px] flex items-center justify-center overflow-hidden py-12 sm:py-0">
-        <div className="absolute inset-0">
-          <img
-            src={heroImage}
-            alt="Colorful shoes collection"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/70 to-transparent"></div>
-        </div>
+      {/* Hero Section with Parallax and Interactive Effects */}
+      <ParallaxHero>
+        {/* Floating Shoes Animation */}
+        <FloatingShoes />
+
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <ScrollReveal mode="aggressive" delay={0.2}>
             <div className="max-w-2xl">
@@ -129,7 +125,7 @@ const Home = () => {
             </div>
           </ScrollReveal>
         </div>
-      </section>
+      </ParallaxHero>
 
       {/* Trust Indicators */}
       <section className="py-12 bg-muted/50">
