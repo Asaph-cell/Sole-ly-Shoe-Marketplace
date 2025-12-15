@@ -7,23 +7,50 @@ interface ParallaxHeroProps {
 
 const ParallaxHero = ({ children }: ParallaxHeroProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const [scrollY, setScrollY] = useState(0);
+    const bgRef = useRef<HTMLDivElement>(null);
     const [mousePosition, setMousePosition] = useState({ x: 0.5, y: 0.5 });
     const [isHovering, setIsHovering] = useState(false);
+    const rafRef = useRef<number | null>(null);
 
     useEffect(() => {
-        const handleScroll = () => {
-            if (containerRef.current) {
-                const rect = containerRef.current.getBoundingClientRect();
-                // Only apply parallax when hero is visible
-                if (rect.bottom > 0 && rect.top < window.innerHeight) {
-                    setScrollY(window.scrollY);
-                }
+        const updateParallax = () => {
+            if (!bgRef.current || !containerRef.current) return;
+
+            const rect = containerRef.current.getBoundingClientRect();
+
+            // Only apply parallax when hero is visible
+            if (rect.bottom > 0 && rect.top < window.innerHeight) {
+                // Direct, instant mapping - no interpolation lag
+                const scrollY = window.scrollY;
+                const parallaxOffset = scrollY * 0.3; // Reduced multiplier for subtlety
+
+                // Apply transform directly
+                bgRef.current.style.transform = `translate3d(0, ${parallaxOffset}px, 0)`;
             }
         };
 
+        const handleScroll = () => {
+            // Cancel any pending frame
+            if (rafRef.current) {
+                cancelAnimationFrame(rafRef.current);
+            }
+
+            // Schedule update on next frame
+            rafRef.current = requestAnimationFrame(updateParallax);
+        };
+
+        // Initial update
+        updateParallax();
+
+        // Listen to scroll with passive for performance
         window.addEventListener("scroll", handleScroll, { passive: true });
-        return () => window.removeEventListener("scroll", handleScroll);
+
+        return () => {
+            window.removeEventListener("scroll", handleScroll);
+            if (rafRef.current) {
+                cancelAnimationFrame(rafRef.current);
+            }
+        };
     }, []);
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -36,10 +63,6 @@ const ParallaxHero = ({ children }: ParallaxHeroProps) => {
         setMousePosition({ x, y });
     };
 
-    // Calculate parallax offset (image moves slower than scroll)
-    const parallaxOffset = scrollY * 0.4;
-
-    // Calculate mouse-based movement for glow effect
     const glowX = mousePosition.x * 100;
     const glowY = mousePosition.y * 100;
 
@@ -51,17 +74,22 @@ const ParallaxHero = ({ children }: ParallaxHeroProps) => {
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
         >
-            {/* Parallax Background */}
+            {/* Parallax Background - direct responsive mapping */}
             <div
-                className="absolute inset-0 will-change-transform"
+                ref={bgRef}
+                className="absolute inset-0 scale-110"
                 style={{
-                    transform: `translateY(${parallaxOffset}px) scale(1.1)`,
+                    willChange: 'transform',
+                    backfaceVisibility: 'hidden',
                 }}
             >
                 <img
                     src={heroImage}
                     alt="Colorful shoes collection"
                     className="w-full h-full object-cover"
+                    style={{
+                        transform: 'translateZ(0)',
+                    }}
                 />
             </div>
 
@@ -70,12 +98,13 @@ const ParallaxHero = ({ children }: ParallaxHeroProps) => {
 
             {/* Interactive Glow Effect */}
             <div
-                className="absolute inset-0 pointer-events-none transition-opacity duration-500"
+                className="absolute inset-0 pointer-events-none"
                 style={{
                     background: `radial-gradient(circle 400px at ${glowX}% ${glowY}%, 
             hsla(45, 69%, 50%, ${isHovering ? 0.15 : 0}) 0%, 
             transparent 60%)`,
                     opacity: isHovering ? 1 : 0,
+                    transition: 'opacity 0.5s ease-out',
                 }}
             />
 
