@@ -78,9 +78,9 @@ const Home = () => {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-x-hidden">
       {/* Hero Section */}
-      <section className="relative h-[600px] flex items-center justify-center overflow-hidden">
+      <section className="relative h-auto min-h-[500px] sm:h-[600px] flex items-center justify-center overflow-hidden py-12 sm:py-0">
         <div className="absolute inset-0">
           <img
             src={heroImage}
@@ -89,7 +89,7 @@ const Home = () => {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-transparent"></div>
         </div>
-        <div className="container mx-auto px-4 relative z-10">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <ScrollReveal mode="aggressive" delay={0.2}>
             <div className="max-w-2xl">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
@@ -106,19 +106,19 @@ const Home = () => {
               <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8">
                 Kenya's secure commission-based marketplace. Shop with escrow protection or start selling with zero upfront fees. Your payment is safe until you confirm delivery.
               </p>
-              <div className="flex flex-wrap gap-4">
-                <Button size="lg" asChild className="hover:scale-105 transition-transform">
+              <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
+                <Button size="lg" asChild className="hover:scale-105 transition-transform min-h-[48px] w-full sm:w-auto tap-active">
                   <Link to="/shop">Shop Now</Link>
                 </Button>
                 {isVendor ? (
-                  <Button size="lg" variant="outline" asChild className="hover:scale-105 transition-transform">
+                  <Button size="lg" variant="outline" asChild className="hover:scale-105 transition-transform min-h-[48px] w-full sm:w-auto tap-active">
                     <Link to="/vendor/dashboard">
                       <LayoutDashboard className="h-4 w-4 mr-2" />
                       Vendor Dashboard
                     </Link>
                   </Button>
                 ) : (
-                  <Button size="lg" variant="outline" asChild className="hover:scale-105 transition-transform">
+                  <Button size="lg" variant="outline" asChild className="hover:scale-105 transition-transform min-h-[48px] w-full sm:w-auto tap-active">
                     <Link to="/vendor">Sell Your Shoes</Link>
                   </Button>
                 )}
@@ -170,11 +170,11 @@ const Home = () => {
       </section>
 
       {/* Shop by Category */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">Shop by Style</h2>
-            <p className="text-muted-foreground text-lg">Find the perfect shoes for every occasion</p>
+      <section className="py-10 sm:py-16">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">Shop by Style</h2>
+            <p className="text-sm sm:text-base md:text-lg text-muted-foreground">Find the perfect shoes for every occasion</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             {categories.map((category, index) => (
@@ -199,9 +199,9 @@ const Home = () => {
       </section>
 
       {/* Featured Products */}
-      <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-12">
+      <section className="py-10 sm:py-16 bg-muted/30">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 sm:mb-12">
             <div>
               <h2 className="text-4xl font-bold mb-2">New Arrivals</h2>
               <p className="text-muted-foreground">Check out the latest additions to our collection</p>

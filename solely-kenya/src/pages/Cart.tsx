@@ -58,32 +58,32 @@ const Cart = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/20">
-      <div className="container mx-auto px-4 py-10">
-        <div className="flex items-center justify-between mb-6">
+    <div className="min-h-screen bg-muted/20 overflow-x-hidden">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold">Shopping Cart</h1>
-            <p className="text-muted-foreground">Secure payments, escrow protection, trusted vendors.</p>
+            <h1 className="text-2xl sm:text-3xl font-bold">Shopping Cart</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Secure payments, escrow protection, trusted vendors.</p>
           </div>
           {items.length > 0 && (
-            <Button variant="ghost" onClick={clearCart} className="text-sm">Clear Cart</Button>
+            <Button variant="ghost" onClick={clearCart} className="text-sm min-h-[44px]">Clear Cart</Button>
           )}
         </div>
 
         {items.length === 0 ? (
-          <Card className="p-10 text-center">
-            <CardTitle className="mb-4">Your cart is empty</CardTitle>
-            <p className="text-muted-foreground mb-6">Browse the marketplace and add your next pair of kicks.</p>
-            <Button asChild>
+          <Card className="p-6 sm:p-10 text-center">
+            <CardTitle className="mb-3 sm:mb-4 text-lg sm:text-xl">Your cart is empty</CardTitle>
+            <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">Browse the marketplace and add your next pair of kicks.</p>
+            <Button asChild className="min-h-[48px] tap-active">
               <Link to="/shop">Continue shopping</Link>
             </Button>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="lg:col-span-2 space-y-3 sm:space-y-4">
               {items.map((item) => (
                 <Card key={item.productId}>
-                  <CardContent className="p-6 flex gap-4">
+                  <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row gap-4">
                     <div className="w-24 h-24 rounded-lg border overflow-hidden flex-shrink-0">
                       <img
                         src={item.imageUrl || "/placeholder.svg"}
@@ -183,7 +183,7 @@ const Cart = () => {
                       {deliveryEstimate}
                     </Badge>
                   )}
-                  <Button className="w-full" onClick={handleCheckout}>
+                  <Button className="w-full min-h-[48px] tap-active" onClick={handleCheckout}>
                     Proceed to Checkout
                   </Button>
                 </CardContent>

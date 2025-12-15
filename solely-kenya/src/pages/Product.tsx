@@ -184,7 +184,7 @@ const Product = () => {
   }
 
   return (
-    <div className="min-h-screen py-8">
+    <div className="min-h-screen py-6 sm:py-8 pb-24 md:pb-8 overflow-x-hidden">
       {product && (
         <SEO
           title={product.name}
@@ -192,16 +192,16 @@ const Product = () => {
           image={product.images?.[0]}
         />
       )}
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <Link to="/shop" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
             <ArrowLeft className="h-4 w-4" />
             Back to Shop
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
           <div className="space-y-4">
             <div className="aspect-square overflow-hidden rounded-xl border-2 border-border bg-muted">
               <img
@@ -235,8 +235,8 @@ const Product = () => {
           <div className="space-y-6">
             <div>
               {product.brand && <Badge className="mb-2">{product.brand}</Badge>}
-              <h1 className="text-4xl font-bold mb-4">{product.name}</h1>
-              <p className="text-4xl font-bold text-primary mb-6">KES {product.price_ksh.toLocaleString()}</p>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">{product.name}</h1>
+              <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-4 sm:mb-6">KES {product.price_ksh.toLocaleString()}</p>
               {product.stock > 0 ? (
                 <Badge variant="default">In Stock ({product.stock} available)</Badge>
               ) : (
@@ -310,11 +310,11 @@ const Product = () => {
               </div>
             )}
 
-            {/* CTA Buttons */}
-            <div className="space-y-3 pt-6">
+            {/* CTA Buttons - Hidden on mobile (shown in sticky bar) */}
+            <div className="hidden md:block space-y-3 pt-6">
               <Button
                 size="lg"
-                className="w-full"
+                className="w-full min-h-[48px]"
                 onClick={handleAddToCart}
                 disabled={product.stock === 0}
               >
@@ -323,7 +323,7 @@ const Product = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="w-full"
+                className="w-full min-h-[48px]"
                 onClick={handleBuyNow}
                 disabled={product.stock === 0}
               >
@@ -334,7 +334,7 @@ const Product = () => {
               <Button
                 size="lg"
                 variant="ghost"
-                className={`w-full ${priceAlertActive ? 'text-primary' : 'text-muted-foreground'}`}
+                className={`w-full min-h-[48px] ${priceAlertActive ? 'text-primary' : 'text-muted-foreground'}`}
                 onClick={async () => {
                   if (!user) {
                     toast.info("Please sign in to set price alerts");
@@ -405,13 +405,36 @@ const Product = () => {
       </div>
 
       {/* Product Reviews Section */}
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <ProductReviews productId={product.id} />
       </div>
 
       {/* Vendor Rating Section */}
-      <div className="container mx-auto px-4 pb-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-8 sm:pb-12">
         <VendorRating vendorId={product.vendor_id} productId={product.id} />
+      </div>
+
+      {/* Sticky Mobile CTA Bar */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border p-4 z-40 safe-bottom">
+        <div className="flex gap-3">
+          <Button
+            size="lg"
+            variant="outline"
+            className="flex-1 min-h-[48px] tap-active"
+            onClick={handleAddToCart}
+            disabled={product.stock === 0}
+          >
+            Add to Cart
+          </Button>
+          <Button
+            size="lg"
+            className="flex-[1.5] min-h-[48px] tap-active"
+            onClick={handleBuyNow}
+            disabled={product.stock === 0}
+          >
+            Buy Now
+          </Button>
+        </div>
       </div>
     </div>
   );
