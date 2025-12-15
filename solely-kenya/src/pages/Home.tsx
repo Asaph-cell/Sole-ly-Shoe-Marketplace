@@ -95,10 +95,10 @@ const Home = () => {
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-4 sm:mb-6 leading-tight">
                 <DynamicHeroText
                   texts={[
-                    "Connecting You to the Best Shoes Across the Country!",
+                    "Discover Your Perfect Pair!",
                     "Shop Safely with Escrow Protection",
                     "Start Selling with Zero Upfront Fees",
-                    "Strictly Vetted Vendors for Guaranteed Authenticity"
+                    "Guaranteed Authenticity"
                   ]}
                   className="block mt-2"
                   style={{
