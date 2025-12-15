@@ -8,6 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Filter, X } from "lucide-react";
 import { CATEGORIES, getCategoryName } from "@/lib/categories";
+import { ACCESSORY_TYPES, getAccessoryTypeName } from "@/lib/accessoryTypes";
 
 const Shop = () => {
   const [searchParams] = useSearchParams();
@@ -19,6 +20,7 @@ const Shop = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedSize, setSelectedSize] = useState("all");
   const [selectedCondition, setSelectedCondition] = useState("all");
+  const [selectedAccessoryType, setSelectedAccessoryType] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
 
   // Extract unique values from products
@@ -47,7 +49,7 @@ const Shop = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [products, priceRange, selectedBrand, selectedCategory, selectedSize, selectedCondition, sortBy]);
+  }, [products, priceRange, selectedBrand, selectedCategory, selectedSize, selectedCondition, selectedAccessoryType, sortBy]);
 
   const fetchProducts = async () => {
     try {
@@ -83,9 +85,14 @@ const Shop = () => {
       filtered = filtered.filter((p) => p.category?.toLowerCase() === selectedCategory.toLowerCase());
     }
 
-    // Size filter
-    if (selectedSize !== "all") {
+    // Size filter (only for non-accessories)
+    if (selectedSize !== "all" && selectedCategory !== "accessories") {
       filtered = filtered.filter((p) => p.sizes?.includes(selectedSize));
+    }
+
+    // Accessory type filter (only for accessories)
+    if (selectedAccessoryType !== "all" && selectedCategory === "accessories") {
+      filtered = filtered.filter((p) => (p as any).accessory_type === selectedAccessoryType);
     }
 
     // Condition filter
@@ -116,8 +123,12 @@ const Shop = () => {
     setSelectedBrand("all");
     setSelectedCategory("all");
     setSelectedSize("all");
+    setSelectedAccessoryType("all");
     setSortBy("newest");
   };
+
+  // Determine if we're showing accessories
+  const isAccessoriesView = selectedCategory === "accessories";
 
 
   if (loading) {
@@ -133,9 +144,11 @@ const Shop = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">Shop All Shoes</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">
+            {isAccessoriesView ? "Shop Accessories" : "Shop All Shoes"}
+          </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Browse our collection of {filteredProducts.length} amazing shoes from trusted vendors across Kenya
+            Browse our collection of {filteredProducts.length} {isAccessoriesView ? "shoe care products and accessories" : "amazing shoes"} from trusted vendors across Kenya
           </p>
         </div>
 
@@ -184,23 +197,45 @@ const Shop = () => {
                 </Select>
               </div>
 
-              {/* Size Filter */}
-              <div className="mb-6">
-                <label className="text-sm font-semibold mb-3 block">Size</label>
-                <Select value={selectedSize} onValueChange={setSelectedSize}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select size" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Sizes</SelectItem>
-                    {uniqueSizes.map((size) => (
-                      <SelectItem key={size} value={size}>
-                        {size}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Size Filter - Hidden for accessories */}
+              {!isAccessoriesView && (
+                <div className="mb-6">
+                  <label className="text-sm font-semibold mb-3 block">Size</label>
+                  <Select value={selectedSize} onValueChange={setSelectedSize}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Sizes</SelectItem>
+                      {uniqueSizes.map((size) => (
+                        <SelectItem key={size} value={size}>
+                          {size}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Accessory Type Filter - Only for accessories */}
+              {isAccessoriesView && (
+                <div className="mb-6">
+                  <label className="text-sm font-semibold mb-3 block">Accessory Type</label>
+                  <Select value={selectedAccessoryType} onValueChange={setSelectedAccessoryType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      {ACCESSORY_TYPES.map((type) => (
+                        <SelectItem key={type.key} value={type.key}>
+                          {type.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               {/* Condition Filter */}
               <div className="mb-6">
@@ -314,23 +349,45 @@ const Shop = () => {
                     </Select>
                   </div>
 
-                  {/* Size Filter */}
-                  <div>
-                    <label className="text-sm font-semibold mb-3 block">Size</label>
-                    <Select value={selectedSize} onValueChange={setSelectedSize}>
-                      <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Select size" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Sizes</SelectItem>
-                        {uniqueSizes.map((size) => (
-                          <SelectItem key={size} value={size}>
-                            {size}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {/* Size Filter - Hidden for accessories */}
+                  {!isAccessoriesView && (
+                    <div>
+                      <label className="text-sm font-semibold mb-3 block">Size</label>
+                      <Select value={selectedSize} onValueChange={setSelectedSize}>
+                        <SelectTrigger className="h-12">
+                          <SelectValue placeholder="Select size" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Sizes</SelectItem>
+                          {uniqueSizes.map((size) => (
+                            <SelectItem key={size} value={size}>
+                              {size}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {/* Accessory Type Filter - Only for accessories */}
+                  {isAccessoriesView && (
+                    <div>
+                      <label className="text-sm font-semibold mb-3 block">Accessory Type</label>
+                      <Select value={selectedAccessoryType} onValueChange={setSelectedAccessoryType}>
+                        <SelectTrigger className="h-12">
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Types</SelectItem>
+                          {ACCESSORY_TYPES.map((type) => (
+                            <SelectItem key={type.key} value={type.key}>
+                              {type.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
 
                   {/* Condition Filter */}
                   <div>
