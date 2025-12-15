@@ -9,6 +9,8 @@ import { DynamicHeroText } from "@/components/DynamicHeroText";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import FloatingShoes from "@/components/FloatingShoes";
 import ParallaxHero from "@/components/ParallaxHero";
+import { CATEGORIES, MAIN_CATEGORIES, OTHER_CATEGORIES } from "@/lib/categories";
+import { MoreHorizontal } from "lucide-react";
 
 const Home = () => {
   const { isVendor } = useAuth();
@@ -37,12 +39,7 @@ const Home = () => {
     }
   };
 
-  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({
-    sneakers: 0,
-    casual: 0,
-    sports: 0,
-    formal: 0,
-  });
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     fetchCategoryCounts();
@@ -50,18 +47,17 @@ const Home = () => {
 
   const fetchCategoryCounts = async () => {
     try {
-      const categories = ['sneakers', 'casual', 'sports', 'formal', "women's"];
       const counts: Record<string, number> = {};
 
-      for (const category of categories) {
+      for (const category of CATEGORIES) {
         const { count, error } = await supabase
           .from("products")
           .select("*", { count: 'exact', head: true })
           .eq("status", "active")
-          .ilike("category", category);
+          .ilike("category", category.key);
 
         if (error) throw error;
-        counts[category] = count || 0;
+        counts[category.key] = count || 0;
       }
 
       setCategoryCounts(counts);
@@ -69,14 +65,6 @@ const Home = () => {
       console.error("Error fetching category counts:", error);
     }
   };
-
-  const categories = [
-    { name: "Sneakers", key: "sneakers" },
-    { name: "Casual", key: "casual" },
-    { name: "Sports", key: "sports" },
-    { name: "Formal", key: "formal" },
-    { name: "Women's", key: "women's" },
-  ];
 
   return (
     <div className="min-h-screen overflow-x-hidden">
@@ -175,14 +163,14 @@ const Home = () => {
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">Shop by Style</h2>
             <p className="text-sm sm:text-base md:text-lg text-muted-foreground">Find the perfect shoes for every occasion</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-            {categories.map((category, index) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
+            {MAIN_CATEGORIES.map((category, index) => (
               <ScrollReveal key={category.name} mode="zoom-in" delay={index * 0.1} className="w-full">
                 <Link
                   to={`/shop?category=${category.key}`}
                   className="group block"
                 >
-                  <div className="bg-gradient-card border-2 border-border rounded-xl p-6 sm:p-8 text-center hover:shadow-hover hover:border-primary transition-all duration-300 min-h-[140px] sm:min-h-[160px] flex flex-col justify-center">
+                  <div className="bg-gradient-card border-2 border-border rounded-xl p-6 sm:p-8 text-center hover:shadow-hover hover:border-primary transition-all duration-300 min-h-[120px] sm:min-h-[140px] flex flex-col justify-center">
                     <h3 className="text-lg sm:text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
                       {category.name}
                     </h3>
@@ -193,6 +181,25 @@ const Home = () => {
                 </Link>
               </ScrollReveal>
             ))}
+            {/* Other Categories Card */}
+            <ScrollReveal mode="zoom-in" delay={MAIN_CATEGORIES.length * 0.1} className="w-full">
+              <Link
+                to="/shop"
+                className="group block"
+              >
+                <div className="bg-gradient-card border-2 border-border rounded-xl p-6 sm:p-8 text-center hover:shadow-hover hover:border-primary transition-all duration-300 min-h-[120px] sm:min-h-[140px] flex flex-col justify-center">
+                  <div className="mx-auto mb-2">
+                    <MoreHorizontal className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
+                    Other
+                  </h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    School, Open, Boots & More
+                  </p>
+                </div>
+              </Link>
+            </ScrollReveal>
           </div>
         </div>
       </section>

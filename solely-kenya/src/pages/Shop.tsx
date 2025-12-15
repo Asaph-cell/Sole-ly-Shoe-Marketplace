@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Filter, X } from "lucide-react";
+import { CATEGORIES, getCategoryName } from "@/lib/categories";
 
 const Shop = () => {
   const [searchParams] = useSearchParams();
@@ -22,7 +23,11 @@ const Shop = () => {
 
   // Extract unique values from products
   const uniqueBrands = Array.from(new Set(products.map((p) => p.brand).filter(Boolean)));
-  const uniqueCategories = Array.from(new Set(products.map((p) => p.category).filter(Boolean)));
+
+  // Combine predefined categories with any unique ones from products
+  const productCategories = Array.from(new Set(products.map((p) => p.category?.toLowerCase()).filter(Boolean)));
+  const allCategoryKeys = Array.from(new Set([...CATEGORIES.map(c => c.key), ...productCategories]));
+
   const uniqueSizes = Array.from(new Set(products.flatMap((p) => p.sizes || []).filter(Boolean))).sort((a, b) => Number(a) - Number(b));
 
   useEffect(() => {
@@ -171,9 +176,9 @@ const Shop = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
-                    {uniqueCategories.map((cat) => (
-                      <SelectItem key={cat} value={cat.toLowerCase()}>
-                        {cat}
+                    {allCategoryKeys.map((catKey) => (
+                      <SelectItem key={catKey} value={catKey}>
+                        {getCategoryName(catKey)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -301,9 +306,9 @@ const Shop = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Categories</SelectItem>
-                        {uniqueCategories.map((cat) => (
-                          <SelectItem key={cat} value={cat.toLowerCase()}>
-                            {cat}
+                        {allCategoryKeys.map((catKey) => (
+                          <SelectItem key={catKey} value={catKey}>
+                            {getCategoryName(catKey)}
                           </SelectItem>
                         ))}
                       </SelectContent>
