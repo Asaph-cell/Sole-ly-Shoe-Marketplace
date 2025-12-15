@@ -8,7 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { Mail, CheckCircle2 } from "lucide-react";
 import logo from "@/assets/solely-logo.svg";
+
+// Production URL for email verification redirect
+const SITE_URL = "https://sole-ly-marketplace-first-business.pages.dev";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -16,6 +20,8 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showEmailSent, setShowEmailSent] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/";
@@ -49,7 +55,7 @@ const Auth = () => {
         password,
         options: {
           data: { full_name: fullName },
-          emailRedirectTo: `${window.location.origin}/`
+          emailRedirectTo: `${SITE_URL}/`
         }
       });
 
@@ -62,8 +68,9 @@ const Auth = () => {
           full_name: fullName,
         });
 
-        toast.success("Account created! Please check your email to confirm.");
-        navigate(redirectTo);
+        // Show prominent email verification message
+        setRegisteredEmail(email);
+        setShowEmailSent(true);
       }
     } catch (error: any) {
       toast.error(error.message);
@@ -92,6 +99,65 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
+  // Show email verification success screen
+  if (showEmailSent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center py-12 px-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle2 className="w-10 h-10 text-green-600" />
+            </div>
+            <CardTitle className="text-2xl text-green-700">Check Your Email!</CardTitle>
+            <CardDescription className="text-base mt-2">
+              We've sent a verification link to:
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Email display */}
+            <div className="bg-muted/50 border rounded-lg p-4 text-center">
+              <div className="flex items-center justify-center gap-2 text-lg font-semibold">
+                <Mail className="w-5 h-5 text-primary" />
+                <span>{registeredEmail}</span>
+              </div>
+            </div>
+
+            {/* Instructions */}
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <h4 className="font-semibold text-amber-800 mb-2">📧 Next Steps:</h4>
+              <ol className="text-sm text-amber-700 space-y-2 list-decimal list-inside">
+                <li>Open your email inbox</li>
+                <li>Look for an email from <strong>Solely Marketplace</strong></li>
+                <li>Click the <strong>"Confirm your email"</strong> link</li>
+                <li>You'll be redirected back to sign in</li>
+              </ol>
+            </div>
+
+            {/* Didn't receive email */}
+            <div className="text-center text-sm text-muted-foreground">
+              <p>Didn't receive the email? Check your spam folder.</p>
+            </div>
+
+            {/* Back to sign in */}
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                setShowEmailSent(false);
+                setEmail("");
+                setPassword("");
+                setFullName("");
+                setTermsAccepted(false);
+              }}
+            >
+              Back to Sign In
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4">
