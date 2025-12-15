@@ -32,7 +32,7 @@ const ParallaxHero = ({ children }: ParallaxHeroProps) => {
             onMouseLeave={() => setIsHovering(false)}
         >
             {/* Static Background */}
-            <div className="absolute inset-0">
+            <div className="absolute inset-0 pointer-events-none">
                 <img
                     src={heroImage}
                     alt="Colorful shoes collection"
