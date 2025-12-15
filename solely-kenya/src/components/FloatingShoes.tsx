@@ -154,7 +154,7 @@ const FloatingShoes = () => {
                     <Link
                         key={`floating-shoe-${index}`}
                         to={`/product/${product.id}`}
-                        className="floating-shoe"
+                        className="floating-shoe hidden md:block"
                         onMouseEnter={() => setHoveredIndex(index)}
                         onMouseLeave={() => setHoveredIndex(null)}
                         style={{
