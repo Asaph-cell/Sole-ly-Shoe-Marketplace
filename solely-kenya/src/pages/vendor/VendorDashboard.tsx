@@ -172,12 +172,12 @@ const VendorDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-x-hidden">
       <VendorNavbar />
       <div className="flex">
         <VendorSidebar />
-        <main className="flex-1 p-8">
-          <h1 className="text-3xl font-bold mb-8">Dashboard Overview</h1>
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Dashboard Overview</h1>
 
           {null}
 
@@ -205,7 +205,7 @@ const VendorDashboard = () => {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Products</CardTitle>
@@ -250,7 +250,7 @@ const VendorDashboard = () => {
                 </Card>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Orders Received</CardTitle>
@@ -284,7 +284,7 @@ const VendorDashboard = () => {
                 </Card>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
                 <Card className="lg:col-span-2">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle>Product Views This Month</CardTitle>

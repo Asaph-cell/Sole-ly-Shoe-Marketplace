@@ -86,6 +86,25 @@ const AnimatedRoutes = () => {
   );
 };
 
+const AppLayout = () => {
+  const location = useLocation();
+
+  // Hide main navbar/footer on vendor and admin pages (they have their own)
+  const isVendorOrAdminPage = location.pathname.startsWith('/vendor/') || location.pathname.startsWith('/admin');
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+        {!isVendorOrAdminPage && <Navbar />}
+        <main className="flex-grow">
+          <AnimatedRoutes />
+        </main>
+        {!isVendorOrAdminPage && <Footer />}
+      </React.Suspense>
+    </div>
+  );
+};
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
@@ -93,15 +112,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <div className="flex flex-col min-h-screen">
-            <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-              <Navbar />
-              <main className="flex-grow">
-                <AnimatedRoutes />
-              </main>
-              <Footer />
-            </React.Suspense>
-          </div>
+          <AppLayout />
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
