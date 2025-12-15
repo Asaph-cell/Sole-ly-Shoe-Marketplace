@@ -101,7 +101,7 @@ const ParallaxHero = ({ children }: ParallaxHeroProps) => {
                 className="absolute inset-0 pointer-events-none"
                 style={{
                     background: `radial-gradient(circle 400px at ${glowX}% ${glowY}%, 
-            hsla(45, 69%, 50%, ${isHovering ? 0.15 : 0}) 0%, 
+            hsla(45, 69%, 45%, ${isHovering ? 0.25 : 0}) 0%, 
             transparent 60%)`,
                     opacity: isHovering ? 1 : 0,
                     transition: 'opacity 0.5s ease-out',
