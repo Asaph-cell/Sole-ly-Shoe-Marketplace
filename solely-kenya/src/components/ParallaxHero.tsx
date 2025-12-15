@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import heroImage from "@/assets/hero-shoes.jpg";
 
 interface ParallaxHeroProps {
@@ -7,51 +7,8 @@ interface ParallaxHeroProps {
 
 const ParallaxHero = ({ children }: ParallaxHeroProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const bgRef = useRef<HTMLDivElement>(null);
     const [mousePosition, setMousePosition] = useState({ x: 0.5, y: 0.5 });
     const [isHovering, setIsHovering] = useState(false);
-    const rafRef = useRef<number | null>(null);
-
-    useEffect(() => {
-        const updateParallax = () => {
-            if (!bgRef.current || !containerRef.current) return;
-
-            const rect = containerRef.current.getBoundingClientRect();
-
-            // Only apply parallax when hero is visible
-            if (rect.bottom > 0 && rect.top < window.innerHeight) {
-                // Direct, instant mapping - no interpolation lag
-                const scrollY = window.scrollY;
-                const parallaxOffset = scrollY * 0.3; // Reduced multiplier for subtlety
-
-                // Apply transform directly
-                bgRef.current.style.transform = `translate3d(0, ${parallaxOffset}px, 0)`;
-            }
-        };
-
-        const handleScroll = () => {
-            // Cancel any pending frame
-            if (rafRef.current) {
-                cancelAnimationFrame(rafRef.current);
-            }
-
-            // Schedule update on next frame
-            rafRef.current = requestAnimationFrame(updateParallax);
-        };
-
-        // Initial update
-        updateParallax();
-
-        // Listen to scroll with passive for performance
-        window.addEventListener("scroll", handleScroll, { passive: true });
-
-        return () => {
-            window.removeEventListener("scroll", handleScroll);
-            if (rafRef.current) {
-                cancelAnimationFrame(rafRef.current);
-            }
-        };
-    }, []);
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!containerRef.current) return;
@@ -74,22 +31,12 @@ const ParallaxHero = ({ children }: ParallaxHeroProps) => {
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
         >
-            {/* Parallax Background - direct responsive mapping */}
-            <div
-                ref={bgRef}
-                className="absolute inset-0 scale-110"
-                style={{
-                    willChange: 'transform',
-                    backfaceVisibility: 'hidden',
-                }}
-            >
+            {/* Static Background */}
+            <div className="absolute inset-0">
                 <img
                     src={heroImage}
                     alt="Colorful shoes collection"
                     className="w-full h-full object-cover"
-                    style={{
-                        transform: 'translateZ(0)',
-                    }}
                 />
             </div>
 
