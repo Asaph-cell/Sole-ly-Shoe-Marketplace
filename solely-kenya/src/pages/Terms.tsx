@@ -42,19 +42,19 @@ const Terms = () => {
                                     <Shield className="h-6 w-6 text-primary" />
                                     Welcome to Solely Marketplace
                                 </h2>
+                                <p className="text-sm text-muted-foreground mb-4">Last Updated: December 2025</p>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    Solely is Kenya's trusted online shoe marketplace connecting buyers with verified vendors.
-                                    By using our platform, you agree to the following terms and conditions.
+                                    Welcome to Solely, Kenya's trusted online shoe marketplace. These Terms and Conditions constitute a legally binding agreement between you ("the Buyer") and Solely ("the Platform"). By creating an account or purchasing products, you agree to these terms.
                                 </p>
                             </section>
 
                             <section>
                                 <h3 className="text-xl font-semibold mb-3">1. Account Registration</h3>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                                    <li>You must provide accurate personal information when creating an account</li>
-                                    <li>You are responsible for maintaining the security of your account credentials</li>
-                                    <li>You must be at least 18 years old to make purchases</li>
-                                    <li>One person may only operate one buyer account</li>
+                                    <li><strong>Accuracy:</strong> You must provide accurate personal information and valid contact details during registration</li>
+                                    <li><strong>Security:</strong> You are responsible for maintaining the confidentiality of your account credentials. You are liable for all activities that occur under your account</li>
+                                    <li><strong>Eligibility:</strong> You must be at least 18 years old to make purchases on Solely</li>
+                                    <li><strong>One Account:</strong> One person may only operate one buyer account. Creating duplicate accounts to abuse promotions is prohibited</li>
                                 </ul>
                             </section>
 
@@ -64,58 +64,64 @@ const Terms = () => {
                                     2. Escrow Payment Protection
                                 </h3>
                                 <p className="text-muted-foreground mb-3">
-                                    All payments on Solely are protected by our escrow system:
+                                    To guarantee trust, Solely uses a secure Escrow System for all transactions:
                                 </p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                                    <li><strong>Your payment is held securely</strong> until you confirm receipt of your order</li>
-                                    <li>Funds are only released to the vendor after you confirm satisfaction</li>
-                                    <li>If there's an issue, funds remain protected while we investigate</li>
-                                    <li>Payment methods include M-Pesa, credit/debit cards, and bank transfers</li>
+                                    <li><strong>Payment:</strong> When you order, your money is held in a neutral escrow account—it is not sent directly to the vendor immediately</li>
+                                    <li><strong>Protection:</strong> Your funds remain secured in escrow while the vendor processes and ships your order</li>
+                                    <li><strong>Release:</strong> Funds are released to the vendor only after you confirm delivery or the inspection window expires</li>
+                                    <li><strong>Accepted Payment Methods:</strong> M-Pesa (via Pesapal), Credit/Debit Cards, and Airtel Money</li>
                                 </ul>
                             </section>
 
                             <section>
-                                <h3 className="text-xl font-semibold mb-3">3. Ordering Process</h3>
+                                <h3 className="text-xl font-semibold mb-3">3. Ordering Process & Timelines</h3>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                                    <li>Orders are subject to vendor confirmation and stock availability</li>
-                                    <li>Vendors must confirm orders within <strong>24 hours</strong> or they will be auto-cancelled with full refund</li>
-                                    <li>After confirmation, vendors must ship within <strong>3 days</strong> or the order will be cancelled with full refund</li>
-                                    <li>Delivery is capped at a maximum of <strong>3 days</strong> after shipment</li>
-                                    <li>You will receive updates on your order status via the platform</li>
+                                    <li><strong>Confirmation Window:</strong> Vendors must accept or decline your order within 24 hours. If they fail to do so, the order is automatically cancelled, and you receive a full refund</li>
+                                    <li><strong>Shipping Window:</strong> Once confirmed, vendors must ship the item within 3 days. If they fail to ship, the order is cancelled, and you receive a full refund</li>
+                                    <li><strong>Tracking:</strong> You will receive order updates and tracking details via the platform/email once the item is shipped</li>
                                 </ul>
                             </section>
 
                             <section>
-
-                                <section>
-                                    <h3 className="text-xl font-semibold mb-3">3.5. Delivery Fees</h3>
-                                    <p className="text-muted-foreground mb-3">
-                                        Delivery fees are calculated automatically based on metro-area zones:
-                                    </p>
-                                    <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                                        <li><strong>Same Metro Area (KES 200):</strong> Deliveries within the same metropolitan area (e.g., Nairobi Metro includes Nairobi, Kiambu, Machakos, Kajiado)</li>
-                                        <li><strong>Inter-City (KES 400):</strong> Deliveries between different major cities (e.g., Nairobi to Mombasa, Nakuru to Kisumu)</li>
-                                        <li><strong>Distant Delivery (KES 500):</strong> Deliveries to/from smaller towns or remote locations</li>
-                                        <li><strong>Pickup (KES 0):</strong> No delivery fee when you collect directly from the vendor</li>
-                                    </ul>
-                                    <p className="text-muted-foreground mt-3">
-                                        <strong>Note:</strong> The delivery fee is paid by you   (the buyer) but the vendor is responsible for arranging and paying for actual delivery services using this amount.
-                                    </p>
-                                </section>
-
-                                <h3 className="text-xl font-semibold mb-3">4. Delivery Confirmation</h3>
+                                <h3 className="text-xl font-semibold mb-3">3.5. Delivery Fees</h3>
                                 <p className="text-muted-foreground mb-3">
-                                    When your order arrives, you must:
+                                    Delivery fees are calculated automatically based on metro-area zones:
                                 </p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                                    <li>Inspect the item(s) for quality and accuracy</li>
-                                    <li>Confirm delivery through the platform if satisfied</li>
-                                    <li>Report any issues within <strong>72 hours</strong> of receiving the item</li>
-                                    <li><strong>Important:</strong> If you do not confirm delivery or file a dispute within <strong>72 hours</strong> after shipment, funds will be automatically released to the vendor</li>
+                                    <li><strong>Same Metro Area (KES 200):</strong> Deliveries within the same metropolitan area (e.g., Nairobi Metro includes Nairobi, Kiambu, Machakos, Kajiado)</li>
+                                    <li><strong>Inter-City (KES 400):</strong> Deliveries between different major cities (e.g., Nairobi to Mombasa, Nakuru to Kisumu)</li>
+                                    <li><strong>Distant Delivery (KES 500):</strong> Deliveries to/from smaller towns or remote locations</li>
+                                    <li><strong>Pickup (KES 0):</strong> No delivery fee when you collect directly from the vendor</li>
                                 </ul>
-                                <p className="text-muted-foreground mt-3 bg-amber-50 border border-amber-200 p-3 rounded-lg">
-                                    ⚠️ <strong>Auto-Release Policy:</strong> 72 hours after the vendor marks your order as shipped, if you haven't confirmed or disputed, the escrow will be released to the vendor automatically.
+                                <p className="text-muted-foreground mt-3">
+                                    <strong>Note:</strong> The delivery fee is paid by you   (the buyer) but the vendor is responsible for arranging and paying for actual delivery services using this amount.
                                 </p>
+                            </section>
+
+                            <section>
+                                <h3 className="text-xl font-semibold mb-3">4. Delivery Confirmation (Critical)</h3>
+                                <p className="text-muted-foreground mb-3">
+                                    When your order arrives, it is your responsibility to:
+                                </p>
+                                <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                                    <li><strong>Inspect:</strong> Check the shoes immediately for quality, size, and accuracy</li>
+                                    <li><strong>Confirm:</strong> Log in to Solely and click "Confirm Delivery" if you are satisfied</li>
+                                    <li><strong>Report Issues:</strong> If there is a problem, you must file a dispute within 72 hours of delivery</li>
+                                </ul>
+                                <div className="mt-4 bg-amber-50 border border-amber-200 p-4 rounded-lg">
+                                    <h4 className="font-semibold text-foreground mb-2">⚠️ Auto-Release Policy</h4>
+                                    <p className="text-sm text-muted-foreground mb-2">
+                                        To ensure vendors are paid fairly, the system automates the release of funds if you are inactive:
+                                    </p>
+                                    <ul className="list-disc pl-6 space-y-1 text-sm text-muted-foreground">
+                                        <li><strong>Standard Rule:</strong> Funds are released to the vendor 72 hours after you confirm delivery</li>
+                                        <li><strong>Inactivity Rule:</strong> If the vendor marks the order as "Shipped" and you do not Confirm or Dispute within <strong>5 days</strong>, the system assumes successful delivery and releases the funds</li>
+                                    </ul>
+                                    <p className="text-sm text-muted-foreground mt-2">
+                                        <strong>Note:</strong> Please ensure you are available to receive calls from the courier during the delivery window.
+                                    </p>
+                                </div>
                             </section>
 
                             <section>
