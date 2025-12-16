@@ -86,24 +86,24 @@ const Terms = () => {
                             </section>
 
                             <section>
-                                
-                            <section>
-                                <h3 className="text-xl font-semibold mb-3">3.5. Delivery Fees</h3>
-                                <p className="text-muted-foreground mb-3">
-                                    Delivery fees are calculated automatically based on metro-area zones:
-                                </p>
-                                <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                                    <li><strong>Same Metro Area (KES 200):</strong> Deliveries within the same metropolitan area (e.g., Nairobi Metro includes Nairobi, Kiambu, Machakos, Kajiado)</li>
-                                    <li><strong>Inter-City (KES 400):</strong> Deliveries between different major cities (e.g., Nairobi to Mombasa, Nakuru to Kisumu)</li>
-                                    <li><strong>Distant Delivery (KES 500):</strong> Deliveries to/from smaller towns or remote locations</li>
-                                    <li><strong>Pickup (KES 0):</strong> No delivery fee when you collect directly from the vendor</li>
-                                </ul>
-                                <p className="text-muted-foreground mt-3">
-                                    <strong>Note:</strong> The delivery fee is paid by you   (the buyer) but the vendor is responsible for arranging and paying for actual delivery services using this amount.
-                                </p>
-                            </section>
 
-<h3 className="text-xl font-semibold mb-3">4. Delivery Confirmation</h3>
+                                <section>
+                                    <h3 className="text-xl font-semibold mb-3">3.5. Delivery Fees</h3>
+                                    <p className="text-muted-foreground mb-3">
+                                        Delivery fees are calculated automatically based on metro-area zones:
+                                    </p>
+                                    <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                                        <li><strong>Same Metro Area (KES 200):</strong> Deliveries within the same metropolitan area (e.g., Nairobi Metro includes Nairobi, Kiambu, Machakos, Kajiado)</li>
+                                        <li><strong>Inter-City (KES 400):</strong> Deliveries between different major cities (e.g., Nairobi to Mombasa, Nakuru to Kisumu)</li>
+                                        <li><strong>Distant Delivery (KES 500):</strong> Deliveries to/from smaller towns or remote locations</li>
+                                        <li><strong>Pickup (KES 0):</strong> No delivery fee when you collect directly from the vendor</li>
+                                    </ul>
+                                    <p className="text-muted-foreground mt-3">
+                                        <strong>Note:</strong> The delivery fee is paid by you   (the buyer) but the vendor is responsible for arranging and paying for actual delivery services using this amount.
+                                    </p>
+                                </section>
+
+                                <h3 className="text-xl font-semibold mb-3">4. Delivery Confirmation</h3>
                                 <p className="text-muted-foreground mb-3">
                                     When your order arrives, you must:
                                 </p>
@@ -180,11 +180,12 @@ const Terms = () => {
                             <section>
                                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
                                     <Store className="h-6 w-6 text-primary" />
-                                    Vendor Agreement
+                                    Solely Vendor Agreement
                                 </h2>
+                                <p className="text-sm text-muted-foreground mb-4">Last Updated: December 2025</p>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    By registering as a vendor on Solely, you agree to provide excellent products
-                                    and customer service. These terms govern your relationship with Solely and our buyers.
+                                    By registering as a vendor on Solely, you agree to provide high-quality products
+                                    and excellent customer service. These terms govern your relationship with Solely and buyers on the platform.
                                 </p>
                             </section>
 
@@ -204,12 +205,11 @@ const Terms = () => {
                                     2. Commission and Payments
                                 </h3>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                                    <li>Solely charges a <strong>10% commission</strong> on each completed sale</li>
-                                    <li>Payments are held in escrow until the buyer confirms delivery</li>
-                                    <li>Funds are released within <strong>24-48 hours</strong> after buyer confirmation</li>
-                                    <li><strong>Required:</strong> You must provide a valid M-Pesa number to receive payouts</li>
-                                    <li>Payouts are sent via M-Pesa B2C to your registered number (bank account option coming soon)</li>
-                                    <li>Commission is deducted before payout</li>
+                                    <li>Solely charges a <strong>10% commission</strong> on the product price of each completed sale</li>
+                                    <li>Payments are held in escrow until the buyer confirms delivery or the auto-release period expires</li>
+                                    <li><strong>Payout Timing:</strong> Funds are released within 24–48 hours after the funds are cleared from escrow</li>
+                                    <li><strong>Payout Method:</strong> Payouts are sent via M-Pesa B2C to your registered number</li>
+                                    <li><strong>Transaction Fees:</strong> Standard M-Pesa B2C transaction charges may be deducted from the final payout amount</li>
                                 </ul>
                             </section>
 
@@ -226,27 +226,29 @@ const Terms = () => {
                             </section>
 
                             <section>
-                                <h3 className="text-xl font-semibold mb-3">4. Order Fulfillment</h3>
+                                <h3 className="text-xl font-semibold mb-3">4. Order Fulfillment & Timelines</h3>
                                 <p className="text-muted-foreground mb-3">
-                                    As a vendor, you agree to:
+                                    As a vendor, you agree to adhere to the following strict timelines:
                                 </p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                                    <li>Confirm or reject orders within <strong>24 hours</strong></li>
-                                    <li>Ship orders within <strong>3 days</strong> of confirmation</li>
-                                    <li>Ensure delivery within <strong>3 days</strong> of shipment</li>
-                                    <li>Provide tracking information when available</li>
-                                    <li>Package items securely to prevent damage during shipping</li>
-                                    <li>Contact buyers promptly if there are any issues with their order</li>
+                                    <li><strong>Confirmation:</strong> Accept or reject new orders within 24 hours</li>
+                                    <li><strong>Shipping:</strong> Ship confirmed orders within 3 days</li>
+                                    <li><strong>Delivery:</strong> Ensure delivery occurs within 3 days of shipment</li>
+                                    <li><strong>Tracking:</strong> Provide accurate courier names and tracking numbers/contact details</li>
                                 </ul>
                                 <div className="mt-4 space-y-3">
+                                    <h4 className="font-semibold text-foreground">Order Automation Rules</h4>
                                     <p className="text-muted-foreground bg-red-50 border border-red-200 p-3 rounded-lg">
-                                        ❌ <strong>Auto-Cancel (24 hours):</strong> Orders not confirmed within 24 hours will be automatically cancelled and the buyer refunded.
+                                        ❌ <strong>Auto-Cancel (24 hours):</strong> Orders not confirmed by the vendor within 24 hours will be automatically cancelled and the buyer refunded.
                                     </p>
                                     <p className="text-muted-foreground bg-amber-50 border border-amber-200 p-3 rounded-lg">
-                                        ⚠️ <strong>No-Ship Refund (3 days):</strong> If you confirm an order but do not mark it as shipped within 3 days, the order will be cancelled and the buyer refunded.
+                                        ⚠️ <strong>No-Ship Refund (3 days):</strong> If an order is confirmed but not marked as "Shipped" within 3 days, it will be cancelled and the buyer refunded.
                                     </p>
                                     <p className="text-muted-foreground bg-green-50 border border-green-200 p-3 rounded-lg">
-                                        ✅ <strong>Auto-Release (72 hours):</strong> 72 hours after you mark an order as shipped, if the buyer hasn't disputed, the funds will be released to you automatically.
+                                        ✅ <strong>Auto-Release (Escrow):</strong> Funds are released to the vendor 72 hours after the buyer confirms delivery.
+                                    </p>
+                                    <p className="text-sm text-muted-foreground mt-2">
+                                        <strong>Note:</strong> If the buyer receives the item but fails to click "Confirm," the system will automatically release funds <strong>5 days after the shipment date</strong>, provided no dispute has been raised.
                                     </p>
                                 </div>
                             </section>
@@ -256,14 +258,32 @@ const Terms = () => {
                                     <AlertTriangle className="h-5 w-5 text-red-600" />
                                     5. Disputes and Returns
                                 </h3>
-                                <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                                    <li>Buyers may file disputes for non-delivery, wrong items, or damaged goods</li>
-                                    <li>You will be notified immediately of any dispute</li>
-                                    <li>You have the opportunity to respond with evidence within <strong>48 hours</strong></li>
-                                    <li>Funds remain held during dispute investigation</li>
-                                    <li>If found in favor of buyer, a full refund will be issued from escrow</li>
-                                    <li>Excessive disputes may result in account review or suspension</li>
+                                <h4 className="font-semibold text-foreground mb-2">Grounds for Dispute</h4>
+                                <p className="text-muted-foreground mb-3">
+                                    Buyers may file a dispute within 72 hours of delivery for the following reasons:
+                                </p>
+                                <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
+                                    <li><strong>Item Not Received:</strong> The package never arrived</li>
+                                    <li><strong>Wrong Item:</strong> The vendor sent the wrong size, color, or model</li>
+                                    <li><strong>Damaged/Defective:</strong> The item arrived damaged or significantly different from the description</li>
+                                    <li><strong>Counterfeit:</strong> The item is proven to be fake</li>
                                 </ul>
+
+                                <h4 className="font-semibold text-foreground mb-2">Resolution Process</h4>
+                                <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
+                                    <li>Vendors will be notified immediately when a dispute is raised</li>
+                                    <li>You must respond with supporting evidence (e.g., photos of the packed item, courier receipts) within 48 hours</li>
+                                    <li>Funds remain frozen in escrow during the investigation</li>
+                                    <li><strong>Solely Admin Decision:</strong> If the dispute is resolved in favor of the buyer, a full refund is issued. If resolved in favor of the vendor, funds are released</li>
+                                </ul>
+
+                                <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                                    <h4 className="font-semibold text-foreground mb-2">"Fit" and "Change of Mind"</h4>
+                                    <ul className="list-disc pl-6 space-y-2 text-sm text-muted-foreground">
+                                        <li><strong>Vendor Responsibility:</strong> You are liable for returns if you sent the wrong size (e.g., Buyer ordered 42, you sent 43)</li>
+                                        <li><strong>Buyer Responsibility:</strong> If the item matches the description/size ordered but does not fit the buyer's foot comfortably, Solely does not mandate a refund. Vendors may choose to accept such returns at their own discretion, but the buyer is responsible for all shipping costs</li>
+                                    </ul>
+                                </div>
                             </section>
 
                             <section>
@@ -285,14 +305,24 @@ const Terms = () => {
 
                             <section>
                                 <h3 className="text-xl font-semibold mb-3">7. Prohibited Conduct</h3>
+                                <p className="text-muted-foreground mb-3">Vendors must not:</p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                                    <li>Selling counterfeit, fake, or replica branded products</li>
-                                    <li>Misrepresenting product condition or authenticity</li>
-                                    <li>Attempting to conduct transactions outside the platform</li>
-                                    <li>Inflating prices to bypass commission fees</li>
-                                    <li>Harassing buyers or responding aggressively to reviews</li>
-                                    <li>Using deceptive images or descriptions</li>
+                                    <li>Sell counterfeit, fake, or replica branded products</li>
+                                    <li>Misrepresent product condition (e.g., selling "used" shoes as "new")</li>
+                                    <li>Conduct or attempt to conduct transactions outside the Solely platform (e.g., asking buyers to "pay via M-Pesa directly")</li>
+                                    <li>Inflate prices to cover commission fees dishonestly</li>
+                                    <li>Harass buyers or respond aggressively to reviews</li>
                                 </ul>
+                                <div className="mt-4 bg-red-50 border border-red-200 p-4 rounded-lg">
+                                    <h4 className="font-semibold text-red-700 mb-2">Counterfeit Policy</h4>
+                                    <p className="text-sm text-muted-foreground">
+                                        Solely has a <strong>zero-tolerance policy</strong> for fakes. If you are found to be knowingly selling counterfeit goods:
+                                    </p>
+                                    <ul className="list-disc pl-6 space-y-1 text-sm text-muted-foreground mt-2">
+                                        <li>Your account will be immediately suspended</li>
+                                        <li>Solely reserves the right to withhold any funds currently in your escrow balance to refund defrauded buyers</li>
+                                    </ul>
+                                </div>
                             </section>
 
                             <section>
