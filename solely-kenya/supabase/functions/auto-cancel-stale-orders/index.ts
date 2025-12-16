@@ -2,7 +2,7 @@
  * Auto-Cancel Stale Orders
  * 
  * This scheduled Edge Function runs periodically to:
- * 1. Find orders pending_vendor_confirmation for > 24 hours
+ * 1. Find orders pending_vendor_confirmation for > 48 hours
  * 2. Cancel them automatically
  * 3. Update escrow to refunded status
  * 4. Notify the customer
@@ -34,8 +34,8 @@ Deno.serve(async (req: Request) => {
 
         // Find orders that are:
         // 1. Status = pending_vendor_confirmation
-        // 2. Created more than 24 hours ago
-        const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        // 2. Created more than 48 hours ago
+        const cutoffTime = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
 
         const { data: staleOrders, error: fetchError } = await supabase
             .from("orders")
@@ -83,7 +83,7 @@ Deno.serve(async (req: Request) => {
                     .update({
                         status: "cancelled_by_vendor",
                         cancelled_at: new Date().toISOString(),
-                        vendor_notes: "Auto-cancelled: No vendor response within 24 hours",
+                        vendor_notes: "Auto-cancelled: No vendor response within 48 hours",
                     })
                     .eq("id", order.id);
 

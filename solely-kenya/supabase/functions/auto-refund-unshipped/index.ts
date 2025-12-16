@@ -1,13 +1,15 @@
 /**
- * Auto-Refund Unshipped Orders
+ * Auto-Dispute Undelivered Orders
  * 
  * This scheduled Edge Function runs periodically to:
- * 1. Find orders confirmed by vendor but not shipped within 3 days
- * 2. Cancel them automatically
- * 3. Update escrow to refunded status
- * 4. Notify the customer
+ * 1. Find orders confirmed by vendor but not marked "arrived" within 5 days
+ * 2. Automatically raise a dispute for admin review
+ * 3. Notify both buyer and vendor
  * 
  * Schedule: Run every hour via Supabase cron or external scheduler
+ * 
+ * Note: Unlike the old auto-refund, this creates a dispute for admin review
+ * because the buyer might be okay with delayed delivery.
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -29,12 +31,11 @@ Deno.serve(async (req: Request) => {
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
         // Find orders that are:
-        // 1. Status = processing (confirmed but not shipped)
-        // 2. Status = pending_shipment
-        // 3. Confirmed more than 3 days ago (72 hours)
-        const cutoffTime = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+        // 1. Status = vendor_confirmed, processing, or accepted (confirmed but not arrived)
+        // 2. Confirmed more than 5 days ago
+        const cutoffTime = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
 
-        const { data: unshippedOrders, error: fetchError } = await supabase
+        const { data: undeliveredOrders, error: fetchError } = await supabase
             .from("orders")
             .select(`
                 id,
@@ -42,68 +43,75 @@ Deno.serve(async (req: Request) => {
                 customer_id,
                 total_ksh,
                 created_at,
-                confirmed_at,
                 order_items(product_name, quantity),
-                order_shipping_details(recipient_name, phone, email)
+                order_shipping_details(recipient_name, phone, email, delivery_type)
             `)
-            .in("status", ["processing", "pending_shipment", "confirmed"])
-            .lt("created_at", cutoffTime);  // Use created_at as fallback if no confirmed_at
+            .in("status", ["vendor_confirmed", "processing", "accepted", "pending_shipment", "confirmed"])
+            .lt("created_at", cutoffTime);
 
         if (fetchError) {
-            console.error("Error fetching unshipped orders:", fetchError);
+            console.error("Error fetching undelivered orders:", fetchError);
             return new Response(
-                JSON.stringify({ error: "Failed to fetch unshipped orders" }),
+                JSON.stringify({ error: "Failed to fetch undelivered orders" }),
                 { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
         }
 
-        if (!unshippedOrders || unshippedOrders.length === 0) {
-            console.log("No unshipped orders to refund");
+        if (!undeliveredOrders || undeliveredOrders.length === 0) {
+            console.log("No undelivered orders to dispute");
             return new Response(
-                JSON.stringify({ message: "No unshipped orders found", refunded: 0 }),
+                JSON.stringify({ message: "No undelivered orders found", disputed: 0 }),
                 { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
         }
 
-        console.log(`Found ${unshippedOrders.length} unshipped orders to auto-refund`);
+        console.log(`Found ${undeliveredOrders.length} undelivered orders to auto-dispute`);
 
         const results = {
-            refunded: 0,
+            disputed: 0,
             failed: 0,
             errors: [] as string[],
         };
 
-        for (const order of unshippedOrders) {
+        for (const order of undeliveredOrders) {
             try {
-                // 1. Cancel the order
-                const { error: cancelError } = await supabase
+                // Skip pickup orders - they have no time limit
+                const shippingDetails = order.order_shipping_details?.[0];
+                if (shippingDetails?.delivery_type === 'pickup') {
+                    console.log(`Skipping pickup order ${order.id} - no time limits for pickup`);
+                    continue;
+                }
+
+                // 1. Update order status to disputed
+                const { error: disputeUpdateError } = await supabase
                     .from("orders")
                     .update({
-                        status: "cancelled_no_shipment",
-                        cancelled_at: new Date().toISOString(),
-                        vendor_notes: "Auto-cancelled: Vendor did not ship within 3 days",
+                        status: "disputed",
+                        vendor_notes: "Auto-disputed: Order not marked as arrived within 5 days. Admin will follow up with vendor.",
                     })
                     .eq("id", order.id);
 
-                if (cancelError) {
-                    throw new Error(`Failed to cancel order: ${cancelError.message}`);
+                if (disputeUpdateError) {
+                    throw new Error(`Failed to update order status: ${disputeUpdateError.message}`);
                 }
 
-                // 2. Update escrow to refunded
-                const { error: escrowError } = await supabase
-                    .from("escrow_transactions")
-                    .update({
-                        status: "refunded",
-                        released_at: new Date().toISOString(),
-                    })
-                    .eq("order_id", order.id);
+                // 2. Create a dispute record
+                const { error: disputeError } = await supabase
+                    .from("disputes")
+                    .insert({
+                        order_id: order.id,
+                        raised_by: "system",
+                        reason: "delivery_delay",
+                        description: "Order was not marked as arrived within 5 days of confirmation. System auto-raised this dispute for admin review.",
+                        status: "open",
+                    });
 
-                if (escrowError) {
-                    console.warn(`Escrow update warning for order ${order.id}:`, escrowError);
+                if (disputeError) {
+                    console.warn(`Dispute record creation warning for order ${order.id}:`, disputeError);
+                    // Continue anyway - order status is already updated
                 }
 
-                // 3. Notify customer about refund
-                const shippingDetails = order.order_shipping_details?.[0];
+                // 3. Notify customer about the dispute
                 if (shippingDetails?.email) {
                     fetch(`${supabaseUrl}/functions/v1/send-email`, {
                         method: 'POST',
@@ -113,21 +121,23 @@ Deno.serve(async (req: Request) => {
                         },
                         body: JSON.stringify({
                             to: shippingDetails.email,
-                            subject: `Order #${order.id.slice(0, 8)} - Refund Processed`,
+                            subject: `Order #${order.id.slice(0, 8)} - Delivery Delay Investigation`,
                             html: `
-                                <h2>Your Order Has Been Cancelled & Refunded</h2>
+                                <h2>Your Order is Under Review</h2>
                                 <p>Dear ${shippingDetails.recipient_name || 'Customer'},</p>
-                                <p>Unfortunately, the vendor did not ship your order within the required 3-day window.</p>
-                                <p>Your payment of <strong>KES ${order.total_ksh?.toLocaleString()}</strong> will be refunded to your original payment method.</p>
-                                <p>We apologize for the inconvenience.</p>
+                                <p>Your order has not been marked as delivered within our 5-day delivery window.</p>
+                                <p>We have automatically raised this for admin review. Our team will contact the vendor to investigate the delay.</p>
+                                <p>Your payment of <strong>KES ${order.total_ksh?.toLocaleString()}</strong> remains safely held in escrow until this is resolved.</p>
+                                <p>If you have already received your order, please log in to Solely and confirm delivery.</p>
+                                <p>If you have any concerns, please contact us at Solely.kenya@gmail.com</p>
                                 <p>Best regards,<br>Solely Marketplace</p>
                             `,
                         }),
                     }).catch(err => console.log(`Email notification failed for ${order.id}:`, err));
                 }
 
-                console.log(`Order ${order.id} auto-cancelled for no shipment, refund initiated`);
-                results.refunded++;
+                console.log(`Order ${order.id} auto-disputed for delivery delay`);
+                results.disputed++;
             } catch (error) {
                 console.error(`Failed to process order ${order.id}:`, error);
                 results.failed++;
@@ -135,11 +145,11 @@ Deno.serve(async (req: Request) => {
             }
         }
 
-        console.log(`Auto-refund complete: ${results.refunded} refunded, ${results.failed} failed`);
+        console.log(`Auto-dispute complete: ${results.disputed} disputed, ${results.failed} failed`);
 
         return new Response(
             JSON.stringify({
-                message: "Auto-refund job completed",
+                message: "Auto-dispute job completed",
                 ...results,
             }),
             { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
