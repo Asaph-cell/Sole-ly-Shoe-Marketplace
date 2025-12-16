@@ -11,15 +11,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
+import { Check } from "lucide-react";
 
 const VendorSettings = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState("");
   const [formData, setFormData] = useState({
     full_name: "",
     whatsapp_number: "",
+    mpesa_number: "",
     store_name: "",
     store_description: "",
     vendor_city: "",
@@ -51,6 +54,7 @@ const VendorSettings = () => {
       setFormData({
         full_name: data.full_name || "",
         whatsapp_number: data.whatsapp_number || "",
+        mpesa_number: data.mpesa_number || "",
         store_name: data.store_name || "",
         store_description: data.store_description || "",
         vendor_city: data.vendor_city || "",
@@ -91,6 +95,10 @@ const VendorSettings = () => {
       if (error) throw error;
 
       toast.success("Settings saved successfully!");
+      setSaveSuccess(true);
+
+      // Auto-clear success state after 2 seconds
+      setTimeout(() => setSaveSuccess(false), 2000);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -136,6 +144,20 @@ const VendorSettings = () => {
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     Enter in international format without + (e.g., 254712345678 for Kenya)
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="mpesa_number">M-Pesa Number (for Payouts) *</Label>
+                  <Input
+                    id="mpesa_number"
+                    type="tel"
+                    placeholder="254712345678"
+                    value={formData.mpesa_number}
+                    onChange={(e) => setFormData({ ...formData, mpesa_number: e.target.value })}
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Your sales payouts (90% of order value) will be sent to this M-Pesa number
                   </p>
                 </div>
 
@@ -193,8 +215,22 @@ const VendorSettings = () => {
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full" disabled={saving}>
-                  {saving ? "Saving..." : "Save Settings"}
+
+                <Button
+                  type="submit"
+                  className={`w-full transition-all ${saveSuccess ? 'bg-green-600 hover:bg-green-600' : ''}`}
+                  disabled={saving}
+                >
+                  {saveSuccess ? (
+                    <>
+                      <Check className="mr-2 h-4 w-4" />
+                      Saved!
+                    </>
+                  ) : saving ? (
+                    "Saving..."
+                  ) : (
+                    "Save Settings"
+                  )}
                 </Button>
               </form>
             </CardContent>

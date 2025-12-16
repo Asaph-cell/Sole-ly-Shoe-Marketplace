@@ -22,6 +22,7 @@ const VendorRegistration = () => {
   const [selectedAddress, setSelectedAddress] = useState("");
   const [formData, setFormData] = useState({
     phone: "",
+    mpesaNumber: "",
     storeName: "",
     storeDescription: "",
     addressLine1: "",
@@ -71,8 +72,8 @@ const VendorRegistration = () => {
       return;
     }
 
-    if (!formData.phone || !formData.storeName || !formData.addressLine1 || !formData.city) {
-      toast.error("Please fill in all required fields");
+    if (!formData.phone || !formData.mpesaNumber || !formData.storeName || !formData.addressLine1 || !formData.city) {
+      toast.error("Please fill in all required fields (Phone, M-Pesa, Store Name, Location)");
       return;
     }
 
@@ -89,6 +90,7 @@ const VendorRegistration = () => {
         .from("profiles")
         .update({
           whatsapp_number: formData.phone,
+          mpesa_number: formData.mpesaNumber,
           store_name: formData.storeName,
           store_description: formData.storeDescription || null,
           vendor_city: formData.city,
@@ -166,6 +168,20 @@ const VendorRegistration = () => {
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   This will be used for customer communication and order notifications
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="mpesaNumber">M-Pesa Number (for Payouts) *</Label>
+                <Input
+                  id="mpesaNumber"
+                  type="tel"
+                  placeholder="254700000000"
+                  value={formData.mpesaNumber}
+                  onChange={handleInputChange("mpesaNumber")}
+                  required
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                   <strong>Required:</strong> This M-Pesa number will receive your sales payouts (90% of order value). Must be a valid Kenyan M-Pesa number.
                 </p>
               </div>
 
