@@ -9,13 +9,10 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin, Loader2 } from "lucide-react";
+import { getDeliveryZoneInfo } from "@/utils/deliveryPricing";
 
 const LOCATIONIQ_API_KEY = import.meta.env.VITE_LOCATIONIQ_API_KEY;
 const LOCATIONIQ_AUTOCOMPLETE_URL = "https://api.locationiq.com/v1/autocomplete";
-
-// Delivery fee zones
-const ZONE_1_FEE = 200; // Nairobi
-const ZONE_2_FEE = 300; // Outside Nairobi
 
 interface LocationIQAddress {
     city?: string;
@@ -146,20 +143,22 @@ export function AddressAutocomplete({
         }, 300);
     };
 
-    // Detect if address is in Nairobi
-    const isNairobiAddress = (address: LocationIQAddress): boolean => {
-        const fieldsToCheck = [address.state, address.county, address.city, address.suburb];
-        return fieldsToCheck.some(field =>
-            field?.toLowerCase().includes("nairobi")
-        );
-    };
-
     // Handle suggestion selection
     const handleSelectSuggestion = (suggestion: LocationIQSuggestion) => {
         const address = suggestion.address;
-        const isNairobi = isNairobiAddress(address);
-        const zone: 1 | 2 = isNairobi ? 1 : 2;
-        const deliveryFee = isNairobi ? ZONE_1_FEE : ZONE_2_FEE;
+
+        // Use smart delivery pricing to calculate fee
+        // Note: vendorCounty is null here since we don't have vendor context in this component
+        // The actual smart calculation happens in Checkout when vendor location is known
+        // Here we show an approximation based on buyer location only
+        const zoneInfo = getDeliveryZoneInfo({
+            vendorCounty: null, // Will be calculated in Checkout
+            buyerCounty: address.county || address.state || "",
+            isPickup: false,
+        });
+
+        const zone: 1 | 2 = zoneInfo.zone === 1 ? 1 : 2;
+        const deliveryFee = zoneInfo.fee;
 
         // Build address line 1 from components
         let addressLine1 = "";
@@ -237,7 +236,15 @@ export function AddressAutocomplete({
             {showDropdown && suggestions.length > 0 && (
                 <div className="absolute z-50 w-full mt-1 bg-background border rounded-lg shadow-lg max-h-60 overflow-auto">
                     {suggestions.map((suggestion) => {
-                        const isNairobi = isNairobiAddress(suggestion.address);
+                        // Use smart pricing to determine zone display
+                        const zoneInfo = getDeliveryZoneInfo({
+                            vendorCounty: null,
+                            buyerCounty: suggestion.address.county || suggestion.address.state || "",
+                            isPickup: false,
+                        });
+                        const isNairobiMetro = zoneInfo.zone === 1;
+                        const zoneLabel = isNairobiMetro ? "Nairobi Metro" : "Outside Nairobi";
+
                         return (
                             <button
                                 key={suggestion.place_id}
@@ -250,11 +257,11 @@ export function AddressAutocomplete({
                                         <p className="font-medium text-sm truncate">{suggestion.display_place}</p>
                                         <p className="text-xs text-muted-foreground truncate">{suggestion.display_address}</p>
                                     </div>
-                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${isNairobi
-                                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                                            : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${isNairobiMetro
+                                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                        : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
                                         }`}>
-                                        {isNairobi ? "Nairobi" : "Outside Nairobi"}
+                                        {zoneLabel}
                                     </span>
                                 </div>
                             </button>
@@ -264,7 +271,7 @@ export function AddressAutocomplete({
             )}
 
             <p className="text-xs text-muted-foreground mt-1.5">
-                Type at least 3 characters to search. Delivery fee: Nairobi KES 200, Outside KES 300
+                Type at least 3 characters to search. Delivery fees calculated based on location.
             </p>
         </div>
     );
