@@ -86,7 +86,24 @@ const Terms = () => {
                             </section>
 
                             <section>
-                                <h3 className="text-xl font-semibold mb-3">4. Delivery Confirmation</h3>
+                                
+                            <section>
+                                <h3 className="text-xl font-semibold mb-3">3.5. Delivery Fees</h3>
+                                <p className="text-muted-foreground mb-3">
+                                    Delivery fees are calculated automatically based on metro-area zones:
+                                </p>
+                                <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                                    <li><strong>Same Metro Area (KES 200):</strong> Deliveries within the same metropolitan area (e.g., Nairobi Metro includes Nairobi, Kiambu, Machakos, Kajiado)</li>
+                                    <li><strong>Inter-City (KES 400):</strong> Deliveries between different major cities (e.g., Nairobi to Mombasa, Nakuru to Kisumu)</li>
+                                    <li><strong>Distant Delivery (KES 500):</strong> Deliveries to/from smaller towns or remote locations</li>
+                                    <li><strong>Pickup (KES 0):</strong> No delivery fee when you collect directly from the vendor</li>
+                                </ul>
+                                <p className="text-muted-foreground mt-3">
+                                    <strong>Note:</strong> The delivery fee is paid by you   (the buyer) but the vendor is responsible for arranging and paying for actual delivery services using this amount.
+                                </p>
+                            </section>
+
+<h3 className="text-xl font-semibold mb-3">4. Delivery Confirmation</h3>
                                 <p className="text-muted-foreground mb-3">
                                     When your order arrives, you must:
                                 </p>
@@ -190,7 +207,8 @@ const Terms = () => {
                                     <li>Solely charges a <strong>10% commission</strong> on each completed sale</li>
                                     <li>Payments are held in escrow until the buyer confirms delivery</li>
                                     <li>Funds are released within <strong>24-48 hours</strong> after buyer confirmation</li>
-                                    <li>Payouts are processed to your registered M-Pesa or bank account</li>
+                                    <li><strong>Required:</strong> You must provide a valid M-Pesa number to receive payouts</li>
+                                    <li>Payouts are sent via M-Pesa B2C to your registered number (bank account option coming soon)</li>
                                     <li>Commission is deducted before payout</li>
                                 </ul>
                             </section>
