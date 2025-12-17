@@ -121,9 +121,17 @@ const VendorOrders = () => {
           .reduce((sum: number, p: any) => sum + Number(p.amount_ksh || 0), 0);
 
         // Order must have at least one captured payment and payment >= total
-        // Also include orders that are already processed (shipped, delivered, completed)
+        // Also include orders that are waiting for vendor action or already processed
         const isFullyPaid = totalPaid >= order.total_ksh;
-        const isProcessedOrder = ["arrived", "delivered", "completed", "disputed", "refunded"].includes(order.status);
+        const isProcessedOrder = [
+          "pending_vendor_confirmation",  // Waiting for vendor to accept
+          "accepted",                      // Accepted, ready to ship
+          "arrived",                       // Shipped/delivered
+          "delivered",
+          "completed",
+          "disputed",
+          "refunded"
+        ].includes(order.status);
 
         return isFullyPaid || isProcessedOrder;
       });
