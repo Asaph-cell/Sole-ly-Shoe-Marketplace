@@ -151,6 +151,7 @@ serve(async (req) => {
             }
 
 
+
             // Notify vendor about new order
             try {
                 const { data: orderWithVendor } = await supabase
@@ -160,19 +161,28 @@ serve(async (req) => {
                     .single();
 
                 if (orderWithVendor) {
-                    const notifyResult = await supabase.functions.invoke('notify-vendor-new-order', {
-                        body: {
+                    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+                    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+                    const notifyResponse = await fetch(`${supabaseUrl}/functions/v1/notify-vendor-new-order`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${serviceKey}`,
+                        },
+                        body: JSON.stringify({
                             orderId,
                             vendorId: orderWithVendor.vendor_id,
                             totalKsh: orderWithVendor.total_ksh,
-                        },
+                        }),
                     });
 
-                    if (notifyResult.error) {
-                        console.error('Vendor notification FAILED:', notifyResult.error);
-                        // Still continue - don't block payment processing
+                    if (!notifyResponse.ok) {
+                        const errorText = await notifyResponse.text();
+                        console.error('Vendor notification FAILED:', notifyResponse.status, errorText);
                     } else {
-                        console.log('Vendor notification sent successfully:', notifyResult.data);
+                        const result = await notifyResponse.json();
+                        console.log('Vendor notification sent successfully:', result);
                     }
                 }
             } catch (notifyErr) {
@@ -189,19 +199,30 @@ serve(async (req) => {
                     .single();
 
                 if (orderWithCustomer) {
-                    const buyerNotifyResult = await supabase.functions.invoke('notify-buyer-order-placed', {
-                        body: { orderId },
+                    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+                    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+                    const buyerResponse = await fetch(`${supabaseUrl}/functions/v1/notify-buyer-order-placed`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${serviceKey}`,
+                        },
+                        body: JSON.stringify({ orderId }),
                     });
 
-                    if (buyerNotifyResult.error) {
-                        console.error('Buyer notification FAILED:', buyerNotifyResult.error);
+                    if (!buyerResponse.ok) {
+                        const errorText = await buyerResponse.text();
+                        console.error('Buyer notification FAILED:', buyerResponse.status, errorText);
                     } else {
-                        console.log('Buyer order confirmation sent successfully');
+                        const result = await buyerResponse.json();
+                        console.log('Buyer order confirmation sent successfully:', result);
                     }
                 }
             } catch (buyerNotifyErr) {
                 console.error('Buyer notification error:', buyerNotifyErr);
             }
+
 
 
         } else if (pesapal.isPaymentFailed(transactionStatus)) {
