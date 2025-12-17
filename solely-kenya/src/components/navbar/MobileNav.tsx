@@ -21,7 +21,7 @@ export const MobileNav = ({ navLinks, user, isVendor, isVendorPage, onLogout, ca
   const supportEmail = "Solely.kenya@gmail.com";
   return (
     <Sheet>
-      <SheetTrigger asChild className="md:hidden">
+      <SheetTrigger asChild>
         <Button variant="ghost" size="icon">
           <Menu className="h-6 w-6" />
         </Button>
@@ -78,10 +78,10 @@ export const MobileNav = ({ navLinks, user, isVendor, isVendorPage, onLogout, ca
                       My Purchases
                     </Link>
                   </Button>
-                <Button variant="outline" size="sm" onClick={onLogout}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </Button>
+                  <Button variant="outline" size="sm" onClick={onLogout}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </Button>
                 </>
               ) : (
                 <>

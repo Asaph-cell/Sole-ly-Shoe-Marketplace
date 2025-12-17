@@ -92,15 +92,17 @@ const Navbar = () => {
             />
           </div>
 
-          {/* Mobile Navigation */}
-          <MobileNav
-            navLinks={navLinks}
-            user={user}
-            isVendor={isVendor}
-            isVendorPage={isVendorPage}
-            onLogout={handleLogout}
-            cartCount={totalQuantity}
-          />
+          {/* Mobile Navigation - pushed to right */}
+          <div className="md:hidden ml-auto">
+            <MobileNav
+              navLinks={navLinks}
+              user={user}
+              isVendor={isVendor}
+              isVendorPage={isVendorPage}
+              onLogout={handleLogout}
+              cartCount={totalQuantity}
+            />
+          </div>
         </div>
       </div>
     </nav>

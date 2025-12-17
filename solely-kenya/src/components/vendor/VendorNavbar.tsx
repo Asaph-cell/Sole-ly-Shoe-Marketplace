@@ -54,7 +54,7 @@ export const VendorNavbar = () => {
             <img src={logo} alt="Solely Marketplace" className="h-8 sm:h-10 w-auto" />
           </Link>
 
-          <div className="flex items-center gap-2 sm:gap-4 shrink-0 flex-nowrap">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0 flex-nowrap ml-auto">
             {isAdmin && (
               <Link to="/admin/dashboard">
                 <Badge variant="secondary" className="gap-1 cursor-pointer hover:bg-secondary/80 transition-colors text-xs sm:text-sm">
@@ -68,8 +68,8 @@ export const VendorNavbar = () => {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-10 sm:w-10">
-                  <User className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-10 sm:w-10 shrink-0">
+                  <User className="h-5 w-5 text-foreground" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
