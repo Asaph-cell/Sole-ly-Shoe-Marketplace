@@ -28,6 +28,7 @@ interface OrderConfirmationModalProps {
     vendorId: string;
     customerId: string;
     onSuccess: () => void;
+    isPickup?: boolean;
 }
 
 const disputeReasons = [
@@ -44,6 +45,7 @@ export const OrderConfirmationModal = ({
     vendorId,
     customerId,
     onSuccess,
+    isPickup = false,
 }: OrderConfirmationModalProps) => {
     const [step, setStep] = useState<"choice" | "satisfied" | "issue">("choice");
     const [rating, setRating] = useState(0);
@@ -53,6 +55,8 @@ export const OrderConfirmationModal = ({
     const [issueDescription, setIssueDescription] = useState("");
     const [submitting, setSubmitting] = useState(false);
 
+    const [evidenceFiles, setEvidenceFiles] = useState<File[]>([]);
+
     const resetForm = () => {
         setStep("choice");
         setRating(0);
@@ -60,6 +64,7 @@ export const OrderConfirmationModal = ({
         setFeedback("");
         setIssueReason("");
         setIssueDescription("");
+        setEvidenceFiles([]);
     };
 
     const handleClose = () => {
@@ -117,6 +122,30 @@ export const OrderConfirmationModal = ({
 
         setSubmitting(true);
         try {
+            // 0. Upload Evidence
+            const uploadedUrls: string[] = [];
+            if (evidenceFiles.length > 0) {
+                for (const file of evidenceFiles) {
+                    const fileName = `buyer/${orderId}/${Date.now()}-${file.name}`;
+                    const { data: uploadData, error: uploadError } = await supabase.storage
+                        .from("dispute-evidence")
+                        .upload(fileName, file);
+
+                    if (uploadError) {
+                        console.warn("Upload error:", uploadError);
+                        // Convert specific errors to helpful messages
+                        if (uploadError.message === "The resource was not found") {
+                            throw new Error("Storage bucket 'dispute-evidence' not found. Please contact support.");
+                        }
+                    } else if (uploadData) {
+                        const { data: urlData } = supabase.storage
+                            .from("dispute-evidence")
+                            .getPublicUrl(uploadData.path);
+                        uploadedUrls.push(urlData.publicUrl);
+                    }
+                }
+            }
+
             // 1. Create dispute
             const { error: disputeError } = await supabase
                 .from("disputes")
@@ -127,6 +156,7 @@ export const OrderConfirmationModal = ({
                     reason: issueReason as "no_delivery" | "wrong_item" | "damaged" | "other",
                     description: issueDescription,
                     status: "open",
+                    evidence_urls: uploadedUrls.length > 0 ? uploadedUrls : null
                 });
 
             if (disputeError) throw disputeError;
@@ -220,31 +250,33 @@ export const OrderConfirmationModal = ({
 
                 {/* Step 1: Choice */}
                 {step === "choice" && (
-                    <div className="space-y-4 py-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
                         <Button
                             variant="outline"
-                            className="w-full h-auto py-4 flex flex-col items-start gap-2 border-green-500/50 hover:bg-green-50 hover:border-green-500"
+                            className="h-auto py-4 px-4 flex flex-col items-start gap-2 border-green-500/50 hover:bg-green-50 hover:border-green-500 whitespace-normal text-left"
                             onClick={() => setStep("satisfied")}
                         >
-                            <div className="flex items-center gap-2 text-green-600">
-                                <CheckCircle className="h-5 w-5" />
-                                <span className="font-semibold">Everything is Good!</span>
+                            <div className="flex items-center gap-2 text-green-600 mb-1">
+                                <CheckCircle className="h-5 w-5 flex-shrink-0" />
+                                <span className="font-semibold">{isPickup ? "Confirm Pickup" : "Everything is Good!"}</span>
                             </div>
-                            <span className="text-sm text-muted-foreground text-left">
-                                I received my order and I'm satisfied. Release payment to vendor.
+                            <span className="text-sm text-muted-foreground leading-snug">
+                                {isPickup
+                                    ? "I have collected my order and checked it. Release payment to vendor."
+                                    : "I received my order and I'm satisfied. Release payment to vendor."}
                             </span>
                         </Button>
 
                         <Button
                             variant="outline"
-                            className="w-full h-auto py-4 flex flex-col items-start gap-2 border-red-500/50 hover:bg-red-50 hover:border-red-500"
+                            className="h-auto py-4 px-4 flex flex-col items-start gap-2 border-red-500/50 hover:bg-red-50 hover:border-red-500 whitespace-normal text-left"
                             onClick={() => setStep("issue")}
                         >
-                            <div className="flex items-center gap-2 text-red-600">
-                                <AlertTriangle className="h-5 w-5" />
+                            <div className="flex items-center gap-2 text-red-600 mb-1">
+                                <AlertTriangle className="h-5 w-5 flex-shrink-0" />
                                 <span className="font-semibold">I Have an Issue</span>
                             </div>
-                            <span className="text-sm text-muted-foreground text-left">
+                            <span className="text-sm text-muted-foreground leading-snug">
                                 The order has problems. I want to report and request a refund.
                             </span>
                         </Button>
@@ -314,12 +346,49 @@ export const OrderConfirmationModal = ({
                         <div>
                             <Label htmlFor="issueDesc">Describe the issue *</Label>
                             <Textarea
+                                <Textarea
                                 id="issueDesc"
                                 placeholder="Please provide details about the problem..."
                                 value={issueDescription}
                                 onChange={(e) => setIssueDescription(e.target.value)}
                                 rows={4}
                             />
+                        </div>
+
+                        {/* Evidence Upload Section */}
+                        <div>
+                            <Label htmlFor="evidence">Upload Evidence (Optional)</Label>
+                            <p className="text-xs text-muted-foreground mb-2">
+                                Photos of the item, packaging, etc.
+                            </p>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => document.getElementById('evidence-upload')?.click()}
+                                >
+                                    <Upload className="h-4 w-4 mr-2" />
+                                    Choose Files
+                                </Button>
+                                <input
+                                    id="evidence-upload"
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    className="hidden"
+                                    onChange={(e) => {
+                                        if (e.target.files) {
+                                            setEvidenceFiles(Array.from(e.target.files));
+                                        }
+                                    }}
+                                />
+                                <span className="text-xs text-muted-foreground">
+                                    {evidenceFiles.length > 0
+                                        ? `${evidenceFiles.length} file(s) selected`
+                                        : "No files selected"}
+                                </span>
+                            </div>
                         </div>
 
                         <div>

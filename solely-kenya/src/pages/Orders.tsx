@@ -571,6 +571,7 @@ const Orders = () => {
           vendorId={selectedOrderForConfirmation.vendor_id}
           customerId={user.id}
           onSuccess={handleConfirmationSuccess}
+          isPickup={(selectedOrderForConfirmation.order_shipping_details as any)?.delivery_type === 'pickup'}
         />
       )}
 
