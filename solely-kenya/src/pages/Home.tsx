@@ -12,6 +12,7 @@ import ParallaxHero from "@/components/ParallaxHero";
 import { CATEGORIES, MAIN_CATEGORIES, OTHER_CATEGORIES } from "@/lib/categories";
 import { MoreHorizontal } from "lucide-react";
 import { PendingOrdersBanner } from "@/components/vendor/PendingOrdersBanner";
+import { ChristmasAnimation } from "@/components/ChristmasAnimation";
 
 const Home = () => {
   const { isVendor } = useAuth();
