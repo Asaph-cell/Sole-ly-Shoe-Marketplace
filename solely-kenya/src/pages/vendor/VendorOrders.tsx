@@ -50,6 +50,7 @@ const VendorOrders = () => {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [shippingNotes, setShippingNotes] = useState<Record<string, { courier: string; tracking: string; notes: string }>>({});
+  const [personalDelivery, setPersonalDelivery] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [orderToDecline, setOrderToDecline] = useState<OrderRecord | null>(null);
@@ -367,13 +368,19 @@ const VendorOrders = () => {
 
   const handleMarkShipped = async (order: OrderRecord) => {
     const shipping = shippingNotes[order.id] ?? { courier: "", tracking: "", notes: "" };
-    if (!shipping.courier || !shipping.tracking) {
-      toast.error("Provide courier name and tracking number");
-      return;
+    const isPickup = order.order_shipping_details?.delivery_type === "pickup";
+    const isPersonal = personalDelivery[order.id] ?? false;
+
+    // Validate courier details only if it's NOT a pickup and NOT a personal delivery
+    if (!isPickup && !isPersonal) {
+      if (!shipping.courier || !shipping.tracking) {
+        toast.error("Provide courier name and tracking number");
+        return;
+      }
     }
 
     // Check if delivery fee is required and if it's been paid
-    const isPickup = order.order_shipping_details?.delivery_type === "pickup";
+    // Pickup orders are exempt from delivery fee checks here (usually 0 anyway)
     if (!isPickup && order.shipping_fee_ksh > 0) {
       // Check for pending delivery fee payments
       const { data: payments, error: paymentsError } = await supabase
@@ -412,17 +419,28 @@ const VendorOrders = () => {
 
     setSaving(true);
     const now = new Date();
-    const isPickupOrder = order.order_shipping_details?.delivery_type === 'pickup';
     // For delivery orders: 24 hours after marked arrived
     // For pickup orders: no auto-release timer (buyer verifies at their own pace)
-    const autoRelease = isPickupOrder ? null : new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const autoRelease = isPickup ? null : new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+    // Determine final courier details
+    let courierName = shipping.courier;
+    let trackingNumber = shipping.tracking;
+
+    if (isPickup) {
+      courierName = "Customer Pickup";
+      trackingNumber = "N/A";
+    } else if (isPersonal) {
+      courierName = "Personal Delivery (Vendor)";
+      trackingNumber = "Self-Delivered";
+    }
 
     try {
       const { error: shippingError } = await supabase
         .from("order_shipping_details")
         .update({
-          courier_name: shipping.courier,
-          tracking_number: shipping.tracking,
+          courier_name: courierName,
+          tracking_number: trackingNumber,
           delivery_notes: shipping.notes || order.order_shipping_details?.delivery_notes || null,
         })
         .eq("order_id", order.id);
@@ -441,7 +459,11 @@ const VendorOrders = () => {
         body: { orderId: order.id },
       }).catch(err => console.log("Buyer shipment notification failed (non-critical):", err));
 
-      toast.success("Order marked as arrived. Buyer has 24 hours to verify.");
+      const successMsg = isPickup
+        ? "Order ready for pickup! Notification sent to buyer."
+        : "Order marked as arrived. Buyer has 24 hours to verify.";
+
+      toast.success(successMsg);
     } catch (error) {
       console.error(error);
       toast.error("Failed to update shipment");
@@ -671,53 +693,88 @@ const VendorOrders = () => {
                           </div>
                         )}
                         <div className="flex items-center justify-between mb-2">
-                          <p className="font-semibold">Ship the order</p>
+                          <p className="font-semibold">
+                            {order.order_shipping_details?.delivery_type === "pickup" ? "Ready for Pickup" : "Ship the order"}
+                          </p>
                           <p className="text-sm text-muted-foreground">
                             Final price: KES {order.total_ksh.toLocaleString()} (Product: KES {order.subtotal_ksh.toLocaleString()} + Delivery: KES {order.shipping_fee_ksh.toLocaleString()})
                           </p>
                         </div>
-                        <p className="text-xs text-muted-foreground mb-3">
-                          💰 <strong>Delivery Fee Included:</strong> The buyer has paid KES {order.shipping_fee_ksh.toLocaleString()} for delivery (included in your payout of KES {order.total_ksh.toLocaleString()}). Use this amount to arrange and pay for delivery to the customer. Solely does not handle delivery logistics.
-                        </p>
-                        <p className="text-xs text-muted-foreground mb-3">
-                          <strong>Note:</strong> Commission ({order.commission_rate}%) is calculated from product price only (KES {order.subtotal_ksh.toLocaleString()}), not including delivery fees.
-                        </p>
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor={`courier-${order.id}`}>Courier service</Label>
-                            <Input
-                              id={`courier-${order.id}`}
-                              placeholder="e.g. Wells Fargo, G4S, DHL"
-                              value={shippingNotes[order.id]?.courier ?? ""}
-                              onChange={(event) => handleFieldChange(order.id, "courier", event.target.value)}
-                            />
+                        {order.order_shipping_details?.delivery_type !== "pickup" && (
+                          <div className="mb-4">
+                            <p className="text-xs text-muted-foreground mb-3">
+                              💰 <strong>Delivery Fee Included:</strong> The buyer has paid KES {order.shipping_fee_ksh.toLocaleString()} for delivery (included in your payout). Use this amount to arrange delivery.
+                            </p>
+
+                            <div className="flex items-center space-x-2 mb-4">
+                              <input
+                                type="checkbox"
+                                id={`personal-delivery-${order.id}`}
+                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                checked={personalDelivery[order.id] ?? false}
+                                onChange={(e) => setPersonalDelivery(prev => ({ ...prev, [order.id]: e.target.checked }))}
+                              />
+                              <Label htmlFor={`personal-delivery-${order.id}`} className="cursor-pointer">
+                                I will deliver this myself (Personal Delivery)
+                              </Label>
+                            </div>
                           </div>
-                          <div className="space-y-2">
-                            <Label htmlFor={`tracking-${order.id}`}>Tracking number</Label>
-                            <Input
-                              id={`tracking-${order.id}`}
-                              placeholder="Courier tracking number"
-                              value={shippingNotes[order.id]?.tracking ?? ""}
-                              onChange={(event) => handleFieldChange(order.id, "tracking", event.target.value)}
-                            />
+                        )}
+
+                        {order.order_shipping_details?.delivery_type === "pickup" ? (
+                          <div className="mb-4 p-3 bg-green-50 dark:bg-green-950/20 rounded border border-green-200 dark:border-green-800">
+                            <p className="text-sm font-medium text-green-900 dark:text-green-100">
+                              Pickup Order
+                            </p>
+                            <p className="text-xs text-green-800 dark:text-green-200 mt-1">
+                              You don't need to enter courier details. Just click the button below when the item is ready for the customer to collect.
+                            </p>
                           </div>
-                          <div className="space-y-2 md:col-span-2">
-                            <Label htmlFor={`notes-${order.id}`}>Seller notes (optional)</Label>
-                            <Textarea
-                              id={`notes-${order.id}`}
-                              placeholder="Add details the buyer should know"
-                              value={shippingNotes[order.id]?.notes ?? ""}
-                              onChange={(event) => handleFieldChange(order.id, "notes", event.target.value)}
-                            />
+                        ) : null}
+
+                        {!(personalDelivery[order.id] ?? false) && order.order_shipping_details?.delivery_type !== "pickup" && (
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor={`courier-${order.id}`}>Courier service</Label>
+                              <Input
+                                id={`courier-${order.id}`}
+                                placeholder="e.g. Wells Fargo, G4S, DHL"
+                                value={shippingNotes[order.id]?.courier ?? ""}
+                                onChange={(event) => handleFieldChange(order.id, "courier", event.target.value)}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor={`tracking-${order.id}`}>Tracking number</Label>
+                              <Input
+                                id={`tracking-${order.id}`}
+                                placeholder="Courier tracking number"
+                                value={shippingNotes[order.id]?.tracking ?? ""}
+                                onChange={(event) => handleFieldChange(order.id, "tracking", event.target.value)}
+                              />
+                            </div>
                           </div>
+                        )}
+
+                        <div className="space-y-2 mt-4">
+                          <Label htmlFor={`notes-${order.id}`}>Seller notes (optional)</Label>
+                          <Textarea
+                            id={`notes-${order.id}`}
+                            placeholder={order.order_shipping_details?.delivery_type === "pickup" ? "e.g. 'Ready at front desk', 'Call when near'" : "Add details the buyer should know"}
+                            value={shippingNotes[order.id]?.notes ?? ""}
+                            onChange={(event) => handleFieldChange(order.id, "notes", event.target.value)}
+                          />
                         </div>
-                        <Button
-                          onClick={() => handleMarkShipped(order)}
-                          disabled={saving || hasPendingDeliveryFee(order)}
-                          title={hasPendingDeliveryFee(order) ? "Delivery fee payment must be completed before shipping" : ""}
-                        >
-                          {saving ? "Updating..." : "Mark as Arrived"}
-                        </Button>
+
+                        <div className="mt-4">
+                          <Button
+                            onClick={() => handleMarkShipped(order)}
+                            disabled={saving || hasPendingDeliveryFee(order)}
+                            className="w-full md:w-auto"
+                            title={hasPendingDeliveryFee(order) ? "Delivery fee payment must be completed before shipping" : ""}
+                          >
+                            {saving ? "Updating..." : order.order_shipping_details?.delivery_type === "pickup" ? "Mark as Ready for Pickup" : "Mark as Arrived / Shipped"}
+                          </Button>
+                        </div>
                         {hasPendingDeliveryFee(order) && (
                           <p className="text-xs text-muted-foreground mt-2">
                             Shipping is blocked until delivery fee payment is completed.

@@ -41,7 +41,7 @@ const ProductCard = ({
       transition={{ type: "spring", stiffness: 300 }}
     >
       <Link to={`/product/${id}`} className="group">
-        <Card className="overflow-hidden border-2 hover:shadow-hover transition-shadow duration-300 bg-card">
+        <Card className="h-full overflow-hidden border-2 hover:shadow-hover transition-shadow duration-300 bg-card flex flex-col">
           <CardContent className="p-0 relative">
             <div className="aspect-square overflow-hidden bg-muted">
               <img
@@ -63,8 +63,10 @@ const ProductCard = ({
               <Badge className="absolute top-3 right-3 bg-accent text-accent-foreground">New Arrival</Badge>
             )}
           </CardContent>
-          <CardFooter className="flex flex-col items-start gap-2 p-4">
-            {brand && <span className="text-xs text-muted-foreground uppercase tracking-wide">{brand}</span>}
+          <CardFooter className="flex flex-col items-start gap-2 p-4 flex-grow">
+            <span className="text-xs text-muted-foreground uppercase tracking-wide min-h-[1.5em] block">
+              {brand || "\u00A0"}
+            </span>
             <h3 className="font-semibold text-lg group-hover:text-primary transition-colors line-clamp-2">
               {name}
             </h3>
@@ -72,7 +74,7 @@ const ProductCard = ({
               <Star className="h-4 w-4 fill-accent text-accent" />
               <span className="text-sm font-medium">{rating}</span>
             </div>
-            <p className="text-2xl font-bold text-primary">KES {price.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-primary mt-auto pt-2">KES {price.toLocaleString()}</p>
           </CardFooter>
         </Card>
       </Link>
