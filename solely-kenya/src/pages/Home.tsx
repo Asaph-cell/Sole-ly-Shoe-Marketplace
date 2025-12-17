@@ -11,7 +11,7 @@ import FloatingShoes from "@/components/FloatingShoes";
 import ParallaxHero from "@/components/ParallaxHero";
 import { CATEGORIES, MAIN_CATEGORIES, OTHER_CATEGORIES } from "@/lib/categories";
 import { MoreHorizontal } from "lucide-react";
-import { ChristmasAnimation } from "@/components/ChristmasAnimation";
+import { PendingOrdersBanner } from "@/components/vendor/PendingOrdersBanner";
 
 const Home = () => {
   const { isVendor } = useAuth();
@@ -69,6 +69,9 @@ const Home = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden">
+      {/* Pending Orders Banner */}
+      <PendingOrdersBanner />
+
       {/* Christmas Animation */}
       <ChristmasAnimation />
 
