@@ -49,17 +49,17 @@ export const VendorNavbar = () => {
   return (
     <>
       <header className="border-b border-border bg-card">
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 flex-nowrap">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 flex-nowrap gap-2">
           <Link to="/" className="flex items-center gap-2 shrink-0">
             <img src={logo} alt="Solely Marketplace" className="h-8 sm:h-10 w-auto" />
           </Link>
 
-          <div className="flex items-center gap-2 sm:gap-4 shrink-0 flex-nowrap ml-auto">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0 flex-nowrap">
             {isAdmin && (
-              <Link to="/admin/dashboard">
-                <Badge variant="secondary" className="gap-1 cursor-pointer hover:bg-secondary/80 transition-colors text-xs sm:text-sm">
+              <Link to="/admin/dashboard" className="hidden sm:inline-flex">
+                <Badge variant="secondary" className="gap-1 cursor-pointer hover:bg-secondary/80 transition-colors text-xs">
                   <Shield className="h-3 w-3" />
-                  Admin
+                  <span className="hidden sm:inline">Admin</span>
                 </Badge>
               </Link>
             )}
@@ -68,8 +68,12 @@ export const VendorNavbar = () => {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-10 sm:w-10 shrink-0">
-                  <User className="h-5 w-5 text-foreground" />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9 sm:h-10 sm:w-10 shrink-0 border-primary/20"
+                >
+                  <User className="h-5 w-5 text-primary" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
