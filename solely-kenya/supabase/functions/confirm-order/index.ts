@@ -104,19 +104,33 @@ serve(async (req: Request) => {
 
         // D. Add Rating (Optional)
         if (rating && rating > 0) {
-            await supabase
-                .from("vendor_ratings")
-                .insert({
-                    order_id: orderId,
-                    buyer_id: user.id,
-                    vendor_id: order.vendor_id,
-                    rating,
-                    review: review || null,
-                });
+            try {
+                const { error: ratingError } = await supabase
+                    .from("vendor_ratings")
+                    .insert({
+                        order_id: orderId,
+                        buyer_id: user.id,
+                        vendor_id: order.vendor_id,
+                        rating,
+                        review: review || null,
+                    });
+
+                if (ratingError) {
+                    console.error("Failed to insert vendor rating:", ratingError);
+                } else {
+                    console.log(`Rating added for order ${orderId}: ${rating} stars`);
+                }
+            } catch (err) {
+                console.error("Exception adding vendor rating:", err);
+            }
         }
 
         return new Response(
-            JSON.stringify({ success: true, message: "Order confirmed and funds released" }),
+            JSON.stringify({
+                success: true,
+                message: "Order confirmed and funds released",
+                ratingStatus: (rating && rating > 0) ? "attempted" : "skipped"
+            }),
             { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
 

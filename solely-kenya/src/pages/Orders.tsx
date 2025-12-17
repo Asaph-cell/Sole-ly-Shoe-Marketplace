@@ -88,6 +88,7 @@ const ContactVendorButton = ({ phoneNumber, className = "" }: { phoneNumber: str
 const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   pending_vendor_confirmation: { label: "Awaiting vendor", variant: "secondary" },
   accepted: { label: "Vendor accepted", variant: "default" },
+  shipped: { label: "In Transit", variant: "default" },
   arrived: { label: "Arrived", variant: "default" },
   delivered: { label: "Delivered", variant: "default" },
   completed: { label: "Completed", variant: "default" },
@@ -468,7 +469,7 @@ const Orders = () => {
                       </div>
                     )}
                     <div className="flex flex-wrap gap-3">
-                      {order.status === "arrived" && !order.buyer_confirmed && (
+                      {(order.status === "arrived" || order.status === "shipped") && !order.buyer_confirmed && (
                         <Button size="sm" onClick={() => handleConfirmDelivery(order)}>Confirm delivery</Button>
                       )}
                       {order.status === "delivered" && !order.buyer_confirmed && (

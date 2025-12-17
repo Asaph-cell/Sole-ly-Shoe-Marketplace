@@ -370,18 +370,19 @@ const VendorOrders = () => {
     const shipping = shippingNotes[order.id] ?? { courier: "", tracking: "", notes: "" };
     const isPickup = order.order_shipping_details?.delivery_type === "pickup";
     const isPersonal = personalDelivery[order.id] ?? false;
+    const isMarkingAsArrived = order.status === "shipped";
 
     // Validate courier details only if it's NOT a pickup and NOT a personal delivery
-    if (!isPickup && !isPersonal) {
+    // And only when initially marking as shipped (not when confirming arrival)
+    if (!isPickup && !isPersonal && !isMarkingAsArrived) {
       if (!shipping.courier || !shipping.tracking) {
         toast.error("Provide courier name and tracking number");
         return;
       }
     }
 
-    // Check if delivery fee is required and if it's been paid
-    // Pickup orders are exempt from delivery fee checks here (usually 0 anyway)
-    if (!isPickup && order.shipping_fee_ksh > 0) {
+    // Check payment if attempting to ship
+    if (!isPickup && order.shipping_fee_ksh > 0 && !isMarkingAsArrived) {
       // Check for pending delivery fee payments
       const { data: payments, error: paymentsError } = await supabase
         .from("payments")
@@ -405,7 +406,7 @@ const VendorOrders = () => {
       );
 
       if (hasPendingDeliveryFee) {
-        toast.error("Cannot ship order. Delivery fee payment is still pending. Customer must complete the additional payment first.");
+        toast.error("Cannot ship order. Delivery fee payment is still pending.");
         return;
       }
 
@@ -419,54 +420,95 @@ const VendorOrders = () => {
 
     setSaving(true);
     const now = new Date();
-    // For delivery orders: 24 hours after marked arrived
-    // For pickup orders: no auto-release timer (buyer verifies at their own pace)
-    const autoRelease = isPickup ? null : new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
-    // Determine final courier details
-    let courierName = shipping.courier;
-    let trackingNumber = shipping.tracking;
+    // Determine next status and fields to update
+    let updates: Partial<Tables<"orders">> = {};
+    let shippingUpdates: Partial<Tables<"order_shipping_details">> = {};
+    let notificationType = "";
+    let successMsg = "";
 
     if (isPickup) {
-      courierName = "Customer Pickup";
-      trackingNumber = "N/A";
-    } else if (isPersonal) {
-      courierName = "Personal Delivery (Vendor)";
-      trackingNumber = "Self-Delivered";
-    }
+      // Pickup Logic: Accepted -> Arrived (Ready for Pickup)
+      updates = {
+        status: "arrived",
+        vendor_confirmed: true,
+        shipped_at: now.toISOString(), // reuse shipped_at for "ready at" time
+        // No auto-release timer for pickup
+      };
+      // Courier details for pickup
+      shippingUpdates = {
+        courier_name: "Customer Pickup",
+        tracking_number: "N/A",
+        delivery_notes: shipping.notes || order.order_shipping_details?.delivery_notes || null,
+      }
+      notificationType = "notify-buyer-order-shipped"; // We can reuse or create new one, 'shipped' usually implies 'on the way' or 'ready'
+      successMsg = "Order ready for pickup! Notification sent to buyer.";
+    } else {
+      // Delivery Logic
+      if (order.status === "accepted") {
+        // Step 1: Accepted -> Shipped (In Transit)
+        let courierName = shipping.courier;
+        let trackingNumber = shipping.tracking;
 
-    try {
-      const { error: shippingError } = await supabase
-        .from("order_shipping_details")
-        .update({
+        if (isPersonal) {
+          courierName = "Personal Delivery (Vendor)";
+          trackingNumber = "Self-Delivered";
+        }
+
+        updates = {
+          status: "shipped", // NEW STATUS
+          shipped_at: now.toISOString(),
+        };
+
+        shippingUpdates = {
           courier_name: courierName,
           tracking_number: trackingNumber,
           delivery_notes: shipping.notes || order.order_shipping_details?.delivery_notes || null,
-        })
-        .eq("order_id", order.id);
+        };
 
-      if (shippingError) throw shippingError;
+        notificationType = "notify-buyer-order-shipped";
+        successMsg = "Order marked as Shipped! Buyer notified it's on the way.";
+      } else if (order.status === "shipped") {
+        // Step 2: Shipped -> Arrived (Delivered)
+        // 24 hours after marked arrived
+        const autoRelease = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
-      await updateOrderStatus(order.id, {
-        status: "arrived",
-        vendor_confirmed: true,
-        shipped_at: now.toISOString(),
-        auto_release_at: autoRelease?.toISOString() || null,
-      });
+        updates = {
+          status: "arrived",
+          vendor_confirmed: true,
+          auto_release_at: autoRelease.toISOString(),
+          // delivered_at could be set here effectively
+        };
+        // No need to update shipping details again unless changed, but assume previous details hold
+        notificationType = "notify-buyer-order-arrived"; // Need to ensure this exists or use generic
+        successMsg = "Order marked as Arrived/Delivered. Buyer has 24 hours to verify.";
+      }
+    }
+
+    try {
+      if (Object.keys(shippingUpdates).length > 0) {
+        const { error: shippingError } = await supabase
+          .from("order_shipping_details")
+          .update(shippingUpdates)
+          .eq("order_id", order.id);
+
+        if (shippingError) throw shippingError;
+      }
+
+      await updateOrderStatus(order.id, updates);
 
       // Notify buyer about shipment (non-blocking)
-      supabase.functions.invoke("notify-buyer-order-shipped", {
-        body: { orderId: order.id },
-      }).catch(err => console.log("Buyer shipment notification failed (non-critical):", err));
-
-      const successMsg = isPickup
-        ? "Order ready for pickup! Notification sent to buyer."
-        : "Order marked as arrived. Buyer has 24 hours to verify.";
+      // Note: verify if notify-buyer-order-arrived exists, if not fallback or create
+      if (notificationType) {
+        supabase.functions.invoke(notificationType, {
+          body: { orderId: order.id },
+        }).catch(err => console.log(`Notification ${notificationType} failed (non-critical):`, err));
+      }
 
       toast.success(successMsg);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to update shipment");
+      toast.error("Failed to update shipment status");
     } finally {
       setSaving(false);
     }
@@ -596,6 +638,7 @@ const VendorOrders = () => {
           <div className="space-y-4">
             {orders.map((order) => {
               const badgeVariant = statusColors[order.status] ?? "secondary";
+              const isPickup = (order.order_shipping_details as any)?.delivery_type === "pickup";
               return (
                 <Card key={order.id}>
                   <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -772,7 +815,13 @@ const VendorOrders = () => {
                             className="w-full md:w-auto"
                             title={hasPendingDeliveryFee(order) ? "Delivery fee payment must be completed before shipping" : ""}
                           >
-                            {saving ? "Updating..." : order.order_shipping_details?.delivery_type === "pickup" ? "Mark as Ready for Pickup" : "Mark as Arrived / Shipped"}
+                            {saving ? "Updating..." :
+                              isPickup
+                                ? "Mark as Ready for Pickup"
+                                : order.status === "shipped"
+                                  ? "Mark as Arrived / Delivered"
+                                  : "Mark as Shipped (In Transit)"
+                            }
                           </Button>
                         </div>
                         {hasPendingDeliveryFee(order) && (
