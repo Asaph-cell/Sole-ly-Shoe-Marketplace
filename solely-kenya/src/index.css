@@ -411,16 +411,16 @@ a {
 /* Mobile-specific fixes (screens < 640px) */
 @media (max-width: 639px) {
 
-  /* Force flex containers to wrap */
-  .flex {
-    flex-wrap: wrap !important;
+  /* Force flex containers to wrap - but respect explicit flex-nowrap */
+  .flex:not(.flex-nowrap):not([class*="flex-nowrap"]) {
+    flex-wrap: wrap;
   }
 
-  /* Force buttons and inputs to full width when stacked */
-  .flex button,
-  .flex input[type="submit"],
-  .flex input[type="button"],
-  .flex .btn {
+  /* Force buttons and inputs to full width when in wrapping containers */
+  .flex:not(.flex-nowrap) button:not(.shrink-0),
+  .flex:not(.flex-nowrap) input[type="submit"],
+  .flex:not(.flex-nowrap) input[type="button"],
+  .flex:not(.flex-nowrap) .btn:not(.shrink-0) {
     min-width: 100%;
     flex: 1 1 100%;
   }
@@ -456,12 +456,11 @@ a {
     overflow: hidden;
   }
 
-  /* Navigation flexbox - ensure wrapping */
-  nav .flex,
-  header .flex,
-  .navbar .flex,
-  .nav .flex {
-    flex-wrap: wrap !important;
+  /* Main content areas can wrap, but NOT navigation/header */
+  main .flex:not(.flex-nowrap),
+  section .flex:not(.flex-nowrap),
+  article .flex:not(.flex-nowrap) {
+    flex-wrap: wrap;
     gap: 0.5rem;
   }
 
