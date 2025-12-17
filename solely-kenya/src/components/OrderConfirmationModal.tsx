@@ -346,7 +346,6 @@ export const OrderConfirmationModal = ({
                         <div>
                             <Label htmlFor="issueDesc">Describe the issue *</Label>
                             <Textarea
-                                <Textarea
                                 id="issueDesc"
                                 placeholder="Please provide details about the problem..."
                                 value={issueDescription}
