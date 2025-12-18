@@ -234,6 +234,13 @@ const Orders = () => {
   };
 
   const handleConfirmationSuccess = () => {
+    // Send thank you email (non-blocking)
+    if (selectedOrderForConfirmation) {
+      supabase.functions.invoke("notify-buyer-order-completed", {
+        body: { orderId: selectedOrderForConfirmation.id },
+      }).catch(err => console.log("Order completion email failed (non-critical):", err));
+    }
+
     setConfirmationModalOpen(false);
     setSelectedOrderForConfirmation(null);
     fetchOrders();

@@ -441,7 +441,7 @@ const VendorOrders = () => {
         tracking_number: "N/A",
         delivery_notes: shipping.notes || order.order_shipping_details?.delivery_notes || null,
       }
-      notificationType = "notify-buyer-order-shipped"; // We can reuse or create new one, 'shipped' usually implies 'on the way' or 'ready'
+      notificationType = "notify-buyer-pickup-ready"; // Use specific pickup ready notification
       successMsg = "Order ready for pickup! Notification sent to buyer.";
     } else {
       // Delivery Logic
