@@ -112,6 +112,7 @@ const Orders = () => {
   const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
   const [selectedOrderForConfirmation, setSelectedOrderForConfirmation] = useState<OrderRecord | null>(null);
   const [receiptOrder, setReceiptOrder] = useState<OrderRecord | null>(null);
+  const [reviewedOrders, setReviewedOrders] = useState<Set<string>>(new Set());
 
   const fetchOrders = async () => {
     if (!user) return;
@@ -159,6 +160,20 @@ const Orders = () => {
           profilesMap[profile.id] = profile;
         });
         setVendorProfiles(profilesMap);
+      }
+    }
+
+    // Check which orders have been reviewed
+    if (data && data.length > 0 && user) {
+      const orderIds = data.map(order => order.id);
+      const { data: vendorRatings } = await supabase
+        .from("vendor_ratings")
+        .select("order_id")
+        .in("order_id", orderIds)
+        .eq("buyer_id", user.id);
+
+      if (vendorRatings) {
+        setReviewedOrders(new Set(vendorRatings.map(r => r.order_id)));
       }
     }
 
@@ -519,16 +534,23 @@ const Orders = () => {
                             <Download className="h-4 w-4 mr-1" />
                             Download Receipt
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="default"
-                            onClick={() => {
-                              setSelectedOrderForReview(order);
-                              setReviewDialogOpen(true);
-                            }}
-                          >
-                            Leave Review
-                          </Button>
+                          {reviewedOrders.has(order.id) ? (
+                            <div className="flex items-center gap-2 text-sm text-green-600">
+                              <CheckCircle className="h-4 w-4" />
+                              Thank you for your review!
+                            </div>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={() => {
+                                setSelectedOrderForReview(order);
+                                setReviewDialogOpen(true);
+                              }}
+                            >
+                              Leave Review
+                            </Button>
+                          )}
                         </>
                       )}
                       {order.status !== "disputed" && order.status !== "refunded" && order.status !== "completed" && (
@@ -555,6 +577,10 @@ const Orders = () => {
           }}
           order={selectedOrderForReview}
           onReviewSubmitted={() => {
+            // Mark this order as reviewed immediately
+            if (selectedOrderForReview) {
+              setReviewedOrders(prev => new Set(prev).add(selectedOrderForReview.id));
+            }
             fetchOrders();
           }}
         />
