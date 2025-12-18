@@ -70,7 +70,7 @@ const Terms = () => {
                                     <li><strong>Payment:</strong> When you order, your money is held in a neutral escrow account—it is not sent directly to the vendor immediately</li>
                                     <li><strong>Protection:</strong> Your funds remain secured in escrow while the vendor processes and ships your order</li>
                                     <li><strong>Release:</strong> Funds are released to the vendor only after you confirm delivery or the inspection window expires</li>
-                                    <li><strong>Accepted Payment Methods:</strong> M-Pesa (via Pesapal), Credit/Debit Cards, and Airtel Money</li>
+                                    <li><strong>Accepted Payment Methods:</strong> M-Pesa, Credit/Debit Cards, and Mobile Wallets</li>
                                 </ul>
                             </section>
 

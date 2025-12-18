@@ -23,83 +23,88 @@ serve(async (req) => {
             throw new Error('Order ID is required');
         }
 
-        console.log(`Initiating IntraSend payment for order: ${orderId}`);
+        console.log(`[IntaSend] Processing order: ${orderId}`);
 
-        // Fetch order and shipping details
+        // 1. Fetch order with customer profile
         const { data: order, error: orderError } = await supabaseClient
             .from('orders')
-            .select(`
-        *,
-        profiles:customer_id (email, full_name)
-      `)
+            .select('total_ksh, customer_id, profiles:customer_id(email, full_name)')
             .eq('id', orderId)
             .single();
 
         if (orderError || !order) {
-            console.error('Order fetch error:', orderError);
+            console.error('[IntaSend] Order not found:', orderError);
             throw new Error('Order not found');
         }
 
-        const { data: shipping, error: shippingError } = await supabaseClient
+        // 2. Fetch shipping details for phone/email
+        const { data: shipping } = await supabaseClient
             .from('order_shipping_details')
-            .select('*')
+            .select('email, phone, recipient_name')
             .eq('order_id', orderId)
             .single();
 
-        // Note: It's okay if shipping is missing or incomplete for some digital goods, 
-        // but for e-commerce, it usually exists. We use optional chaining.
+        // 3. Prepare customer data with fallbacks
+        const email = shipping?.email || order.profiles?.email || 'customer@solelyshoes.co.ke';
+        const phone = shipping?.phone || '';
+        const name = shipping?.recipient_name || order.profiles?.full_name || 'Customer';
+        const amount = Number(order.total_ksh);
 
-        // Prepare Customer Details
-        const customerEmail = shipping?.email || order.profiles?.email || 'customer@solely.co.ke';
-        const customerPhone = shipping?.phone || ''; // IntraSend requires phone usually, or optional.
-        const customerName = shipping?.recipient_name || order.profiles?.full_name || 'Valued Customer';
+        if (isNaN(amount) || amount <= 0) {
+            throw new Error(`Invalid order amount: ${order.total_ksh}`);
+        }
 
-        const [firstName, ...lastNameParts] = customerName.split(' ');
-        const lastName = lastNameParts.join(' ') || firstName; // Fallback if single name
-
-        // Payload for IntraSend Checkout API
-        const payload = {
+        // 4. Build IntaSend payload (only required fields)
+        const payload: Record<string, unknown> = {
             public_key: Deno.env.get('INTRASEND_PUBLISHABLE_KEY'),
-            amount: order.total_ksh,
-            currency: "KES",
-            email: customerEmail,
-            phone_number: customerPhone,
-            first_name: firstName,
-            last_name: lastName,
+            amount: amount,
+            currency: 'KES',
+            email: email,
             api_ref: orderId,
-            redirect_url: successUrl || cancelUrl, // IntraSend only has one redirect_url generally? 
-            // Actually, standard API has `redirect_url`. 
-            // Using `successUrl` passed from frontend is best.
-            method: "M-PESA", // Or leave empty for all. Let's leave empty to allow Card too.
+            redirect_url: successUrl || cancelUrl || 'https://solelyshoes.co.ke/orders',
         };
 
-        // Remove method to allow all
-        // @ts-ignore
-        delete payload.method;
+        // Only include phone if it looks valid (7+ digits)
+        const cleanPhone = phone.replace(/\D/g, '');
+        if (cleanPhone.length >= 7) {
+            payload.phone_number = cleanPhone;
+        }
 
-        console.log('Sending payload to IntraSend:', JSON.stringify({ ...payload, public_key: 'HIDDEN' }));
+        // Split name for first/last
+        const nameParts = name.trim().split(' ');
+        payload.first_name = nameParts[0] || 'Customer';
+        payload.last_name = nameParts.length > 1 ? nameParts.slice(1).join(' ') : 'Buyer';
 
+        console.log('[IntaSend] Sending request:', JSON.stringify({ ...payload, public_key: '[HIDDEN]' }));
+
+        // 5. Call IntaSend Checkout API
         const response = await fetch('https://payment.intasend.com/api/v1/checkout/', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
         });
 
-        const data = await response.json();
+        const responseText = await response.text();
+        console.log('[IntaSend] Raw response:', responseText);
+
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch {
+            throw new Error(`IntaSend returned invalid JSON: ${responseText.substring(0, 200)}`);
+        }
 
         if (!response.ok) {
-            console.error('IntraSend Error:', data);
-            throw new Error(`IntraSend API Error: ${JSON.stringify(data)}`);
+            const errorDetail = data?.errors?.[0]?.detail || data?.error || 'Unknown error';
+            console.error('[IntaSend] API Error:', JSON.stringify(data));
+            throw new Error(`IntaSend API Error: ${errorDetail}`);
         }
 
         if (!data.url) {
-            console.error('No URL in response:', data);
-            throw new Error('Failed to generate payment link');
+            throw new Error('IntaSend did not return a checkout URL');
         }
 
-        console.log('Payment link generated:', data.url);
+        console.log('[IntaSend] Success! URL:', data.url);
 
         return new Response(
             JSON.stringify({ success: true, url: data.url }),
@@ -107,7 +112,7 @@ serve(async (req) => {
         );
 
     } catch (error) {
-        console.error('Error:', error);
+        console.error('[IntaSend] Error:', error);
         return new Response(
             JSON.stringify({ error: error.message }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

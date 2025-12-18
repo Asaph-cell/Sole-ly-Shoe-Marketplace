@@ -285,11 +285,12 @@ const Orders = () => {
 
     setProcessingPayment(order.id);
     try {
-      // Use Pesapal for delivery fee payment
-      const { data, error } = await supabase.functions.invoke('pesapal-initiate-payment', {
+      // Use IntaSend for delivery fee payment
+      const { data, error } = await supabase.functions.invoke('intrasend-initiate-payment', {
         body: {
           orderId: order.id,
-          cancellationUrl: `${window.location.origin}/orders/${order.id}?cancelled=true`,
+          successUrl: `${window.location.origin}/orders/${order.id}?payment_success=true`,
+          cancelUrl: `${window.location.origin}/orders/${order.id}?cancelled=true`,
         }
       });
 
@@ -297,17 +298,14 @@ const Orders = () => {
         throw new Error(error.message || "Payment initiation failed");
       }
 
-      if (!data?.success || !data?.redirectUrl) {
+      if (!data?.success || !data?.url) {
         throw new Error(data?.error || "Failed to initiate payment");
       }
 
-      toast.success("Opening payment page in new tab...");
+      toast.success("Opening payment page...");
 
-      // Open Pesapal payment page in a new tab
-      // This allows the user to retry if payment fails (insufficient funds, etc.)
-      window.open(data.redirectUrl, '_blank');
-
-      toast.info("Complete payment in the new tab. If payment fails, ensure you have sufficient funds and click 'Retry Payment' again.");
+      // Redirect to IntaSend payment page
+      window.location.href = data.url;
     } catch (error) {
       console.error("Payment error:", error);
       toast.error(error instanceof Error ? error.message : "Failed to initiate payment");
