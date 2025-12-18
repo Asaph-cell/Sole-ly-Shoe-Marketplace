@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Star } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 
@@ -12,6 +13,7 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [averageRating, setAverageRating] = useState(0);
+  const [displayCount, setDisplayCount] = useState(5);
 
   useEffect(() => {
     fetchReviews();
@@ -28,7 +30,7 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
       if (error) throw error;
 
       setReviews(data || []);
-      
+
       if (data && data.length > 0) {
         const avg = data.reduce((sum, r) => sum + r.rating, 0) / data.length;
         setAverageRating(avg);
@@ -50,6 +52,9 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
     );
   }
 
+  const visibleReviews = reviews.slice(0, displayCount);
+  const hasMore = reviews.length > displayCount;
+
   return (
     <div className="space-y-4">
       {/* Average Rating Summary */}
@@ -64,11 +69,10 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star
                       key={star}
-                      className={`h-5 w-5 ${
-                        star <= Math.round(averageRating)
+                      className={`h-5 w-5 ${star <= Math.round(averageRating)
                           ? "fill-yellow-400 text-yellow-400"
                           : "text-muted-foreground"
-                      }`}
+                        }`}
                     />
                   ))}
                 </div>
@@ -89,9 +93,9 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
       </Card>
 
       {/* Reviews List */}
-      {reviews.length > 0 && (
+      {visibleReviews.length > 0 && (
         <div className="space-y-4">
-          {reviews.map((review) => (
+          {visibleReviews.map((review) => (
             <Card key={review.id}>
               <CardContent className="pt-6">
                 <div className="flex items-start justify-between mb-3">
@@ -105,11 +109,10 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
                     {[1, 2, 3, 4, 5].map((star) => (
                       <Star
                         key={star}
-                        className={`h-4 w-4 ${
-                          star <= review.rating
+                        className={`h-4 w-4 ${star <= review.rating
                             ? "fill-yellow-400 text-yellow-400"
                             : "text-muted-foreground"
-                        }`}
+                          }`}
                       />
                     ))}
                   </div>
@@ -120,6 +123,18 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
               </CardContent>
             </Card>
           ))}
+
+          {/* Load More Button */}
+          {hasMore && (
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                onClick={() => setDisplayCount(prev => prev + 5)}
+              >
+                Load More Reviews ({reviews.length - displayCount} remaining)
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

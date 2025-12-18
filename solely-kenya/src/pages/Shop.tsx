@@ -22,6 +22,8 @@ const Shop = () => {
   const [selectedCondition, setSelectedCondition] = useState("all");
   const [selectedAccessoryType, setSelectedAccessoryType] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 20;
 
   // Extract unique values from products
   const uniqueBrands = Array.from(new Set(products.map((p) => p.brand).filter(Boolean)));
@@ -53,13 +55,29 @@ const Shop = () => {
 
   const fetchProducts = async () => {
     try {
+      // Fetch products with rating aggregation
       const { data, error } = await supabase
         .from("products")
-        .select("*")
+        .select(`
+          *,
+          reviews(
+            rating
+          )
+        `)
         .eq("status", "active");
 
       if (error) throw error;
-      setProducts(data || []);
+
+      // Calculate average rating and review count for each product
+      const productsWithStats = (data || []).map(product => ({
+        ...product,
+        averageRating: product.reviews?.length > 0
+          ? product.reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / product.reviews.length
+          : null,
+        reviewCount: product.reviews?.length || 0,
+      }));
+
+      setProducts(productsWithStats);
     } catch (error) {
       console.error("Error fetching products:", error);
     } finally {
@@ -473,7 +491,7 @@ const Shop = () => {
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-                {filteredProducts.map((product) => (
+                {filteredProducts.slice(0, page * itemsPerPage).map((product) => (
                   <ProductCard
                     key={product.id}
                     id={product.id}
@@ -481,9 +499,21 @@ const Shop = () => {
                     price={product.price_ksh}
                     image={product.images?.[0] || "/placeholder.svg"}
                     brand={product.brand}
+                    averageRating={product.averageRating}
+                    reviewCount={product.reviewCount}
+                    createdAt={product.created_at}
                     condition={product.condition || "new"}
                   />
                 ))}
+              </div>
+            )}
+
+            {/* Load More Button */}
+            {filteredProducts.length > page * itemsPerPage && (
+              <div className="flex justify-center mt-8">
+                <Button onClick={() => setPage(prev => prev + 1)} variant="outline" size="lg">
+                  Load More ({filteredProducts.length - (page * itemsPerPage)} remaining)
+                </Button>
               </div>
             )}
 

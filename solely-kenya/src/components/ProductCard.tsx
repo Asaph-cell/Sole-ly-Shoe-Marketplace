@@ -11,8 +11,9 @@ interface ProductCardProps {
   price: number;
   image: string;
   brand?: string;
-  rating?: number;
-  isNew?: boolean;
+  averageRating?: number | null;
+  reviewCount?: number;
+  createdAt: string;
   condition?: "new" | "like_new" | "good" | "fair";
 }
 
@@ -29,11 +30,15 @@ const ProductCard = ({
   price,
   image,
   brand,
-  rating = 4.5,
-  isNew = false,
+  averageRating,
+  reviewCount = 0,
+  createdAt,
   condition = "new"
 }: ProductCardProps) => {
   const conditionInfo = conditionLabels[condition] || conditionLabels.new;
+
+  // Calculate if product is new (within last 30 days)
+  const isNew = (Date.now() - new Date(createdAt).getTime()) < 30 * 24 * 60 * 60 * 1000;
 
   return (
     <motion.div
@@ -71,8 +76,15 @@ const ProductCard = ({
               {name}
             </h3>
             <div className="flex items-center gap-1 mb-2">
-              <Star className="h-4 w-4 fill-accent text-accent" />
-              <span className="text-sm font-medium">{rating}</span>
+              {reviewCount > 0 && averageRating ? (
+                <>
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <span className="text-sm font-medium">{averageRating.toFixed(1)}</span>
+                  <span className="text-xs text-muted-foreground">({reviewCount})</span>
+                </>
+              ) : (
+                <span className="text-xs text-muted-foreground">No reviews yet</span>
+              )}
             </div>
             <p className="text-2xl font-bold text-primary mt-auto pt-2">KES {price.toLocaleString()}</p>
           </CardFooter>
