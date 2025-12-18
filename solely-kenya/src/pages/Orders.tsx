@@ -347,14 +347,22 @@ const Orders = () => {
               <CardTitle className="text-primary text-lg">Awaiting your confirmation</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              {upcomingActions.map((order) => (
-                <div key={order.id} className="flex items-center justify-between">
-                  <span>
-                    Order #{order.id.slice(0, 8)} arrived {order.shipped_at ? formatDistanceToNow(new Date(order.shipped_at), { addSuffix: true }) : "recently"}
-                  </span>
-                  <Button size="sm" onClick={() => handleConfirmDelivery(order)}>Confirm delivery</Button>
-                </div>
-              ))}
+              {upcomingActions.map((order) => {
+                const isPickup = (order.order_shipping_details as any)?.delivery_type === "pickup";
+                return (
+                  <div key={order.id} className="flex items-center justify-between">
+                    <span>
+                      {isPickup
+                        ? `Order #${order.id.slice(0, 8)} is ready for pickup`
+                        : `Order #${order.id.slice(0, 8)} arrived ${order.shipped_at ? formatDistanceToNow(new Date(order.shipped_at), { addSuffix: true }) : "recently"}`
+                      }
+                    </span>
+                    <Button size="sm" onClick={() => handleConfirmDelivery(order)}>
+                      {isPickup ? "Confirm Pickup" : "Confirm delivery"}
+                    </Button>
+                  </div>
+                );
+              })}
             </CardContent>
           </Card>
         )}
@@ -369,6 +377,7 @@ const Orders = () => {
             {orders.map((order) => {
               const isHighlighted = orderId && order.id === orderId;
               const status = statusLabels[order.status] ?? { label: order.status, variant: "secondary" };
+              const isPickup = (order.order_shipping_details as any)?.delivery_type === "pickup";
 
               const totalPaid = order.payments
                 ?.filter((p: any) => p.status === 'captured')
@@ -492,10 +501,14 @@ const Orders = () => {
                     )}
                     <div className="flex flex-wrap gap-3">
                       {(order.status === "arrived" || order.status === "shipped") && !order.buyer_confirmed && (
-                        <Button size="sm" onClick={() => handleConfirmDelivery(order)}>Confirm delivery</Button>
+                        <Button size="sm" onClick={() => handleConfirmDelivery(order)}>
+                          {isPickup ? "Confirm Pickup" : "Confirm delivery"}
+                        </Button>
                       )}
                       {order.status === "delivered" && !order.buyer_confirmed && (
-                        <Button size="sm" onClick={() => handleConfirmDelivery(order)}>Confirm delivery</Button>
+                        <Button size="sm" onClick={() => handleConfirmDelivery(order)}>
+                          {isPickup ? "Confirm Pickup" : "Confirm delivery"}
+                        </Button>
                       )}
                       {order.status === "completed" && (
                         <>
