@@ -133,7 +133,7 @@ export const OrderReviewDialog = ({
           }
         }) || [];
 
-      // Submit vendor rating
+      // Submit vendor rating using upsert to handle both insert and update
       const vendorRatingData = {
         vendor_id: order.vendor_id,
         buyer_id: user.id,
@@ -142,17 +142,11 @@ export const OrderReviewDialog = ({
         review: vendorReview.trim() || null,
       };
 
-      let vendorPromise;
-      if (existingReviews.vendor) {
-        // Update existing vendor rating
-        vendorPromise = supabase
-          .from("vendor_ratings")
-          .update(vendorRatingData)
-          .eq("id", existingReviews.vendor.id);
-      } else {
-        // Create new vendor rating
-        vendorPromise = supabase.from("vendor_ratings").insert(vendorRatingData);
-      }
+      const vendorPromise = supabase
+        .from("vendor_ratings")
+        .upsert(vendorRatingData, {
+          onConflict: "vendor_id,buyer_id,order_id",
+        });
 
       const results = await Promise.all([...productReviewPromises, vendorPromise]);
 
@@ -233,8 +227,8 @@ export const OrderReviewDialog = ({
                         >
                           <Star
                             className={`h-6 w-6 ${star <= (hoveredProductRating[item.product_id] || currentRating)
-                                ? "fill-yellow-400 text-yellow-400"
-                                : "text-muted-foreground"
+                              ? "fill-yellow-400 text-yellow-400"
+                              : "text-muted-foreground"
                               }`}
                           />
                         </button>
@@ -290,8 +284,8 @@ export const OrderReviewDialog = ({
                     >
                       <Star
                         className={`h-6 w-6 ${star <= (hoveredVendorRating || vendorRating)
-                            ? "fill-yellow-400 text-yellow-400"
-                            : "text-muted-foreground"
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "text-muted-foreground"
                           }`}
                       />
                     </button>
