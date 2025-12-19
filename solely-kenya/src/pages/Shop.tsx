@@ -55,26 +55,20 @@ const Shop = () => {
 
   const fetchProducts = async () => {
     try {
-      // Fetch products with rating aggregation
+      // Fetch products without reviews to avoid ambiguous relationship
       const { data, error } = await supabase
         .from("products")
-        .select(`
-          *,
-          reviews(
-            rating
-          )
-        `)
+        .select("*")
         .eq("status", "active");
 
       if (error) throw error;
 
-      // Calculate average rating and review count for each product
+      // Set products with default rating stats
+      // Note: Ratings should come from vendor_ratings table, not reviews
       const productsWithStats = (data || []).map(product => ({
         ...product,
-        averageRating: product.reviews?.length > 0
-          ? product.reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / product.reviews.length
-          : null,
-        reviewCount: product.reviews?.length || 0,
+        averageRating: null, // Can be calculated from vendor_ratings if needed
+        reviewCount: 0,
       }));
 
       setProducts(productsWithStats);

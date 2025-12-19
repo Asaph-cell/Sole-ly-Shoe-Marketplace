@@ -1,77 +1,75 @@
 # Payment Integration Setup Guide
 
-This document explains how to set up Pesapal payment integration for the Solely marketplace.
+This document explains how to set up Paystack payment integration for the Solely marketplace.
 
 ## Overview
 
 The payment system supports:
-- **Pesapal**: M-Pesa, Visa, Mastercard, Airtel Money (unified checkout)
+- **Paystack**: M-Pesa, Visa, Mastercard (unified checkout)
 - **Escrow System**: Payments are held in escrow until delivery confirmation
-- **Automatic Release**: Escrow auto-releases 3 days after shipment
+- **Automatic Release**: Escrow auto-releases based on order timeline
 - **Commission**: 10% commission automatically deducted from each sale
 
 ## Environment Variables
 
-### Pesapal Configuration
+### Paystack Configuration
 
 Add these to your Supabase Edge Functions secrets:
 
 ```bash
-PESAPAL_CONSUMER_KEY=your_consumer_key
-PESAPAL_CONSUMER_SECRET=your_consumer_secret
-PESAPAL_SANDBOX=true  # Set to 'false' for production
+PAYSTACK_SECRET_KEY=your_secret_key
+PAYSTACK_PUBLIC_KEY=your_public_key
 ```
 
-**To get your Pesapal credentials:**
-1. Sign up at https://www.pesapal.com
-2. Go to Dashboard > API Keys
-3. Copy your Consumer Key and Consumer Secret
-4. For testing, use sandbox credentials from https://developer.pesapal.com
+**To get your Paystack credentials:**
+1. Sign up at https://paystack.com
+2. Complete business verification
+3. Go to Settings > API Keys & Webhooks
+4. Copy your Public Key (pk_test_... for testing, pk_live_... for production)
+5. Copy your Secret Key (sk_test_... for testing, sk_live_... for production)
 
 ### Setting Secrets in Supabase
 
+You can set secrets via the Supabase Dashboard or CLI:
+
+**Via Dashboard:**
+1. Go to your project dashboard
+2. Navigate to Project Settings > Edge Functions
+3. Add secrets:
+   - PAYSTACK_SECRET_KEY
+   - PAYSTACK_PUBLIC_KEY
+
+**Via CLI:**
 ```bash
 cd supabase
-npx supabase secrets set PESAPAL_CONSUMER_KEY="your_key"
-npx supabase secrets set PESAPAL_CONSUMER_SECRET="your_secret"
-npx supabase secrets set PESAPAL_SANDBOX="true"
+npx supabase secrets set PAYSTACK_SECRET_KEY="sk_test_your_key"
+npx supabase secrets set PAYSTACK_PUBLIC_KEY="pk_test_your_key"
 ```
 
 ## Edge Functions
 
-### 1. pesapal-register-ipn (One-Time Setup)
-
-Registers the IPN URL with Pesapal. **Run once after deployment.**
-
-```bash
-curl -X POST https://YOUR-PROJECT.supabase.co/functions/v1/pesapal-register-ipn \
-  -H "Authorization: Bearer YOUR_SERVICE_ROLE_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"notificationType": "GET"}'
-```
-
-This saves the `ipn_id` to the database, which is required for all payments.
-
-### 2. pesapal-initiate-payment
+### 1. paystack-initiate-payment
 
 Initiates a payment and returns a redirect URL.
 
 ```javascript
-const { data } = await supabase.functions.invoke('pesapal-initiate-payment', {
-  body: { orderId: '...' }
+const { data } = await supabase.functions.invoke('paystack-initiate-payment', {
+  body: { 
+    orderId: '...', 
+    successUrl: 'https://yoursite.com/orders/123?payment_success=true',
+    cancelUrl: 'https://yoursite.com/orders/123?cancelled=true'
+  }
 });
-// Redirect user to data.redirectUrl
+// Redirect user to data.url
 ```
 
-### 3. pesapal-ipn-listener
+### 2. paystack-webhook
 
-Handles Pesapal IPN (Instant Payment Notification) callbacks. Automatically updates order/payment status.
+Handles Paystack webhook callbacks. Automatically updates order/payment status.
 
-**URL**: `https://YOUR-PROJECT.supabase.co/functions/v1/pesapal-ipn-listener`
+**URL**: `https://YOUR-PROJECT.supabase.co/functions/v1/paystack-webhook`
 
-### 4. pesapal-callback
-
-Handles user redirect after payment completion. Redirects to `/orders/{orderId}`.
+**Important**: You must configure this webhook URL in your Paystack Dashboard.
 
 ## Payment Flow
 
@@ -80,20 +78,19 @@ Handles user redirect after payment completion. Redirects to `/orders/{orderId}`
 1. Customer fills checkout form
 2. Order created with status `pending_vendor_confirmation`
 3. Payment record created with status `pending`
-4. User redirected to Pesapal checkout page
+4. User redirected to Paystack checkout page
 5. User selects payment method (M-Pesa, Card, etc.)
-6. On payment success (via IPN):
+6. On payment success (via webhook):
    - Payment status → `captured`
    - Escrow transaction created with status `held`
 7. User redirected back to order page
 
 ### Escrow Release Flow
 
-1. Vendor marks order as `shipped`
-2. `auto_release_at` set to 3 days from shipment
-3. Customer can confirm delivery (order → `completed`)
-4. If customer doesn't confirm, escrow auto-releases after 3 days
-5. On release:
+1. Vendor accepts and marks order as `shipped`
+2. Customer confirms delivery (order → `completed`)
+3. Escrow auto-releases based on timeline if customer doesn't confirm
+4. On release:
    - Escrow status → `released`
    - Payout record created
    - Commission recorded in ledger
@@ -102,15 +99,17 @@ Handles user redirect after payment completion. Redirects to `/orders/{orderId}`
 
 - **Commission Rate**: 10% of order subtotal
 - **Payout Amount**: `total - commission_amount`
-- **Pesapal Fees**: Deducted from the 10% commission
+- **Paystack Fees**: 
+  - M-Pesa: 1.5% per transaction
+  - Local cards: 2.9% per transaction
+  - International cards: 3.8% per transaction
 
 ## Database Tables
 
 | Table | Purpose |
 | --- | --- |
-| `pesapal_config` | Stores IPN ID and token cache |
 | `orders` | Order records with commission fields |
-| `payments` | Payment records (gateway = 'pesapal') |
+| `payments` | Payment records (gateway = 'paystack') |
 | `escrow_transactions` | Escrow status and amounts |
 | `payouts` | Vendor payout records |
 | `commission_ledger` | Commission transactions |
@@ -121,60 +120,120 @@ Handles user redirect after payment completion. Redirects to `/orders/{orderId}`
 
 ```bash
 cd supabase
-npx supabase functions deploy pesapal-register-ipn
-npx supabase functions deploy pesapal-initiate-payment
-npx supabase functions deploy pesapal-ipn-listener
-npx supabase functions deploy pesapal-callback
+npx supabase functions deploy paystack-initiate-payment
+npx supabase functions deploy paystack-webhook
 ```
 
 ### 2. Run Database Migration
+
+The migration `20251219_add_paystack_gateway.sql` adds 'paystack' to the payment gateway enum.
 
 ```bash
 npx supabase db push
 ```
 
-Or run the SQL in `migrations/20251213_pesapal_config.sql` via Supabase Dashboard.
+Or apply via Supabase Dashboard → SQL Editor.
 
-### 3. Register IPN (One-Time)
+### 3. Configure Webhook in Paystack Dashboard
 
-See step 1 in Edge Functions above.
+1. Log into your Paystack Dashboard
+2. Go to Settings > API Keys & Webhooks
+3. Add webhook URL: `https://YOUR-PROJECT.supabase.co/functions/v1/paystack-webhook`
+4. Select events to send: `charge.success` (required), `charge.failed` (optional)
+5. Save webhook configuration
 
 ## Testing
 
-### Pesapal Sandbox
+### Paystack Test Mode
 
-- **Sandbox URL**: https://cybqa.pesapal.com/pesapalv3
-- Set `PESAPAL_SANDBOX=true` in secrets
-- Use sandbox consumer key/secret from developer portal
+- Set `PAYSTACK_SECRET_KEY` and `PAYSTACK_PUBLIC_KEY` with **test** keys
+- All transactions will use test mode
 
 ### Test Card Numbers
 
-Use Pesapal sandbox test cards (available on developer portal).
+Paystack provides test cards for different scenarios:
+
+**Success:**
+- Card: `4084084084084081`
+- Expiry: Any future date
+- CVV: Any 3 digits
+
+**Declined:**
+- Card: `5060666666666666666`
+- Expiry: Any future date
+- CVV: Any 3 digits
+
+**Insufficient Funds:**
+- Card: `4111111111111111`
+- Expiry: Any future date
+- CVV: Any 3 digits
 
 ### Test M-Pesa
 
-Use sandbox M-Pesa numbers provided by Pesapal.
+In test mode, Paystack will simulate M-Pesa payments. Follow the prompts on the checkout page.
+
+## Webhook Verification
+
+The webhook handler (`paystack-webhook`) includes signature verification to ensure requests are from Paystack. The signature is verified using:
+
+```typescript
+const hash = createHmac('sha512', PAYSTACK_SECRET_KEY)
+  .update(request_body)
+  .digest('hex');
+```
+
+This ensures payment confirmations are authentic.
 
 ## Troubleshooting
 
 ### Payment Not Initiating
-- Check `PESAPAL_CONSUMER_KEY` and `PESAPAL_CONSUMER_SECRET` are set
+- Check `PAYSTACK_SECRET_KEY` and `PAYSTACK_PUBLIC_KEY` are set correctly
 - Check Edge Function logs in Supabase Dashboard
-- Verify IPN is registered (check `pesapal_config` table)
+- Verify the amount is valid (greater than 0)
 
-### IPN Not Received
-- Verify the IPN URL is publicly accessible
-- Check Pesapal dashboard for IPN delivery logs
-- Whitelist `pesapal.com` domain if you have firewall rules
+### Webhook Not Received
+- Verify the webhook URL is publicly accessible
+- Check webhook configuration in Paystack Dashboard
+- Check `paystack-webhook` function logs for errors
+- Verify signature verification is passing
 
-### Escrow Not Releasing
-- Verify `auto_release_at` is set correctly
-- Check `auto-release-escrow` function is running
-- Verify order status is `shipped`
+### Payment Captured but Escrow Not Created
+- Check `paystack-webhook` function logs
+- Verify order exists in database
+- Check database permissions for escrow_transactions table
+
+### Amount Mismatch
+- Remember: Paystack amounts are in kobo/cents (multiply by 100)
+- The Edge Function handles this conversion automatically
+
+## Going Live
+
+When ready to go live:
+
+1. **Get Live API Keys**:
+   - Complete business verification in Paystack Dashboard
+   - Navigate to Settings > API Keys & Webhooks
+   - Switch to "Live" mode
+   - Copy your live keys (pk_live_... and sk_live_...)
+
+2. **Update Secrets**:
+   ```bash
+   npx supabase secrets set PAYSTACK_SECRET_KEY="sk_live_your_key"
+   npx supabase secrets set PAYSTACK_PUBLIC_KEY="pk_live_your_key"
+   ```
+
+3. **Update Webhook URL**:
+   - In Paystack Dashboard, update webhook URL to production URL
+   - Ensure webhook is configured for live mode
+
+4. **Test with Small Transaction**:
+   - Make a small real transaction to verify everything works
+   - Confirm payment is captured and escrow is created
 
 ## Support
 
 For issues or questions:
 - Check Supabase Edge Function logs
-- Review Pesapal developer portal
+- Review Paystack developer documentation: https://paystack.com/docs
+- Check Paystack Dashboard for transaction details
 - Contact: contact@solelyshoes.co.ke

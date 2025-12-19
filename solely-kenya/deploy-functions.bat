@@ -88,21 +88,15 @@ echo DEPLOYING PAYMENT FUNCTIONS (15/15)
 echo ================================================================
 echo.
 
-echo [9/15] Deploying pesapal-initiate-payment...
-supabase functions deploy pesapal-initiate-payment
+echo [9/15] Deploying paystack-initiate-payment...
+supabase functions deploy paystack-initiate-payment
 if %errorlevel% neq 0 goto :error
 
-echo [10/15] Deploying pesapal-callback...
-supabase functions deploy pesapal-callback
+echo [10/15] Deploying paystack-webhook...
+supabase functions deploy paystack-webhook --no-verify-jwt
 if %errorlevel% neq 0 goto :error
 
-echo [11/15] Deploying pesapal-ipn-listener...
-supabase functions deploy pesapal-ipn-listener
-if %errorlevel% neq 0 goto :error
-
-echo [12/15] Deploying pesapal-register-ipn...
-supabase functions deploy pesapal-register-ipn
-if %errorlevel% neq 0 goto :error
+echo [11/15] Skipping legacy Pesapal functions...
 
 echo [13/15] Deploying process-delivery-fee-payment...
 supabase functions deploy process-delivery-fee-payment

@@ -285,8 +285,8 @@ const Orders = () => {
 
     setProcessingPayment(order.id);
     try {
-      // Use IntaSend for delivery fee payment
-      const { data, error } = await supabase.functions.invoke('intrasend-initiate-payment', {
+      // Use Paystack for delivery fee payment
+      const { data, error } = await supabase.functions.invoke('paystack-initiate-payment', {
         body: {
           orderId: order.id,
           successUrl: `${window.location.origin}/orders/${order.id}?payment_success=true`,
@@ -304,7 +304,7 @@ const Orders = () => {
 
       toast.success("Opening payment page...");
 
-      // Redirect to IntaSend payment page
+      // Redirect to Paystack payment page
       window.location.href = data.url;
     } catch (error) {
       console.error("Payment error:", error);
