@@ -323,7 +323,14 @@ const Orders = () => {
   };
 
   const upcomingActions = useMemo(() => {
-    return orders.filter((order) => order.status === "arrived" && !order.buyer_confirmed);
+    return orders.filter((order) => {
+      // For pickup, STRICTLY require vendor_confirmed (which is set when vendor marks as Ready)
+      const isPickup = (order.order_shipping_details as any)?.delivery_type === "pickup";
+      if (isPickup) {
+        return order.status === "arrived" && order.vendor_confirmed && !order.buyer_confirmed;
+      }
+      return order.status === "arrived" && !order.buyer_confirmed;
+    });
   }, [orders]);
 
   return (
@@ -499,9 +506,12 @@ const Orders = () => {
                     )}
                     <div className="flex flex-wrap gap-3">
                       {(order.status === "arrived" || order.status === "shipped") && !order.buyer_confirmed && (
-                        <Button size="sm" onClick={() => handleConfirmDelivery(order)}>
-                          {isPickup ? "Confirm Pickup" : "Confirm delivery"}
-                        </Button>
+                        // For pickup, ensure vendor has actually confirmed (marked as ready)
+                        (!isPickup || order.vendor_confirmed) && (
+                          <Button size="sm" onClick={() => handleConfirmDelivery(order)}>
+                            {isPickup ? "Confirm Pickup" : "Confirm delivery"}
+                          </Button>
+                        )
                       )}
                       {order.status === "delivered" && !order.buyer_confirmed && (
                         <Button size="sm" onClick={() => handleConfirmDelivery(order)}>

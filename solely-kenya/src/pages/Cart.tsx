@@ -137,8 +137,8 @@ const Cart = () => {
                           onSizeChange={(size) => updateSize(item.productId, size)}
                         />
 
-                        {!item.size && (
-                          <p className="text-xs text-destructive">⚠️ Size required before checkout</p>
+                        {!item.size && item.availableSizes && item.availableSizes.length > 0 && (
+                          <p className="text-xs text-destructive">⚠️ Size required for shoes before checkout</p>
                         )}
 
                         {/* Warning if selected size is not in available sizes */}

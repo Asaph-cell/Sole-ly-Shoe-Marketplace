@@ -148,6 +148,7 @@ serve(async (req) => {
           commission_rate: commissionRate,
           commission_amount: commissionAmount,
           payout_amount: payoutAmount,
+          status: "pending_vendor_confirmation",
         })
         .select()
         .single();
