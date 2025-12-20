@@ -40,7 +40,7 @@ export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
         "Authorization": `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: options.from || "Solely Kenya <no-reply@solelyshoes.co.ke>",
+        from: options.from || "Solely Kenya <notifications@solelyshoes.co.ke>",
         to: Array.isArray(options.to) ? options.to : [options.to],
         subject: options.subject,
         html: options.html,
