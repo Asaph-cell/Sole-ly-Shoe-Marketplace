@@ -55,21 +55,42 @@ const Shop = () => {
 
   const fetchProducts = async () => {
     try {
-      // Fetch products without reviews to avoid ambiguous relationship
-      const { data, error } = await supabase
+      // Fetch products
+      const { data: productsData, error: productsError } = await supabase
         .from("products")
         .select("*")
         .eq("status", "active");
 
-      if (error) throw error;
+      if (productsError) throw productsError;
 
-      // Set products with default rating stats
-      // Note: Ratings should come from vendor_ratings table, not reviews
-      const productsWithStats = (data || []).map(product => ({
-        ...product,
-        averageRating: null, // Can be calculated from vendor_ratings if needed
-        reviewCount: 0,
-      }));
+      // Fetch all reviews to calculate ratings per product
+      const { data: reviewsData, error: reviewsError } = await supabase
+        .from("reviews")
+        .select("product_id, rating");
+
+      if (reviewsError) {
+        console.error("Error fetching reviews:", reviewsError);
+      }
+
+      // Group reviews by product_id and calculate stats
+      const reviewStats: Record<string, { sum: number; count: number }> = {};
+      (reviewsData || []).forEach(review => {
+        if (!reviewStats[review.product_id]) {
+          reviewStats[review.product_id] = { sum: 0, count: 0 };
+        }
+        reviewStats[review.product_id].sum += review.rating;
+        reviewStats[review.product_id].count += 1;
+      });
+
+      // Map products with their actual rating stats
+      const productsWithStats = (productsData || []).map(product => {
+        const stats = reviewStats[product.id];
+        return {
+          ...product,
+          averageRating: stats ? stats.sum / stats.count : null,
+          reviewCount: stats ? stats.count : 0,
+        };
+      });
 
       setProducts(productsWithStats);
     } catch (error) {
