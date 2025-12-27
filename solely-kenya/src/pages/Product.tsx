@@ -13,12 +13,19 @@ import { useAuth } from "@/hooks/useAuth";
 import { SEO } from "@/components/SEO";
 import { ShoeSizeChart } from "@/components/ShoeSizeChart";
 
-// Condition labels for display
-const conditionLabels: Record<string, { label: string; color: string; description: string }> = {
-  new: { label: "New", color: "bg-green-500", description: "Brand new, never worn" },
-  like_new: { label: "Like New", color: "bg-blue-500", description: "Worn 1-2 times, no visible wear" },
-  good: { label: "Good", color: "bg-yellow-500", description: "Light wear, minor scuffs" },
-  fair: { label: "Fair", color: "bg-orange-500", description: "Visible wear, still functional" },
+// Condition labels for display - with footwear and accessory-specific descriptions
+const conditionLabels: Record<string, { label: string; color: string; footwearDesc: string; accessoryDesc: string }> = {
+  new: { label: "New", color: "bg-green-500", footwearDesc: "Brand new, never worn", accessoryDesc: "Brand new, unopened" },
+  like_new: { label: "Like New", color: "bg-blue-500", footwearDesc: "Worn 1-2 times, no visible wear", accessoryDesc: "Used once, like new condition" },
+  good: { label: "Good", color: "bg-yellow-500", footwearDesc: "Light wear, minor scuffs", accessoryDesc: "Good condition, minor signs of use" },
+  fair: { label: "Fair", color: "bg-orange-500", footwearDesc: "Visible wear, still functional", accessoryDesc: "Visible wear, fully functional" },
+};
+
+// Helper to get condition description based on category
+const getConditionDescription = (condition: string, category: string): string => {
+  const isAccessory = category?.toLowerCase() === 'accessories';
+  const conditionInfo = conditionLabels[condition] || conditionLabels.new;
+  return isAccessory ? conditionInfo.accessoryDesc : conditionInfo.footwearDesc;
 };
 
 const Product = () => {
@@ -254,7 +261,7 @@ const Product = () => {
                     {conditionLabels[product.condition]?.label || "New"}
                   </span>
                   <span className="text-muted-foreground text-sm ml-2">
-                    - {conditionLabels[product.condition]?.description || "Brand new, never worn"}
+                    - {getConditionDescription(product.condition, product.category)}
                   </span>
                 </div>
               </div>
