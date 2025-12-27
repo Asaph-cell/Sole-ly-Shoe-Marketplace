@@ -262,6 +262,22 @@ const Orders = () => {
       if (error) throw error;
 
       await supabase.from("orders").update({ status: "disputed" }).eq("id", order.id);
+
+      // Notify vendor and buyer
+      const { data: disputeData } = await supabase
+        .from("disputes")
+        .select("id")
+        .eq("order_id", order.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (disputeData) {
+        supabase.functions.invoke("notify-dispute-filed", {
+          body: { disputeId: disputeData.id },
+        });
+      }
+
       toast.success("Dispute submitted. Solely support will reach out.");
       fetchOrders();
     } catch (error) {
