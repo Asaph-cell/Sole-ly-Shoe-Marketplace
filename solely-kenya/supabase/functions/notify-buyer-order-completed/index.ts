@@ -37,6 +37,7 @@ Deno.serve(async (req: Request) => {
             .select(`
                 id,
                 customer_id,
+                status,
                 order_items(product_name, quantity),
                 order_shipping_details(recipient_name, email)
             `)
@@ -47,6 +48,30 @@ Deno.serve(async (req: Request) => {
             return new Response(
                 JSON.stringify({ error: "Order not found" }),
                 { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+        }
+
+        // Check if order actually has 'completed' status
+        if (order.status !== 'completed') {
+            return new Response(
+                JSON.stringify({ success: true, message: `Order status is '${order.status}', not sending completion email`, emailSent: false }),
+                { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+        }
+
+        // Check for active disputes - don't send completion email if disputed
+        const { data: disputes } = await supabase
+            .from("disputes")
+            .select("id, status")
+            .eq("order_id", orderId)
+            .in("status", ["pending", "under_review"])
+            .limit(1);
+
+        if (disputes && disputes.length > 0) {
+            console.log(`Order ${orderId} has active dispute, skipping completion email`);
+            return new Response(
+                JSON.stringify({ success: true, message: "Order has active dispute, skipping completion email", emailSent: false }),
+                { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
         }
 
