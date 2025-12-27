@@ -40,28 +40,44 @@ if /i not "%confirm%"=="y" (
 
 echo.
 echo ================================================================
-echo DEPLOYING EMAIL NOTIFICATION FUNCTIONS (5/15)
+echo DEPLOYING EMAIL NOTIFICATION FUNCTIONS (9/19)
 echo ================================================================
 echo.
 
-echo [1/5] Deploying notify-buyer-order-placed...
+echo [1/8] Deploying notify-buyer-order-placed...
 supabase functions deploy notify-buyer-order-placed
 if %errorlevel% neq 0 goto :error
 
-echo [2/5] Deploying notify-buyer-order-accepted...
+echo [2/8] Deploying notify-buyer-order-accepted...
 supabase functions deploy notify-buyer-order-accepted
 if %errorlevel% neq 0 goto :error
 
-echo [3/5] Deploying notify-buyer-order-shipped...
+echo [3/8] Deploying notify-buyer-order-shipped...
 supabase functions deploy notify-buyer-order-shipped
 if %errorlevel% neq 0 goto :error
 
-echo [4/5] Deploying notify-buyer-order-declined...
+echo [4/8] Deploying notify-buyer-order-declined...
 supabase functions deploy notify-buyer-order-declined
 if %errorlevel% neq 0 goto :error
 
-echo [5/5] Deploying notify-vendor-new-order...
+echo [5/8] Deploying notify-vendor-new-order...
 supabase functions deploy notify-vendor-new-order
+if %errorlevel% neq 0 goto :error
+
+echo [6/8] Deploying notify-buyer-order-arrived...
+supabase functions deploy notify-buyer-order-arrived
+if %errorlevel% neq 0 goto :error
+
+echo [7/8] Deploying notify-buyer-order-completed...
+supabase functions deploy notify-buyer-order-completed
+if %errorlevel% neq 0 goto :error
+
+echo [8/9] Deploying notify-buyer-pickup-ready...
+supabase functions deploy notify-buyer-pickup-ready
+if %errorlevel% neq 0 goto :error
+
+echo [9/9] Deploying notify-dispute-update...
+supabase functions deploy notify-dispute-update
 if %errorlevel% neq 0 goto :error
 
 echo.
