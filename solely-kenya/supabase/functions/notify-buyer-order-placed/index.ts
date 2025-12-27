@@ -72,7 +72,9 @@ Deno.serve(async (req: Request) => {
             ?.map((item: any) => `${item.quantity}x ${item.product_name}`)
             .join(", ") || "Items";
 
-        const deliveryType = order.order_shipping_details?.delivery_type === "pickup"
+        const isPickup = order.order_shipping_details?.delivery_type === "pickup";
+
+        const deliveryType = isPickup
             ? "Pickup from vendor"
             : "Home Delivery";
 
@@ -86,7 +88,8 @@ Deno.serve(async (req: Request) => {
                 items: itemsList,
                 total: order.total_ksh,
                 deliveryType,
-                orderTrackingUrl: `https://solely.co.ke/orders/${orderId}`,
+                isPickup,
+                orderTrackingUrl: `https://solelyshoes.co.ke/orders/${orderId}`,
             }),
         });
 

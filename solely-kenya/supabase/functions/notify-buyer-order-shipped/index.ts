@@ -96,7 +96,7 @@ Deno.serve(async (req: Request) => {
                 courierName,
                 trackingNumber,
                 deliveryNotes,
-                orderTrackingUrl: `https://solely.co.ke/orders/${orderId}`,
+                orderTrackingUrl: `https://solelyshoes.co.ke/orders/${orderId}`,
             }),
         });
 

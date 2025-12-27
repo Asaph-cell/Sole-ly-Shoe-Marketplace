@@ -228,6 +228,7 @@ export const emailTemplates = {
     items: string;
     total: number;
     deliveryType: string;
+    isPickup?: boolean;
     orderTrackingUrl: string;
   }) => `
     <!DOCTYPE html>
@@ -266,15 +267,20 @@ export const emailTemplates = {
             <strong>What happens next?</strong>
             <ol style="margin: 10px 0; padding-left: 20px;">
               <li>Vendor reviews and confirms your order (within 24 hours)</li>
-              <li>Vendor ships your order and provides tracking</li>
-              <li>You receive and confirm delivery</li>
+              ${data.isPickup
+      ? `<li>Vendor prepares your order for pickup</li>
+                   <li>You'll be notified when it's ready to collect</li>
+                   <li>Collect your order and confirm pickup</li>`
+      : `<li>Vendor ships your order and provides tracking</li>
+                   <li>You receive and confirm delivery</li>`
+    }
               <li>Payment is released to vendor</li>
             </ol>
           </div>
           
           <a href="${data.orderTrackingUrl}" class="cta-button">Track Your Order</a>
           
-          <p style="margin-top: 20px; font-size: 14px; color: #6b7280;">Your payment is protected by our escrow system. Funds are only released to the vendor after you confirm delivery.</p>
+          <p style="margin-top: 20px; font-size: 14px; color: #6b7280;">Your payment is protected by our escrow system. Funds are only released to the vendor after you confirm ${data.isPickup ? 'pickup' : 'delivery'}.</p>
         </div>
         <div class="footer">
           <p>This email was sent by Solely Kenya</p>

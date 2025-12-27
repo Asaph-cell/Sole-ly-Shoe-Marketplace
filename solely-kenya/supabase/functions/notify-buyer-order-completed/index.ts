@@ -65,7 +65,7 @@ Deno.serve(async (req: Request) => {
 
         const customerName = order.order_shipping_details?.recipient_name || "Customer";
         const itemsList = order.order_items?.map((item: any) => `${item.quantity}x ${item.product_name}`).join(", ") || "Items";
-        const reviewUrl = `https://solely.co.ke/orders/${orderId}`;
+        const reviewUrl = `https://solelyshoes.co.ke/orders/${orderId}`;
 
         const emailResult = await sendEmail({
             to: customerEmail,

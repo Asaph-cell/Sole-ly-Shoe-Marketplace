@@ -140,7 +140,7 @@ Deno.serve(async (req: Request) => {
                     total: order.total_ksh,
                     deliveryLocation: deliveryType,
                     customerName: customerName,
-                    dashboardUrl: "https://solely.co.ke/vendor/orders", // Update with actual URL
+                    dashboardUrl: "https://solelyshoes.co.ke/vendor/orders",
                 }),
             });
 
