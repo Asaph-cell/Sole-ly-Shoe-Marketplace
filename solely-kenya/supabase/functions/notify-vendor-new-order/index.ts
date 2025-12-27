@@ -2,7 +2,7 @@
  * Notify Vendor of New Order
  * 
  * This Edge Function is triggered when a new order is created.
- * It sends a notification (SMS/Email) to the vendor about the new order.
+ * It sends email and in-app notifications to the vendor about the new order.
  * 
  * Can be triggered by:
  * 1. Database webhook on orders insert
@@ -165,12 +165,6 @@ Deno.serve(async (req: Request) => {
             console.log("Could not store notification (table may not exist)");
         }
 
-        // If vendor has a phone, you can trigger SMS here
-        if (vendor.phone) {
-            console.log(`Would send SMS to ${vendor.phone}`);
-            // TODO: Integrate with SMS provider
-            // await sendSMS(vendor.phone, message);
-        }
 
         return new Response(
             JSON.stringify({
