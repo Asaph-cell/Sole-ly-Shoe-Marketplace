@@ -145,7 +145,11 @@ export const OrderConfirmationModal = ({
                 const reviewResults = await Promise.all(productReviewPromises);
                 const reviewErrors = reviewResults.filter(r => r.error);
                 if (reviewErrors.length > 0) {
-                    console.warn("Some product reviews failed:", reviewErrors);
+                    console.error("Product review errors:", reviewErrors.map(r => r.error));
+                    // Don't block the confirmation, but warn the user
+                    toast.warning(`Note: ${reviewErrors.length} product review(s) may not have been saved.`);
+                } else {
+                    console.log("Product reviews saved successfully:", reviewResults.length);
                 }
             }
 
