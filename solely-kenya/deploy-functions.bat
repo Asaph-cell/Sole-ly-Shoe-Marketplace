@@ -40,7 +40,7 @@ if /i not "%confirm%"=="y" (
 
 echo.
 echo ================================================================
-echo DEPLOYING EMAIL NOTIFICATION FUNCTIONS (9/19)
+echo DEPLOYING EMAIL NOTIFICATION FUNCTIONS (10/20)
 echo ================================================================
 echo.
 
@@ -76,8 +76,12 @@ echo [8/9] Deploying notify-buyer-pickup-ready...
 supabase functions deploy notify-buyer-pickup-ready
 if %errorlevel% neq 0 goto :error
 
-echo [9/9] Deploying notify-dispute-update...
+echo [9/10] Deploying notify-dispute-update...
 supabase functions deploy notify-dispute-update
+if %errorlevel% neq 0 goto :error
+
+echo [10/10] Deploying notify-dispute-filed...
+supabase functions deploy notify-dispute-filed
 if %errorlevel% neq 0 goto :error
 
 echo.
