@@ -163,6 +163,11 @@ const AdminDisputes = () => {
                     .eq("id", selectedDispute.order_id);
             }
 
+            // 3. Send email notification
+            await supabase.functions.invoke("notify-dispute-update", {
+                body: { disputeId: selectedDispute.id },
+            });
+
             toast({
                 title: "Success",
                 description: `Dispute ${action === "refund" ? "resolved with refund" : action === "release" ? "resolved - payment released" : "closed"}`,
