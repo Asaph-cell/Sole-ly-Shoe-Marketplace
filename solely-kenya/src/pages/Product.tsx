@@ -214,10 +214,13 @@ const Product = () => {
           <div className="space-y-4">
             {/* Mobile: Horizontal swipe gallery */}
             <div className="md:hidden">
-              <div className="overflow-x-auto snap-x snap-mandatory flex gap-3 pb-3 -mx-4 px-4 scrollbar-hide">
+              <div
+                className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 scrollbar-hide"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
                 {/* Video slide */}
                 {product.video_url && (
-                  <div className="flex-shrink-0 w-full snap-center">
+                  <div className="min-w-[85vw] max-w-[85vw] snap-center first:ml-4 last:mr-4">
                     <div className="aspect-square rounded-xl overflow-hidden border-2 border-border bg-muted relative">
                       <video
                         src={product.video_url}
@@ -239,7 +242,7 @@ const Product = () => {
                 )}
                 {/* Image slides */}
                 {product.images?.map((image: string, index: number) => (
-                  <div key={index} className="flex-shrink-0 w-full snap-center">
+                  <div key={index} className="min-w-[85vw] max-w-[85vw] snap-center first:ml-4 last:mr-4">
                     <div className="aspect-square rounded-xl overflow-hidden border-2 border-border bg-muted">
                       <img
                         src={image}
@@ -260,18 +263,18 @@ const Product = () => {
                   <div key={index} className="w-2 h-2 rounded-full bg-muted-foreground/30" />
                 ))}
               </div>
-              <p className="text-xs text-center text-muted-foreground mt-1">Swipe to see more →</p>
+              <p className="text-xs text-center text-muted-foreground mt-1">← Swipe to see more →</p>
             </div>
 
             {/* Desktop: Original clickable gallery */}
             <div className="hidden md:block">
               <div className={`overflow-hidden rounded-xl border-2 border-border bg-muted relative ${selectedImage === -1 && product.video_url
-                  ? videoAspect === "portrait"
-                    ? "aspect-[9/16] max-h-[600px] mx-auto"
-                    : videoAspect === "landscape"
-                      ? "aspect-video"
-                      : "aspect-square"
-                  : "aspect-square"
+                ? videoAspect === "portrait"
+                  ? "aspect-[9/16] max-h-[600px] mx-auto"
+                  : videoAspect === "landscape"
+                    ? "aspect-video"
+                    : "aspect-square"
+                : "aspect-square"
                 }`}>
                 {/* Show video if selected (index -1) and video exists */}
                 {selectedImage === -1 && product.video_url ? (
