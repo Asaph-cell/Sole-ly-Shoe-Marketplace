@@ -247,12 +247,12 @@ const Product = () => {
               </div>
 
               {/* Thumbnail strip */}
-              <div className="flex gap-2 mt-3 overflow-x-auto pb-2">
+              <div className="grid grid-cols-5 gap-2 mt-3">
                 {/* Video thumbnail */}
                 {product.video_url && (
                   <button
                     onClick={() => setSelectedImage(-1)}
-                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 relative ${selectedImage === -1 ? "border-primary" : "border-border"
+                    className={`aspect-square rounded-lg overflow-hidden border-2 relative ${selectedImage === -1 ? "border-primary" : "border-border"
                       }`}
                   >
                     <img
@@ -274,7 +274,7 @@ const Product = () => {
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
-                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 ${selectedImage === index ? "border-primary" : "border-border"
+                    className={`aspect-square rounded-lg overflow-hidden border-2 ${selectedImage === index ? "border-primary" : "border-border"
                       }`}
                   >
                     <img
