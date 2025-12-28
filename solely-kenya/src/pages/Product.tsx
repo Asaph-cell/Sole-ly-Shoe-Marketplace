@@ -39,6 +39,7 @@ const Product = () => {
   const [loading, setLoading] = useState(true);
   const [priceAlertActive, setPriceAlertActive] = useState(false);
   const [alertLoading, setAlertLoading] = useState(false);
+  const [videoAspect, setVideoAspect] = useState<"portrait" | "landscape" | "square">("square");
   const { addItem, items } = useCart();
 
   useEffect(() => {
@@ -211,17 +212,31 @@ const Product = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
           <div className="space-y-4">
-            <div className="aspect-square overflow-hidden rounded-xl border-2 border-border bg-muted relative">
+            <div className={`overflow-hidden rounded-xl border-2 border-border bg-muted relative ${selectedImage === -1 && product.video_url
+                ? videoAspect === "portrait"
+                  ? "aspect-[9/16] max-h-[600px] mx-auto"
+                  : videoAspect === "landscape"
+                    ? "aspect-video"
+                    : "aspect-square"
+                : "aspect-square"
+              }`}>
               {/* Show video if selected (index -1) and video exists */}
               {selectedImage === -1 && product.video_url ? (
                 <video
                   src={product.video_url}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain bg-black"
                   muted
                   loop
                   playsInline
                   autoPlay
                   controls={false}
+                  onLoadedMetadata={(e) => {
+                    const video = e.currentTarget;
+                    const ratio = video.videoWidth / video.videoHeight;
+                    if (ratio < 0.8) setVideoAspect("portrait");
+                    else if (ratio > 1.2) setVideoAspect("landscape");
+                    else setVideoAspect("square");
+                  }}
                 />
               ) : (
                 <img
