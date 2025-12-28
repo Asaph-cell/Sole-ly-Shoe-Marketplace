@@ -215,10 +215,17 @@ const Product = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
           <div className="space-y-4">
             {/* Mobile Gallery */}
-            <div className="md:hidden space-y-3">
+            <div className="md:hidden" style={{ marginBottom: '12px' }}>
               {/* Main Image Container */}
               <div
-                className="relative aspect-square rounded-xl overflow-hidden border-2 border-border bg-muted"
+                style={{
+                  position: 'relative',
+                  aspectRatio: '1/1',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  border: '2px solid #e5e7eb',
+                  backgroundColor: '#f3f4f6'
+                }}
                 onClick={() => {
                   setLightboxIndex(selectedImage === -1 ? 0 : selectedImage);
                   setLightboxOpen(true);
@@ -227,7 +234,7 @@ const Product = () => {
                 {selectedImage === -1 && product.video_url ? (
                   <video
                     src={product.video_url}
-                    className="w-full h-full object-cover"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     muted
                     loop
                     playsInline
@@ -238,7 +245,7 @@ const Product = () => {
                   <img
                     src={product.images?.[selectedImage === -1 ? 0 : selectedImage] || "/placeholder.svg"}
                     alt={product.name}
-                    className="w-full h-full object-cover"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 )}
 
@@ -256,9 +263,21 @@ const Product = () => {
                         setSelectedImage(prevIndex - (product.video_url ? 1 : 0));
                       }
                     }}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white rounded-full p-2 shadow-md"
+                    style={{
+                      position: 'absolute',
+                      left: '8px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      zIndex: 10,
+                      backgroundColor: 'rgba(255,255,255,0.9)',
+                      borderRadius: '50%',
+                      padding: '8px',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
                   >
-                    <ChevronLeft className="h-5 w-5 text-gray-800" />
+                    <ChevronLeft style={{ height: '20px', width: '20px', color: '#374151' }} />
                   </button>
                 )}
 
@@ -276,14 +295,35 @@ const Product = () => {
                         setSelectedImage(nextIndex - (product.video_url ? 1 : 0));
                       }
                     }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white rounded-full p-2 shadow-md"
+                    style={{
+                      position: 'absolute',
+                      right: '8px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      zIndex: 10,
+                      backgroundColor: 'rgba(255,255,255,0.9)',
+                      borderRadius: '50%',
+                      padding: '8px',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
                   >
-                    <ChevronRight className="h-5 w-5 text-gray-800" />
+                    <ChevronRight style={{ height: '20px', width: '20px', color: '#374151' }} />
                   </button>
                 )}
 
                 {/* Tap to zoom hint */}
-                <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                <div style={{
+                  position: 'absolute',
+                  bottom: '8px',
+                  right: '8px',
+                  backgroundColor: 'rgba(0,0,0,0.6)',
+                  color: 'white',
+                  fontSize: '12px',
+                  padding: '4px 8px',
+                  borderRadius: '4px'
+                }}>
                   Tap to zoom
                 </div>
               </div>
