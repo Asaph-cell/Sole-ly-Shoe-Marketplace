@@ -1,11 +1,16 @@
 import { useState, useEffect } from "react";
-import { Star } from "lucide-react";
+import { Star, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface VendorRatingProps {
   vendorId: string;
@@ -21,6 +26,7 @@ export const VendorRating = ({ vendorId, productId }: VendorRatingProps) => {
   const [completedOrders, setCompletedOrders] = useState<any[]>([]);
   const [existingRatings, setExistingRatings] = useState<any[]>([]);
   const [averageRating, setAverageRating] = useState(0);
+  const [isReviewsOpen, setIsReviewsOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -131,11 +137,10 @@ export const VendorRating = ({ vendorId, productId }: VendorRatingProps) => {
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
                     key={star}
-                    className={`h-5 w-5 ${
-                      star <= Math.round(averageRating)
-                        ? "fill-yellow-400 text-yellow-400"
-                        : "text-muted-foreground"
-                    }`}
+                    className={`h-5 w-5 ${star <= Math.round(averageRating)
+                      ? "fill-yellow-400 text-yellow-400"
+                      : "text-muted-foreground"
+                      }`}
                   />
                 ))}
               </div>
@@ -167,11 +172,10 @@ export const VendorRating = ({ vendorId, productId }: VendorRatingProps) => {
                     className="transition-transform hover:scale-110"
                   >
                     <Star
-                      className={`h-8 w-8 ${
-                        star <= (hoverRating || rating)
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "text-muted-foreground"
-                      }`}
+                      className={`h-8 w-8 ${star <= (hoverRating || rating)
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "text-muted-foreground"
+                        }`}
                     />
                   </button>
                 ))}
@@ -201,37 +205,46 @@ export const VendorRating = ({ vendorId, productId }: VendorRatingProps) => {
         </Card>
       )}
 
-      {/* Existing Reviews */}
+      {/* Collapsible Existing Reviews */}
       {existingRatings.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Customer Reviews</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {existingRatings.map((rating) => (
-              <div key={rating.id} className="border-b pb-4 last:border-0">
-                <div className="flex gap-1 mb-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star
-                      key={star}
-                      className={`h-4 w-4 ${
-                        star <= rating.rating
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "text-muted-foreground"
-                      }`}
-                    />
-                  ))}
-                </div>
-                {rating.review && (
-                  <p className="text-sm text-muted-foreground mb-2">{rating.review}</p>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  {new Date(rating.created_at).toLocaleDateString()}
-                </p>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        <Collapsible open={isReviewsOpen} onOpenChange={setIsReviewsOpen}>
+          <CollapsibleTrigger asChild>
+            <Button variant="outline" className="w-full flex items-center justify-between">
+              <span>{isReviewsOpen ? "Hide Vendor Reviews" : "Show Vendor Reviews"}</span>
+              {isReviewsOpen ? <ChevronUp className="h-4 w-4 ml-2" /> : <ChevronDown className="h-4 w-4 ml-2" />}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle>Customer Reviews</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {existingRatings.map((rating) => (
+                  <div key={rating.id} className="border-b pb-4 last:border-0">
+                    <div className="flex gap-1 mb-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`h-4 w-4 ${star <= rating.rating
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-muted-foreground"
+                            }`}
+                        />
+                      ))}
+                    </div>
+                    {rating.review && (
+                      <p className="text-sm text-muted-foreground mb-2">{rating.review}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(rating.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </CollapsibleContent>
+        </Collapsible>
       )}
     </div>
   );

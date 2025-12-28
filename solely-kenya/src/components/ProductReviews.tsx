@@ -1,9 +1,14 @@
 import { useState, useEffect } from "react";
-import { Star } from "lucide-react";
+import { Star, ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface ProductReviewsProps {
   productId: string;
@@ -14,6 +19,7 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
   const [loading, setLoading] = useState(true);
   const [averageRating, setAverageRating] = useState(0);
   const [displayCount, setDisplayCount] = useState(5);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     fetchReviews();
@@ -70,8 +76,8 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
                     <Star
                       key={star}
                       className={`h-5 w-5 ${star <= Math.round(averageRating)
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "text-muted-foreground"
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "text-muted-foreground"
                         }`}
                     />
                   ))}
@@ -92,50 +98,58 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
         )}
       </Card>
 
-      {/* Reviews List */}
-      {visibleReviews.length > 0 && (
-        <div className="space-y-4">
-          {visibleReviews.map((review) => (
-            <Card key={review.id}>
-              <CardContent className="pt-6">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <p className="font-semibold">{review.reviewer_name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(review.created_at), { addSuffix: true })}
-                    </p>
-                  </div>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`h-4 w-4 ${star <= review.rating
+      {/* Collapsible Reviews List */}
+      {reviews.length > 0 && (
+        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+          <CollapsibleTrigger asChild>
+            <Button variant="outline" className="w-full flex items-center justify-between">
+              <span>{isOpen ? "Hide Reviews" : "Show Reviews"}</span>
+              {isOpen ? <ChevronUp className="h-4 w-4 ml-2" /> : <ChevronDown className="h-4 w-4 ml-2" />}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-4 mt-4">
+            {visibleReviews.map((review) => (
+              <Card key={review.id}>
+                <CardContent className="pt-6">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <p className="font-semibold">{review.reviewer_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(review.created_at), { addSuffix: true })}
+                      </p>
+                    </div>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`h-4 w-4 ${star <= review.rating
                             ? "fill-yellow-400 text-yellow-400"
                             : "text-muted-foreground"
-                          }`}
-                      />
-                    ))}
+                            }`}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-                {review.comment && (
-                  <p className="text-sm text-muted-foreground mt-2">{review.comment}</p>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+                  {review.comment && (
+                    <p className="text-sm text-muted-foreground mt-2">{review.comment}</p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
 
-          {/* Load More Button */}
-          {hasMore && (
-            <div className="flex justify-center">
-              <Button
-                variant="outline"
-                onClick={() => setDisplayCount(prev => prev + 5)}
-              >
-                Load More Reviews ({reviews.length - displayCount} remaining)
-              </Button>
-            </div>
-          )}
-        </div>
+            {/* Load More Button */}
+            {hasMore && (
+              <div className="flex justify-center">
+                <Button
+                  variant="outline"
+                  onClick={() => setDisplayCount(prev => prev + 5)}
+                >
+                  Load More Reviews ({reviews.length - displayCount} remaining)
+                </Button>
+              </div>
+            )}
+          </CollapsibleContent>
+        </Collapsible>
       )}
     </div>
   );
