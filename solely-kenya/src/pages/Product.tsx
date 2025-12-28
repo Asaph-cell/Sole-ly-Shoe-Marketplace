@@ -289,22 +289,29 @@ const Product = () => {
               </div>
 
               {/* Thumbnails Row */}
-              <div className="flex gap-2 overflow-x-auto pb-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
                 {/* Video Thumbnail */}
                 {product.video_url && (
                   <button
                     onClick={() => setSelectedImage(-1)}
-                    className={`flex-none w-16 h-16 rounded-lg overflow-hidden border-2 relative ${selectedImage === -1 ? "border-primary ring-2 ring-primary/30" : "border-gray-200"
-                      }`}
+                    style={{
+                      flexShrink: 0,
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      border: selectedImage === -1 ? '3px solid var(--primary)' : '2px solid #e5e7eb',
+                      position: 'relative'
+                    }}
                   >
                     <img
                       src={product.images?.[0] || "/placeholder.svg"}
                       alt="Video"
-                      className="w-full h-full object-cover"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                      <div className="bg-purple-500 rounded-full p-1">
-                        <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.3)' }}>
+                      <div style={{ background: '#8b5cf6', borderRadius: '50%', padding: '4px' }}>
+                        <svg style={{ height: '12px', width: '12px', color: 'white' }} fill="currentColor" viewBox="0 0 24 24">
                           <path d="M8 5v14l11-7z" />
                         </svg>
                       </div>
@@ -316,13 +323,19 @@ const Product = () => {
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
-                    className={`flex-none w-16 h-16 rounded-lg overflow-hidden border-2 ${selectedImage === index ? "border-primary ring-2 ring-primary/30" : "border-gray-200"
-                      }`}
+                    style={{
+                      flexShrink: 0,
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      border: selectedImage === index ? '3px solid var(--primary)' : '2px solid #e5e7eb'
+                    }}
                   >
                     <img
                       src={image}
                       alt={`View ${index + 1}`}
-                      className="w-full h-full object-cover"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   </button>
                 ))}
