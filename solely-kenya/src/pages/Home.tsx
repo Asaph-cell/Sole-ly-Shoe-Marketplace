@@ -198,6 +198,40 @@ const Home = () => {
         </div>
       </section>
 
+      {/* About Sole-ly - For Google OAuth Verification */}
+      <section className="py-12 sm:py-16 bg-background">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            <ScrollReveal mode="fade-up" delay={0.2}>
+              <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6">What is Sole-ly?</h2>
+            </ScrollReveal>
+            <ScrollReveal mode="fade-up" delay={0.3}>
+              <div className="prose prose-lg max-w-none text-muted-foreground space-y-4">
+                <p>
+                  <strong className="text-foreground">Sole-ly</strong> is Kenya's trusted online shoe marketplace that connects shoe lovers with verified local vendors.
+                  We make buying and selling footwear safe, simple, and stress-free.
+                </p>
+                <p>
+                  <strong className="text-foreground">How it works:</strong> When you buy a pair of shoes, your payment goes into a secure escrow account — not directly to the seller.
+                  The vendor ships your order, and once you receive it and confirm you're happy, we release the funds.
+                  If something goes wrong, you can file a dispute and our team will help resolve it.
+                </p>
+                <p>
+                  <strong className="text-foreground">For sellers:</strong> List your shoes with zero upfront costs. We only take a 10% commission when you make a sale — so you grow your business risk-free.
+                </p>
+                <div className="bg-muted/50 border rounded-lg p-4 mt-6">
+                  <p className="text-sm">
+                    <strong className="text-foreground">Your data, your control:</strong> We only collect your email, name, and phone number to process orders and keep you updated.
+                    Delivery addresses are shared with vendors solely to fulfill your orders. We never sell your personal information.
+                    Read our <Link to="/privacy" className="text-primary underline hover:no-underline">Privacy Policy</Link> for full details.
+                  </p>
+                </div>
+              </div>
+            </ScrollReveal>
+          </div>
+        </div>
+      </section>
+
       {/* Shop by Category */}
       <section className="py-10 sm:py-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
