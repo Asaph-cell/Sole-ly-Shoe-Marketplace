@@ -133,7 +133,7 @@ const Home = () => {
                 />
               </h1>
               <p className="text-base sm:text-lg md:text-xl text-muted-foreground font-bold mb-6 sm:mb-8">
-                The ultimate plug for authentic kicks. Sole-ly is Kenya's trusted shoe marketplace to buy and sell with zero risk, thanks to our secure escrow-protected system.
+                Step into style with zero stress. Join Kenya's most secure marketplace to buy and sell authentic shoes with integrated escrow protection.
               </p>
               <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
                 <Button size="lg" asChild className="hover:scale-105 transition-transform min-h-[48px] w-full sm:w-auto tap-active">
