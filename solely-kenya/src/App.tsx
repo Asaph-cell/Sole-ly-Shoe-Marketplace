@@ -46,6 +46,7 @@ const Cart = lazyRetry(() => import("./pages/Cart"));
 const Checkout = lazyRetry(() => import("./pages/Checkout"));
 const Orders = lazyRetry(() => import("./pages/Orders"));
 const Terms = lazyRetry(() => import("./pages/Terms"));
+const PrivacyPolicy = lazyRetry(() => import("./pages/PrivacyPolicy"));
 const VendorDashboard = lazyRetry(() => import("./pages/vendor/VendorDashboard"));
 const VendorProducts = lazyRetry(() => import("./pages/vendor/VendorProducts"));
 const VendorAddProduct = lazyRetry(() => import("./pages/vendor/VendorAddProduct"));
@@ -93,6 +94,7 @@ const AnimatedRoutes = () => {
         <Route path="/orders" element={<PageWrapper><Orders /></PageWrapper>} />
         <Route path="/orders/:orderId" element={<PageWrapper><Orders /></PageWrapper>} />
         <Route path="/terms" element={<PageWrapper><Terms /></PageWrapper>} />
+        <Route path="/privacy" element={<PageWrapper><PrivacyPolicy /></PageWrapper>} />
         <Route path="/vendor/dashboard" element={<PageWrapper><VendorDashboard /></PageWrapper>} />
         <Route path="/vendor/products" element={<PageWrapper><VendorProducts /></PageWrapper>} />
         <Route path="/vendor/add-product" element={<PageWrapper><VendorAddProduct /></PageWrapper>} />
