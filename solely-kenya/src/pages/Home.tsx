@@ -133,7 +133,7 @@ const Home = () => {
                 />
               </h1>
               <p className="text-base sm:text-lg md:text-xl text-muted-foreground font-bold mb-6 sm:mb-8">
-                Step into style with zero stress. Your money's protected until you're in love with your shoes.
+                Step into style with zero stress. Your money's protected until you're in love with your shoes!
               </p>
               <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
                 <Button size="lg" asChild className="hover:scale-105 transition-transform min-h-[48px] w-full sm:w-auto tap-active">
@@ -289,7 +289,7 @@ const Home = () => {
                 <div className="bg-muted/30 border rounded-xl p-6 text-center h-full">
                   <Lock className="h-10 w-10 text-primary mx-auto mb-4" />
                   <h3 className="font-semibold text-lg mb-2">Built-in Trust</h3>
-                  <p className="text-muted-foreground text-sm">We handle the payment security so you can focus on what you do best — selling great shoes!</p>
+                  <p className="text-muted-foreground text-sm">We handle the payment security so you can focus on selling great shoes!</p>
                 </div>
               </ScrollReveal>
             </div>
