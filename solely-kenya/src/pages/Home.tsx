@@ -118,7 +118,8 @@ const Home = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-30 pointer-events-none">
           <ScrollReveal mode="aggressive" delay={0.2}>
             <div className="max-w-2xl pointer-events-auto">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-4 sm:mb-6 leading-tight">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Sole-ly shoes</h1>
+              <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-4 sm:mb-6 leading-tight">
                 <DynamicHeroText
                   texts={[
                     "Discover Your Perfect Pair!",
@@ -131,7 +132,7 @@ const Home = () => {
                     color: '#8f6700',
                   }}
                 />
-              </h1>
+              </h2>
               <p className="text-base sm:text-lg md:text-xl text-muted-foreground font-bold mb-6 sm:mb-8">
                 Step into style with zero stress. Your money's protected until you're in love with your shoes!
               </p>
