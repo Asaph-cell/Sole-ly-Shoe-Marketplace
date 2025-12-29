@@ -142,10 +142,25 @@ const PrivacyPolicy = () => {
                             We may disclose your information if required by law, court order, or government request, or if we believe disclosure is necessary to protect our rights, your safety, or the safety of others.
                         </p>
 
-                        <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                        <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-6">
                             <h4 className="font-semibold text-green-800 mb-2">We Do NOT Sell Your Data</h4>
                             <p className="text-sm text-muted-foreground">
                                 We do not sell, rent, or trade your personal information to third parties for marketing purposes.
+                            </p>
+                        </div>
+
+                        <h3 className="text-lg font-semibold mb-2">Google User Data</h3>
+                        <p className="text-muted-foreground mb-3">
+                            When you use "Sign in with Google," Solely Marketplace accesses your Google email address and basic profile information (name and profile picture). We use this data strictly to:
+                        </p>
+                        <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
+                            <li>Authenticate your identity and create your Solely account.</li>
+                            <li>Securely manage your escrow transactions and protect our marketplace from fraudulent activity.</li>
+                        </ul>
+                        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                            <h4 className="font-semibold text-blue-800 mb-2">Limited Use Disclosure</h4>
+                            <p className="text-sm text-muted-foreground">
+                                Solely Marketplace's use and transfer to any other app of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer" className="text-primary underline">Google API Services User Data Policy</a>, including the Limited Use requirements. We do not sell your Google user data to third parties or use it for serving advertisements.
                             </p>
                         </div>
                     </section>
