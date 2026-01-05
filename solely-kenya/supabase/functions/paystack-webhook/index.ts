@@ -193,6 +193,51 @@ serve(async (req: Request) => {
             return new Response(JSON.stringify({ status: 'acknowledged' }), {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             });
+        } else if (event.event === 'transfer.success') {
+            // Handle successful transfer to vendor
+            const { reference } = event.data;
+            console.log(`[Paystack Webhook] Transfer successful: ${reference}`);
+
+            // Reference format is "payout_{payout_id}"
+            if (reference?.startsWith('payout_')) {
+                const payoutId = reference.replace('payout_', '');
+                await supabaseClient
+                    .from('payouts')
+                    .update({
+                        status: 'paid',
+                        paid_at: new Date().toISOString(),
+                    })
+                    .eq('id', payoutId)
+                    .eq('status', 'processing'); // Only update if still processing
+
+                console.log(`[Paystack Webhook] Payout ${payoutId} confirmed as paid`);
+            }
+
+            return new Response(JSON.stringify({ status: 'success' }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+        } else if (event.event === 'transfer.failed' || event.event === 'transfer.reversed') {
+            // Handle failed/reversed transfer
+            const { reference, reason } = event.data;
+            console.log(`[Paystack Webhook] Transfer failed/reversed: ${reference}, reason: ${reason}`);
+
+            if (reference?.startsWith('payout_')) {
+                const payoutId = reference.replace('payout_', '');
+                await supabaseClient
+                    .from('payouts')
+                    .update({
+                        status: 'failed',
+                        failed_at: new Date().toISOString(),
+                        failure_reason: reason || 'Transfer failed or reversed',
+                    })
+                    .eq('id', payoutId);
+
+                console.log(`[Paystack Webhook] Payout ${payoutId} marked as failed`);
+            }
+
+            return new Response(JSON.stringify({ status: 'acknowledged' }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
         }
 
         // Other events - acknowledge but don't process
@@ -200,6 +245,7 @@ serve(async (req: Request) => {
         return new Response(JSON.stringify({ status: 'acknowledged' }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
+
 
     } catch (error: any) {
         console.error('[Paystack Webhook] Error:', error);

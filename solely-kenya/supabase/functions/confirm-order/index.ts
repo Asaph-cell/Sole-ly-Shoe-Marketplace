@@ -82,7 +82,8 @@ serve(async (req: Request) => {
         // The previous code in `VendorOrders.tsx` didn't seem to set `payout_amount` on creation?
         // Let's check if `payout_amount` exists on the order.
 
-        const payoutAmount = order.payout_amount ?? (order.total_ksh * 0.95);
+        const payoutAmount = order.payout_amount ?? (order.total_ksh * 0.90);
+        const commissionAmount = order.commission_amount ?? (order.total_ksh * 0.10);
 
         const { error: payoutError } = await supabase
             .from("payouts")
@@ -90,6 +91,7 @@ serve(async (req: Request) => {
                 vendor_id: order.vendor_id,
                 order_id: orderId,
                 amount_ksh: payoutAmount,
+                commission_amount: commissionAmount,
                 status: "pending", // Waiting for process-payouts to pick it up
                 method: "mpesa",   // Default to M-Pesa
                 created_at: new Date().toISOString()
@@ -99,8 +101,9 @@ serve(async (req: Request) => {
             console.error('Failed to create payout record:', payoutError);
             // We should probably alert admin or store a failure record
         } else {
-            console.log(`Payout created for order ${orderId}: ${payoutAmount} KES`);
+            console.log(`Payout created for order ${orderId}: ${payoutAmount} KES (commission: ${commissionAmount} KES)`);
         }
+
 
         // D. Add Rating (Optional)
         if (rating && rating > 0) {

@@ -45,6 +45,8 @@ const AdminDashboard = () => {
     monthlyRevenue: 0,
     totalViews: 0,
     todayViews: 0,
+    totalTransferFees: 0,
+    netCommission: 0,
   });
 
   const [openDisputes, setOpenDisputes] = useState<any[]>([]);
@@ -112,6 +114,7 @@ const AdminDashboard = () => {
         { data: orderStatusData },
         { data: recentOrdersData },
         { data: dailyOrdersData },
+        { data: paidPayoutsData },
       ] = await Promise.all([
         supabase.from("products").select("*", { count: "exact", head: true }),
         supabase.from("products").select("*", { count: "exact", head: true }).eq("status", "active"),
@@ -145,6 +148,10 @@ const AdminDashboard = () => {
           .select("created_at, total_ksh")
           .gte("created_at", thirtyDaysAgo)
           .order("created_at", { ascending: true }),
+        // Paid payouts with transfer fees for net commission calculation
+        supabase.from("payouts")
+          .select("transfer_fee_ksh, commission_amount")
+          .eq("status", "paid"),
       ]);
 
       // Calculate totals
@@ -152,6 +159,10 @@ const AdminDashboard = () => {
       const monthlyCommission = (commissionsMonth || []).reduce((sum: number, row: any) => sum + (row.commission_amount || 0), 0);
       const totalRevenue = (ordersAll || []).reduce((sum: number, row: any) => sum + (row.total_ksh || 0), 0);
       const monthlyRevenue = (ordersMonth || []).reduce((sum: number, row: any) => sum + (row.total_ksh || 0), 0);
+
+      // Calculate net commission (after Paystack transfer fees)
+      const totalTransferFees = (paidPayoutsData || []).reduce((sum: number, row: any) => sum + (row.transfer_fee_ksh || 0), 0);
+      const netCommission = totalCommission - totalTransferFees;
 
       // Process order status breakdown
       const statusCounts: Record<string, number> = {};
@@ -191,6 +202,8 @@ const AdminDashboard = () => {
         monthlyRevenue,
         totalViews: totalViewsCount || 0,
         todayViews: todayViewsCount || 0,
+        totalTransferFees,
+        netCommission,
       });
 
       setOrdersByStatus(statusBreakdown);
@@ -309,14 +322,19 @@ const AdminDashboard = () => {
 
               <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Commission</CardTitle>
+                  <CardTitle className="text-sm font-medium">Net Commission</CardTitle>
                   <DollarSign className="h-4 w-4 text-purple-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">KES {stats.totalCommission.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground">Your earnings</p>
+                  <div className="text-2xl font-bold">KES {stats.netCommission.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {stats.totalTransferFees > 0
+                      ? `After KES ${stats.totalTransferFees.toLocaleString()} transfer fees`
+                      : 'Your net earnings'}
+                  </p>
                 </CardContent>
               </Card>
+
 
               <Card className="bg-gradient-to-br from-cyan-500/10 to-cyan-600/5 border-cyan-500/20">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

@@ -13,7 +13,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+/**
+ * Calculate Paystack transfer fee for Kenya M-Pesa
+ * Fees as of 2024:
+ * - KES 10-1,500: KES 20
+ * - KES 1,501-20,000: KES 40
+ * - KES 20,001+: KES 60
+ */
+function getTransferFee(amountKsh: number): number {
+  if (amountKsh <= 1500) return 20;
+  if (amountKsh <= 20000) return 40;
+  return 60;
+}
+
 serve(async (req) => {
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -29,7 +43,7 @@ serve(async (req) => {
       throw new Error('PAYSTACK_SECRET_KEY not configured');
     }
 
-    // Get pending payouts
+    // Get pending payouts (include commission_amount for net revenue calculation)
     const { data: pendingPayouts, error: payoutsError } = await supabase
       .from('payouts')
       .select(`
@@ -37,11 +51,13 @@ serve(async (req) => {
         order_id,
         vendor_id,
         amount_ksh,
+        commission_amount,
         method,
         profiles!payouts_vendor_id_fkey(mpesa_number, full_name, email)
       `)
       .eq('status', 'pending')
       .limit(50); // Process in batches
+
 
     if (payoutsError) {
       throw payoutsError;
@@ -128,13 +144,19 @@ serve(async (req) => {
         console.log('Transfer response:', transferData);
 
         if (transferData.status && transferData.data) {
-          // Update payout with success status
+          // Calculate transfer fee for internal tracking (admin reporting)
+          const transferFee = getTransferFee(payout.amount_ksh);
+          const netCommission = (payout.commission_amount || 0) - transferFee;
+
+          // Update payout with success status and fee tracking
           await supabase
             .from('payouts')
             .update({
               status: 'paid',
               paid_at: new Date().toISOString(),
               reference: transferData.data.transfer_code || transferData.data.reference,
+              transfer_fee_ksh: transferFee,
+              net_commission_ksh: netCommission,
               metadata: {
                 paystack_transfer_code: transferData.data.transfer_code,
                 paystack_recipient_code: recipientCode,
@@ -144,10 +166,11 @@ serve(async (req) => {
             .eq('id', payout.id);
 
           processedPayouts.push(payout.id);
-          console.log(`✅ Processed payout ${payout.id} - KES ${payout.amount_ksh} to ${phoneNumber}`);
+          console.log(`✅ Processed payout ${payout.id} - KES ${payout.amount_ksh} to ${phoneNumber} (fee: KES ${transferFee})`);
         } else {
           throw new Error(transferData.message || 'Transfer failed');
         }
+
 
       } catch (error) {
         console.error(`❌ Failed to process payout ${payout.id}:`, error);

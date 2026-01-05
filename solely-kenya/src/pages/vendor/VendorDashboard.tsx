@@ -21,7 +21,8 @@ const VendorDashboard = () => {
     averageRating: 0,
     totalViews: 0,
     ordersReceived: 0,
-    totalIncome: 0,
+    totalEarned: 0,
+    paidOut: 0,
     pendingBalance: 0,
     pendingOrders: 0,
   });
@@ -134,8 +135,9 @@ const VendorDashboard = () => {
       averageRating: Number(averageRating.toFixed(1)),
       totalViews,
       ordersReceived: ordersCount,
-      totalIncome: totalEarnings,  // Total earnings from completed orders
-      pendingBalance: availableBalance,  // Not yet withdrawn
+      totalEarned: totalEarnings,  // Total earnings from completed orders
+      paidOut: paidOut,           // Money sent to M-Pesa
+      pendingBalance: availableBalance,  // Waiting to be paid out
       pendingOrders: pendingOrdersCount
     });
   };
@@ -276,26 +278,38 @@ const VendorDashboard = () => {
 
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Income</CardTitle>
+                    <CardTitle className="text-sm font-medium">Total Earned</CardTitle>
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">KES {stats.totalIncome.toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">Paid out</p>
+                    <div className="text-2xl font-bold">KES {stats.totalEarned.toLocaleString()}</div>
+                    <p className="text-xs text-muted-foreground">From completed orders</p>
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">Paid Out</CardTitle>
+                    <DollarSign className="h-4 w-4 text-green-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-700 dark:text-green-300">KES {stats.paidOut.toLocaleString()}</div>
+                    <p className="text-xs text-green-600 dark:text-green-400">Sent to your M-Pesa</p>
+                  </CardContent>
+                </Card>
+
+                <Card className={stats.pendingBalance > 0 ? "border-yellow-500/50" : ""}>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Pending Balance</CardTitle>
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">KES {stats.pendingBalance.toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">Processing / In Escrow</p>
+                    <p className="text-xs text-muted-foreground">Awaiting payout</p>
                   </CardContent>
                 </Card>
               </div>
+
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
                 <Card className="lg:col-span-2">

@@ -18,7 +18,7 @@ const Terms = () => {
                 <div className="text-center mb-8">
                     <h1 className="text-4xl font-bold mb-4">Terms and Conditions</h1>
                     <p className="text-muted-foreground">
-                        Last updated: December 2024
+                        Last updated: December 2025
                     </p>
                 </div>
 
