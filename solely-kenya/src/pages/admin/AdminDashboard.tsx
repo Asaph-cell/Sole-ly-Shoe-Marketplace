@@ -117,7 +117,6 @@ const AdminDashboard = () => {
         { data: ordersAll },
         { data: ordersMonth },
         { count: viewsCount },
-        { data: productsData },
         { data: recentOrdersData },
         { data: disputesData },
         { data: dailyOrdersData },
@@ -133,11 +132,6 @@ const AdminDashboard = () => {
         supabase.from("orders").select("total_ksh"),
         supabase.from("orders").select("total_ksh").gte("created_at", monthStart),
         supabase.from("product_views").select("*", { count: "exact", head: true }),
-        // Get all products (simplified query without join)
-        supabase.from("products")
-          .select(`id, name, price, status, images, created_at, vendor_id`)
-          .order("created_at", { ascending: false })
-          .limit(50),
         // Recent orders
         supabase.from("orders")
           .select(`id, created_at, total_ksh, status, profiles:customer_id (full_name)`)
@@ -154,6 +148,20 @@ const AdminDashboard = () => {
           .gte("created_at", thirtyDaysAgo)
           .order("created_at", { ascending: true }),
       ]);
+
+      // Fetch products separately with explicit error handling
+      const { data: productsData, error: productsError } = await supabase
+        .from("products")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (productsError) {
+        console.error("Products fetch error:", productsError);
+      } else {
+        console.log("Products loaded:", productsData?.length);
+        setProducts(productsData || []);
+      }
 
       const totalCommission = (commissionsAll || []).reduce((sum: number, r: any) => sum + (r.commission_amount || 0), 0);
       const totalRevenue = (ordersAll || []).reduce((sum: number, r: any) => sum + (r.total_ksh || 0), 0);
@@ -185,10 +193,6 @@ const AdminDashboard = () => {
         totalViews: viewsCount || 0,
       });
 
-      // Debug: log products data
-      console.log("Products data:", productsData);
-
-      setProducts(productsData || []);
       setRecentOrders(recentOrdersData || []);
       setOpenDisputes(disputesData || []);
       setDailyRevenue(dailyRevenueArray);
