@@ -65,6 +65,8 @@ const AdminDashboard = () => {
 
   // Product actions
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
+  const [productSearch, setProductSearch] = useState("");
+  const [productStatusFilter, setProductStatusFilter] = useState<"all" | "active" | "draft">("all");
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -480,57 +482,80 @@ const AdminDashboard = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
+                    {/* Search and Filter */}
+                    <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                      <Input
+                        placeholder="Search products..."
+                        value={productSearch}
+                        onChange={(e) => setProductSearch(e.target.value)}
+                        className="sm:max-w-xs"
+                      />
+                      <Select value={productStatusFilter} onValueChange={(v: any) => setProductStatusFilter(v)}>
+                        <SelectTrigger className="sm:w-[150px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Status</SelectItem>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="draft">Draft/Paused</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     {products.length === 0 ? (
                       <p className="text-muted-foreground text-center py-8">No products yet</p>
                     ) : (
                       <div className="space-y-2">
-                        {products.map((product) => (
-                          <div key={product.id} className="flex items-center gap-4 p-3 border rounded-lg hover:bg-accent/50">
-                            {/* Image */}
-                            <div className="w-12 h-12 rounded bg-muted flex items-center justify-center overflow-hidden shrink-0">
-                              {product.images?.[0] ? (
-                                <img src={product.images[0]} alt="" className="w-full h-full object-cover" />
-                              ) : (
-                                <Image className="h-5 w-5 text-muted-foreground" />
-                              )}
-                            </div>
-
-                            {/* Info */}
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium truncate">{product.name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                KES {product.price_ksh?.toLocaleString()}
-                              </p>
-                            </div>
-
-                            {/* Status */}
-                            <Badge variant={product.status === "active" ? "default" : "secondary"}>
-                              {product.status}
-                            </Badge>
-
-                            {/* Actions */}
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => toggleProductStatus(product.id, product.status)}
-                              >
-                                {product.status === "active" ? (
-                                  <><Pause className="h-3 w-3 mr-1" /> Pause</>
+                        {products
+                          .filter(p => productStatusFilter === "all" || p.status === productStatusFilter)
+                          .filter(p => productSearch === "" || p.name?.toLowerCase().includes(productSearch.toLowerCase()))
+                          .map((product) => (
+                            <div key={product.id} className="flex items-center gap-4 p-3 border rounded-lg hover:bg-accent/50">
+                              {/* Image */}
+                              <div className="w-12 h-12 rounded bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                                {product.images?.[0] ? (
+                                  <img src={product.images[0]} alt="" className="w-full h-full object-cover" />
                                 ) : (
-                                  <><Play className="h-3 w-3 mr-1" /> Activate</>
+                                  <Image className="h-5 w-5 text-muted-foreground" />
                                 )}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => setProductToDelete(product.id)}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
+                              </div>
+
+                              {/* Info */}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium truncate">{product.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  KES {product.price_ksh?.toLocaleString()}
+                                </p>
+                              </div>
+
+                              {/* Status */}
+                              <Badge variant={product.status === "active" ? "default" : "secondary"}>
+                                {product.status}
+                              </Badge>
+
+                              {/* Actions */}
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => toggleProductStatus(product.id, product.status)}
+                                >
+                                  {product.status === "active" ? (
+                                    <><Pause className="h-3 w-3 mr-1" /> Pause</>
+                                  ) : (
+                                    <><Play className="h-3 w-3 mr-1" /> Activate</>
+                                  )}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => setProductToDelete(product.id)}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
                       </div>
                     )}
                   </CardContent>
