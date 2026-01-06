@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { SneakerLoader } from "./components/ui/SneakerLoader";
 
 const queryClient = new QueryClient();
 
@@ -70,7 +71,9 @@ const PageWrapper = ({ children }: { children: React.ReactNode }) => (
     transition={{ duration: 0.3 }}
     style={{ willChange: "opacity, transform" }}
   >
-    {children}
+    <React.Suspense fallback={<SneakerLoader message="Loading..." />}>
+      {children}
+    </React.Suspense>
   </motion.div>
 );
 
@@ -124,7 +127,7 @@ const AppLayout = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+      <React.Suspense fallback={<SneakerLoader message="Loading..." />}>
         {!isVendorOrAdminPage && <Navbar />}
         <main className="flex-grow">
           <AnimatedRoutes />
