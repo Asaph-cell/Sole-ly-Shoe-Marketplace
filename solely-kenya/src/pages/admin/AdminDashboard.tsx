@@ -499,7 +499,7 @@ const AdminDashboard = () => {
                             <div className="flex-1 min-w-0">
                               <p className="font-medium truncate">{product.name}</p>
                               <p className="text-xs text-muted-foreground">
-                                KES {product.price?.toLocaleString()}
+                                KES {product.price_ksh?.toLocaleString()}
                               </p>
                             </div>
 
