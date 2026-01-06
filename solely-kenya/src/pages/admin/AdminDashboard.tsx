@@ -5,34 +5,27 @@ import { useAuth } from "@/hooks/useAuth";
 import { VendorNavbar } from "@/components/vendor/VendorNavbar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
-  Package, Users, ShoppingCart, DollarSign, AlertCircle, Eye,
-  TrendingUp, Clock, CheckCircle, XCircle, Truck, ArrowUpRight,
-  Activity, Calendar, BarChart3, Mail, Send
+  Package, Users, DollarSign, AlertCircle, Eye, TrendingUp, Clock,
+  CheckCircle, Truck, ArrowUpRight, Mail, Send, Trash2, Pause, Play, Image
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const AdminDashboard = () => {
   const { user, loading } = useAuth();
@@ -40,30 +33,27 @@ const AdminDashboard = () => {
   const { toast } = useToast();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
+  const [activeTab, setActiveTab] = useState("overview");
 
+  // Stats
   const [stats, setStats] = useState({
     totalProducts: 0,
     activeProducts: 0,
     totalVendors: 0,
     totalCustomers: 0,
-    totalOrdersCompleted: 0,
+    completedOrders: 0,
     pendingOrders: 0,
-    processingOrders: 0,
     openDisputes: 0,
-    totalCommission: 0,
-    monthlyCommission: 0,
     totalRevenue: 0,
     monthlyRevenue: 0,
-    totalViews: 0,
-    todayViews: 0,
-    totalTransferFees: 0,
     netCommission: 0,
+    totalViews: 0,
   });
 
-  const [openDisputes, setOpenDisputes] = useState<any[]>([]);
+  // Data
+  const [products, setProducts] = useState<any[]>([]);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
-  const [ordersByStatus, setOrdersByStatus] = useState<{ status: string, count: number }[]>([]);
-  const [dailyRevenue, setDailyRevenue] = useState<{ date: string, revenue: number, orders: number }[]>([]);
+  const [openDisputes, setOpenDisputes] = useState<any[]>([]);
 
   // Announcement state
   const [announcementSubject, setAnnouncementSubject] = useState("");
@@ -71,6 +61,9 @@ const AdminDashboard = () => {
   const [announcementAudience, setAnnouncementAudience] = useState<"all" | "vendors" | "customers">("all");
   const [sendingAnnouncement, setSendingAnnouncement] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+  // Product actions
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -107,13 +100,9 @@ const AdminDashboard = () => {
 
   const loadData = async () => {
     setLoadingData(true);
-
     const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
-    const todayStart = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
     try {
-      // Fetch all stats in parallel
       const [
         { count: productsCount },
         { count: activeProductsCount },
@@ -121,18 +110,14 @@ const AdminDashboard = () => {
         { count: customersCount },
         { count: completedOrdersCount },
         { count: pendingOrdersCount },
-        { count: processingOrdersCount },
-        { count: draftsCount },
+        { count: disputesCount },
         { data: commissionsAll },
-        { data: commissionsMonth },
         { data: ordersAll },
         { data: ordersMonth },
-        { count: totalViewsCount },
-        { count: todayViewsCount },
-        { data: orderStatusData },
+        { count: viewsCount },
+        { data: productsData },
         { data: recentOrdersData },
-        { data: dailyOrdersData },
-        { data: paidPayoutsData },
+        { data: disputesData },
       ] = await Promise.all([
         supabase.from("products").select("*", { count: "exact", head: true }),
         supabase.from("products").select("*", { count: "exact", head: true }).eq("status", "active"),
@@ -140,410 +125,272 @@ const AdminDashboard = () => {
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "completed"),
         supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "pending_vendor_confirmation"),
-        supabase.from("orders").select("*", { count: "exact", head: true }).in("status", ["vendor_confirmed", "arrived"]),
         supabase.from("disputes").select("*", { count: "exact", head: true }).eq("status", "open"),
         supabase.from("commission_ledger").select("commission_amount"),
-        supabase.from("commission_ledger").select("commission_amount").gte("recorded_at", monthStart),
         supabase.from("orders").select("total_ksh"),
         supabase.from("orders").select("total_ksh").gte("created_at", monthStart),
         supabase.from("product_views").select("*", { count: "exact", head: true }),
-        supabase.from("product_views").select("*", { count: "exact", head: true }).gte("viewed_at", todayStart),
-        // Order status breakdown
-        supabase.from("orders").select("status"),
-        // Recent orders with details
+        // Get all products with vendor info
+        supabase.from("products")
+          .select(`id, name, price, status, images, created_at, vendor:vendor_id (full_name, store_name)`)
+          .order("created_at", { ascending: false })
+          .limit(50),
+        // Recent orders
         supabase.from("orders")
-          .select(`
-            id,
-            created_at,
-            total_ksh,
-            status,
-            profiles:customer_id (full_name, email)
-          `)
+          .select(`id, created_at, total_ksh, status, profiles:customer_id (full_name)`)
           .order("created_at", { ascending: false })
           .limit(10),
-        // Daily orders for chart (last 30 days)
-        supabase.from("orders")
-          .select("created_at, total_ksh")
-          .gte("created_at", thirtyDaysAgo)
-          .order("created_at", { ascending: true }),
-        // Paid payouts with transfer fees for net commission calculation
-        supabase.from("payouts")
-          .select("transfer_fee_ksh, commission_amount")
-          .eq("status", "paid"),
+        // Open disputes
+        supabase.from("disputes")
+          .select(`id, reason, opened_at, order_id, customer:customer_id (full_name)`)
+          .eq("status", "open")
+          .limit(5),
       ]);
 
-      // Calculate totals
-      const totalCommission = (commissionsAll || []).reduce((sum: number, row: any) => sum + (row.commission_amount || 0), 0);
-      const monthlyCommission = (commissionsMonth || []).reduce((sum: number, row: any) => sum + (row.commission_amount || 0), 0);
-      const totalRevenue = (ordersAll || []).reduce((sum: number, row: any) => sum + (row.total_ksh || 0), 0);
-      const monthlyRevenue = (ordersMonth || []).reduce((sum: number, row: any) => sum + (row.total_ksh || 0), 0);
-
-      // Calculate net commission (after Paystack transfer fees)
-      const totalTransferFees = (paidPayoutsData || []).reduce((sum: number, row: any) => sum + (row.transfer_fee_ksh || 0), 0);
-      const netCommission = totalCommission - totalTransferFees;
-
-      // Process order status breakdown
-      const statusCounts: Record<string, number> = {};
-      (orderStatusData || []).forEach((order: any) => {
-        statusCounts[order.status] = (statusCounts[order.status] || 0) + 1;
-      });
-      const statusBreakdown = Object.entries(statusCounts).map(([status, count]) => ({ status, count }));
-
-      // Process daily revenue for chart
-      const dailyData: Record<string, { revenue: number, orders: number }> = {};
-      (dailyOrdersData || []).forEach((order: any) => {
-        const date = new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        if (!dailyData[date]) {
-          dailyData[date] = { revenue: 0, orders: 0 };
-        }
-        dailyData[date].revenue += order.total_ksh || 0;
-        dailyData[date].orders += 1;
-      });
-      const dailyRevenueArray = Object.entries(dailyData).map(([date, data]) => ({
-        date,
-        revenue: data.revenue,
-        orders: data.orders
-      }));
+      const totalCommission = (commissionsAll || []).reduce((sum: number, r: any) => sum + (r.commission_amount || 0), 0);
+      const totalRevenue = (ordersAll || []).reduce((sum: number, r: any) => sum + (r.total_ksh || 0), 0);
+      const monthlyRevenue = (ordersMonth || []).reduce((sum: number, r: any) => sum + (r.total_ksh || 0), 0);
 
       setStats({
         totalProducts: productsCount || 0,
         activeProducts: activeProductsCount || 0,
         totalVendors: vendorsCount || 0,
         totalCustomers: customersCount || 0,
-        totalOrdersCompleted: completedOrdersCount || 0,
+        completedOrders: completedOrdersCount || 0,
         pendingOrders: pendingOrdersCount || 0,
-        processingOrders: processingOrdersCount || 0,
-        openDisputes: draftsCount || 0,
-        totalCommission,
-        monthlyCommission,
+        openDisputes: disputesCount || 0,
         totalRevenue,
         monthlyRevenue,
-        totalViews: totalViewsCount || 0,
-        todayViews: todayViewsCount || 0,
-        totalTransferFees,
-        netCommission,
+        netCommission: totalCommission,
+        totalViews: viewsCount || 0,
       });
 
-      setOrdersByStatus(statusBreakdown);
+      setProducts(productsData || []);
       setRecentOrders(recentOrdersData || []);
-      setDailyRevenue(dailyRevenueArray);
-
-      // Fetch open disputes with customer/vendor info
-      const { data: disputes } = await supabase
-        .from("disputes")
-        .select(`
-          *,
-          customer:customer_id (full_name, email),
-          vendor:vendor_id (full_name, store_name),
-          order:order_id (total_ksh)
-        `)
-        .eq("status", "open")
-        .order("opened_at", { ascending: false })
-        .limit(10);
-
-      setOpenDisputes(disputes || []);
+      setOpenDisputes(disputesData || []);
     } catch (error) {
-      console.error("Error loading admin data:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load dashboard data",
-        variant: "destructive",
-      });
+      console.error("Error loading data:", error);
+      toast({ title: "Error", description: "Failed to load dashboard data", variant: "destructive" });
     } finally {
       setLoadingData(false);
     }
   };
 
-  const publishProduct = async (productId: string) => {
+  const toggleProductStatus = async (productId: string, currentStatus: string) => {
+    const newStatus = currentStatus === "active" ? "inactive" : "active";
     try {
-      const { error } = await supabase.rpc("publish_product", {
-        product_id_to_publish: productId,
-      });
+      const { error } = await supabase
+        .from("products")
+        .update({ status: newStatus })
+        .eq("id", productId);
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Product published successfully",
-      });
-
+      toast({ title: "Success", description: `Product ${newStatus === "active" ? "activated" : "paused"}` });
       loadData();
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to publish product",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      pending_vendor_confirmation: "bg-yellow-500",
-      vendor_confirmed: "bg-blue-500",
-      arrived: "bg-purple-500",
-      delivered: "bg-green-500",
-      completed: "bg-green-600",
-      cancelled: "bg-red-500",
-      refunded: "bg-gray-500",
-    };
-    return colors[status] || "bg-gray-400";
+  const deleteProduct = async (productId: string) => {
+    try {
+      const { error } = await supabase.from("products").delete().eq("id", productId);
+      if (error) throw error;
+      toast({ title: "Deleted", description: "Product removed permanently" });
+      setProductToDelete(null);
+      loadData();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
   };
 
-  const formatStatus = (status: string) => {
-    return status.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+  const sendAnnouncement = async () => {
+    setShowConfirmDialog(false);
+    setSendingAnnouncement(true);
+    try {
+      const response = await supabase.functions.invoke("send-announcement", {
+        body: { subject: announcementSubject, htmlContent: announcementMessage, targetAudience: announcementAudience },
+      });
+
+      if (response.error) throw new Error(response.error.message);
+
+      toast({ title: "Sent!", description: response.data.message });
+      setAnnouncementSubject("");
+      setAnnouncementMessage("");
+    } catch (error: any) {
+      toast({ title: "Failed", description: error.message, variant: "destructive" });
+    } finally {
+      setSendingAnnouncement(false);
+    }
   };
+
+  const formatStatus = (status: string) => status.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
 
   if (loading || !isAdmin) {
     return <SneakerLoader message="Loading admin dashboard..." />;
   }
 
-  const maxRevenue = Math.max(...dailyRevenue.map(d => d.revenue), 1);
-
   return (
     <div className="min-h-screen bg-background">
       <VendorNavbar />
-      <main className="container mx-auto p-6 lg:p-8">
+      <main className="container mx-auto p-4 md:p-6 max-w-7xl">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Complete overview of your marketplace performance</p>
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <p className="text-muted-foreground text-sm">Manage your marketplace</p>
         </div>
 
         {loadingData ? (
-          <SneakerLoader message="Loading dashboard data..." fullScreen={false} />
+          <SneakerLoader message="Loading..." fullScreen={false} />
         ) : (
           <>
-            {/* Key Metrics Row 1 */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
-              <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                  <DollarSign className="h-4 w-4 text-blue-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">KES {stats.totalRevenue.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground">All-time sales</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">This Month</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-green-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">KES {stats.monthlyRevenue.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground">Revenue this month</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Net Commission</CardTitle>
-                  <DollarSign className="h-4 w-4 text-purple-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">KES {stats.netCommission.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {stats.totalTransferFees > 0
-                      ? `After KES ${stats.totalTransferFees.toLocaleString()} transfer fees`
-                      : 'Your net earnings'}
-                  </p>
-                </CardContent>
-              </Card>
-
-
-              <Card className="bg-gradient-to-br from-cyan-500/10 to-cyan-600/5 border-cyan-500/20">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Product Views</CardTitle>
-                  <Eye className="h-4 w-4 text-cyan-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalViews.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground">{stats.todayViews} today</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 border-orange-500/20">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Vendors</CardTitle>
-                  <Users className="h-4 w-4 text-orange-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalVendors}</div>
-                  <p className="text-xs text-muted-foreground">Registered sellers</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-pink-500/10 to-pink-600/5 border-pink-500/20">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Customers</CardTitle>
-                  <Users className="h-4 w-4 text-pink-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalCustomers}</div>
-                  <p className="text-xs text-muted-foreground">Total users</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Orders & Products Row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
+            {/* Key Stats - Compact Row */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-6">
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Completed Orders</CardTitle>
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalOrdersCompleted}</div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-yellow-500/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
-                  <Clock className="h-4 w-4 text-yellow-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-yellow-600">{stats.pendingOrders}</div>
-                  <p className="text-xs text-muted-foreground">Awaiting vendor</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Processing</CardTitle>
-                  <Truck className="h-4 w-4 text-blue-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.processingOrders}</div>
-                  <p className="text-xs text-muted-foreground">Confirmed/Shipped</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Active Products</CardTitle>
-                  <Package className="h-4 w-4 text-primary" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.activeProducts}</div>
-                  <p className="text-xs text-muted-foreground">of {stats.totalProducts} total</p>
-                </CardContent>
-              </Card>
-
-              <Link to="/admin/disputes">
-                <Card className="border-red-500/50 hover:bg-accent transition-colors cursor-pointer">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Open Disputes</CardTitle>
-                    <AlertCircle className="h-4 w-4 text-red-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-red-600">{stats.openDisputes}</div>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      Need resolution <ArrowUpRight className="h-3 w-3" />
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
-            </div>
-
-            {/* Charts and Tables Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-              {/* Revenue Chart */}
-              <Card className="lg:col-span-2">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5" />
-                    Revenue & Orders (Last 30 Days)
-                  </CardTitle>
-                  <CardDescription>Daily revenue and order count trends</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {dailyRevenue.length === 0 ? (
-                    <div className="h-48 flex items-center justify-center text-muted-foreground">
-                      No order data available yet
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Revenue</p>
+                      <p className="text-lg font-bold">KES {stats.totalRevenue.toLocaleString()}</p>
                     </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="flex items-end gap-1 h-48 overflow-x-auto pb-2">
-                        {dailyRevenue.slice(-14).map((day, idx) => (
-                          <div key={idx} className="flex flex-col items-center flex-1 min-w-[40px]">
-                            <div
-                              className="w-full bg-primary/80 rounded-t hover:bg-primary transition-colors cursor-pointer relative group"
-                              style={{ height: `${Math.max((day.revenue / maxRevenue) * 150, 4)}px` }}
-                            >
-                              <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                                KES {day.revenue.toLocaleString()} ({day.orders} orders)
-                              </div>
-                            </div>
-                            <span className="text-[10px] text-muted-foreground mt-1 whitespace-nowrap">{day.date}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                    <DollarSign className="h-5 w-5 text-green-500" />
+                  </div>
                 </CardContent>
               </Card>
 
-              {/* Order Status Breakdown */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="h-5 w-5" />
-                    Order Status
-                  </CardTitle>
-                  <CardDescription>Breakdown by status</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {ordersByStatus.length === 0 ? (
-                      <p className="text-muted-foreground text-sm">No orders yet</p>
-                    ) : (
-                      ordersByStatus.map((item, idx) => (
-                        <div key={idx} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className={`w-3 h-3 rounded-full ${getStatusColor(item.status)}`}></div>
-                            <span className="text-sm">{formatStatus(item.status)}</span>
-                          </div>
-                          <Badge variant="secondary">{item.count}</Badge>
-                        </div>
-                      ))
-                    )}
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">This Month</p>
+                      <p className="text-lg font-bold">KES {stats.monthlyRevenue.toLocaleString()}</p>
+                    </div>
+                    <TrendingUp className="h-5 w-5 text-blue-500" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Commission</p>
+                      <p className="text-lg font-bold">KES {stats.netCommission.toLocaleString()}</p>
+                    </div>
+                    <DollarSign className="h-5 w-5 text-purple-500" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Products</p>
+                      <p className="text-lg font-bold">{stats.activeProducts}/{stats.totalProducts}</p>
+                    </div>
+                    <Package className="h-5 w-5 text-orange-500" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Vendors</p>
+                      <p className="text-lg font-bold">{stats.totalVendors}</p>
+                    </div>
+                    <Users className="h-5 w-5 text-cyan-500" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Views</p>
+                      <p className="text-lg font-bold">{stats.totalViews.toLocaleString()}</p>
+                    </div>
+                    <Eye className="h-5 w-5 text-pink-500" />
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Tabs for Tables */}
-            <Tabs defaultValue="orders" className="space-y-4">
-              <TabsList>
-                <TabsTrigger value="orders">Recent Orders</TabsTrigger>
-                <TabsTrigger value="disputes" className={stats.openDisputes > 0 ? "text-red-600" : ""}>
-                  Open Disputes ({stats.openDisputes})
+            {/* Alert Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+              <Card className={stats.pendingOrders > 0 ? "border-yellow-500/50" : ""}>
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Clock className="h-5 w-5 text-yellow-500" />
+                    <div>
+                      <p className="font-medium">{stats.pendingOrders} Pending Orders</p>
+                      <p className="text-xs text-muted-foreground">Awaiting vendor</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className={stats.completedOrders > 0 ? "border-green-500/50" : ""}>
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <div>
+                      <p className="font-medium">{stats.completedOrders} Completed</p>
+                      <p className="text-xs text-muted-foreground">All time</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Link to="/admin/disputes">
+                <Card className={stats.openDisputes > 0 ? "border-red-500/50 hover:bg-accent cursor-pointer" : "hover:bg-accent cursor-pointer"}>
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <AlertCircle className={`h-5 w-5 ${stats.openDisputes > 0 ? "text-red-500" : "text-muted-foreground"}`} />
+                      <div>
+                        <p className="font-medium">{stats.openDisputes} Open Disputes</p>
+                        <p className="text-xs text-muted-foreground">Need resolution</p>
+                      </div>
+                    </div>
+                    <ArrowUpRight className="h-4 w-4" />
+                  </CardContent>
+                </Card>
+              </Link>
+            </div>
+
+            {/* Main Tabs */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="products" className="flex items-center gap-1">
+                  <Package className="h-4 w-4" /> Products
                 </TabsTrigger>
                 <TabsTrigger value="announcements" className="flex items-center gap-1">
-                  <Mail className="h-4 w-4" /> Announcements
+                  <Mail className="h-4 w-4" /> Email
+                </TabsTrigger>
+                <TabsTrigger value="disputes" className={stats.openDisputes > 0 ? "text-red-600" : ""}>
+                  Disputes
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="orders">
+              {/* Overview Tab */}
+              <TabsContent value="overview">
                 <Card>
                   <CardHeader>
                     <CardTitle>Recent Orders</CardTitle>
-                    <CardDescription>Latest 10 orders across all vendors</CardDescription>
                   </CardHeader>
                   <CardContent>
                     {recentOrders.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        No orders yet
-                      </div>
+                      <p className="text-muted-foreground text-center py-8">No orders yet</p>
                     ) : (
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Order ID</TableHead>
+                            <TableHead>Order</TableHead>
                             <TableHead>Customer</TableHead>
                             <TableHead>Amount</TableHead>
                             <TableHead>Status</TableHead>
@@ -553,25 +400,11 @@ const AdminDashboard = () => {
                         <TableBody>
                           {recentOrders.map((order) => (
                             <TableRow key={order.id}>
-                              <TableCell className="font-mono text-sm">
-                                #{order.id.slice(0, 8)}
-                              </TableCell>
+                              <TableCell className="font-mono text-sm">#{order.id.slice(0, 8)}</TableCell>
+                              <TableCell>{order.profiles?.full_name || "Guest"}</TableCell>
+                              <TableCell>KES {order.total_ksh?.toLocaleString()}</TableCell>
                               <TableCell>
-                                <div>
-                                  <div className="font-medium">{order.profiles?.full_name || "Guest"}</div>
-                                  <div className="text-xs text-muted-foreground">{order.profiles?.email}</div>
-                                </div>
-                              </TableCell>
-                              <TableCell className="font-semibold">
-                                KES {order.total_ksh?.toLocaleString()}
-                              </TableCell>
-                              <TableCell>
-                                <Badge
-                                  variant="outline"
-                                  className={`${getStatusColor(order.status)} text-white border-0`}
-                                >
-                                  {formatStatus(order.status)}
-                                </Badge>
+                                <Badge variant="outline">{formatStatus(order.status)}</Badge>
                               </TableCell>
                               <TableCell className="text-muted-foreground">
                                 {new Date(order.created_at).toLocaleDateString()}
@@ -585,64 +418,176 @@ const AdminDashboard = () => {
                 </Card>
               </TabsContent>
 
+              {/* Products Tab */}
+              <TabsContent value="products">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Package className="h-5 w-5" />
+                      All Products
+                    </CardTitle>
+                    <CardDescription>
+                      Manage product listings. Pause or delete products with issues.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {products.length === 0 ? (
+                      <p className="text-muted-foreground text-center py-8">No products yet</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {products.map((product) => (
+                          <div key={product.id} className="flex items-center gap-4 p-3 border rounded-lg hover:bg-accent/50">
+                            {/* Image */}
+                            <div className="w-12 h-12 rounded bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                              {product.images?.[0] ? (
+                                <img src={product.images[0]} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <Image className="h-5 w-5 text-muted-foreground" />
+                              )}
+                            </div>
+
+                            {/* Info */}
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate">{product.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                KES {product.price?.toLocaleString()} • {product.vendor?.store_name || product.vendor?.full_name || "Unknown"}
+                              </p>
+                            </div>
+
+                            {/* Status */}
+                            <Badge variant={product.status === "active" ? "default" : "secondary"}>
+                              {product.status}
+                            </Badge>
+
+                            {/* Actions */}
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => toggleProductStatus(product.id, product.status)}
+                              >
+                                {product.status === "active" ? (
+                                  <><Pause className="h-3 w-3 mr-1" /> Pause</>
+                                ) : (
+                                  <><Play className="h-3 w-3 mr-1" /> Activate</>
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => setProductToDelete(product.id)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Announcements Tab */}
+              <TabsContent value="announcements">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Mail className="h-5 w-5" />
+                      Send Announcement
+                    </CardTitle>
+                    <CardDescription>
+                      Email users about updates, news, or promotions.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Audience</label>
+                      <Select value={announcementAudience} onValueChange={(v: any) => setAnnouncementAudience(v)}>
+                        <SelectTrigger className="w-full md:w-[250px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Users ({stats.totalCustomers})</SelectItem>
+                          <SelectItem value="vendors">Vendors Only ({stats.totalVendors})</SelectItem>
+                          <SelectItem value="customers">Customers ({stats.totalCustomers - stats.totalVendors})</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Subject</label>
+                      <Input
+                        placeholder="Exciting news from Sole-ly!"
+                        value={announcementSubject}
+                        onChange={(e) => setAnnouncementSubject(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Message (HTML supported)</label>
+                      <Textarea
+                        placeholder="Write your announcement..."
+                        value={announcementMessage}
+                        onChange={(e) => setAnnouncementMessage(e.target.value)}
+                        rows={6}
+                      />
+                    </div>
+
+                    {announcementMessage && (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Preview</label>
+                        <div className="border rounded p-4 bg-muted/50" dangerouslySetInnerHTML={{ __html: announcementMessage }} />
+                      </div>
+                    )}
+
+                    <Button
+                      onClick={() => setShowConfirmDialog(true)}
+                      disabled={!announcementSubject.trim() || !announcementMessage.trim() || sendingAnnouncement}
+                    >
+                      <Send className="h-4 w-4 mr-2" />
+                      {sendingAnnouncement ? "Sending..." : "Send Announcement"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Disputes Tab */}
               <TabsContent value="disputes">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between">
                     <div>
                       <CardTitle>Open Disputes</CardTitle>
-                      <CardDescription>Customer complaints requiring resolution</CardDescription>
+                      <CardDescription>Customer complaints needing resolution</CardDescription>
                     </div>
                     <Link to="/admin/disputes">
-                      <Button variant="outline" size="sm">
-                        View All <ArrowUpRight className="h-4 w-4 ml-1" />
-                      </Button>
+                      <Button variant="outline" size="sm">View All <ArrowUpRight className="h-4 w-4 ml-1" /></Button>
                     </Link>
                   </CardHeader>
                   <CardContent>
                     {openDisputes.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        No open disputes 🎉
-                      </div>
+                      <p className="text-center py-8 text-muted-foreground">No open disputes 🎉</p>
                     ) : (
                       <Table>
                         <TableHeader>
                           <TableRow>
                             <TableHead>Customer</TableHead>
-                            <TableHead>Vendor</TableHead>
-                            <TableHead>Order Value</TableHead>
                             <TableHead>Reason</TableHead>
                             <TableHead>Opened</TableHead>
                             <TableHead>Action</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {openDisputes.map((dispute) => (
-                            <TableRow key={dispute.id}>
+                          {openDisputes.map((d) => (
+                            <TableRow key={d.id}>
+                              <TableCell>{d.customer?.full_name || "Unknown"}</TableCell>
                               <TableCell>
-                                <div>
-                                  <div className="font-medium">{dispute.customer?.full_name || "Unknown"}</div>
-                                  <div className="text-xs text-muted-foreground">{dispute.customer?.email}</div>
-                                </div>
+                                <Badge variant="destructive">{d.reason?.replace(/_/g, " ")}</Badge>
                               </TableCell>
-                              <TableCell>
-                                {dispute.vendor?.store_name || dispute.vendor?.full_name || "Unknown"}
-                              </TableCell>
-                              <TableCell className="font-semibold">
-                                KES {dispute.order?.total_ksh?.toLocaleString() || "N/A"}
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="destructive">
-                                  {dispute.reason?.replace(/_/g, " ") || "Unknown"}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="text-muted-foreground">
-                                {new Date(dispute.opened_at).toLocaleDateString()}
-                              </TableCell>
+                              <TableCell>{new Date(d.opened_at).toLocaleDateString()}</TableCell>
                               <TableCell>
                                 <Link to="/admin/disputes">
-                                  <Button size="sm" variant="outline">
-                                    Resolve
-                                  </Button>
+                                  <Button size="sm" variant="outline">Resolve</Button>
                                 </Link>
                               </TableCell>
                             </TableRow>
@@ -653,173 +598,45 @@ const AdminDashboard = () => {
                   </CardContent>
                 </Card>
               </TabsContent>
-
-              <TabsContent value="announcements">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Mail className="h-5 w-5" />
-                      Send Announcement
-                    </CardTitle>
-                    <CardDescription>
-                      Send email announcements to your users. Select your audience and compose your message.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Audience Selector */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Target Audience</label>
-                      <Select
-                        value={announcementAudience}
-                        onValueChange={(value: "all" | "vendors" | "customers") => setAnnouncementAudience(value)}
-                      >
-                        <SelectTrigger className="w-full md:w-[300px]">
-                          <SelectValue placeholder="Select audience" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">
-                            <div className="flex items-center gap-2">
-                              <Users className="h-4 w-4" />
-                              All Users ({stats.totalCustomers})
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="vendors">
-                            <div className="flex items-center gap-2">
-                              <Package className="h-4 w-4" />
-                              Vendors Only ({stats.totalVendors})
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="customers">
-                            <div className="flex items-center gap-2">
-                              <ShoppingCart className="h-4 w-4" />
-                              Customers Only ({stats.totalCustomers - stats.totalVendors})
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Subject */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Subject</label>
-                      <Input
-                        placeholder="e.g., Exciting News from Sole-ly!"
-                        value={announcementSubject}
-                        onChange={(e) => setAnnouncementSubject(e.target.value)}
-                        maxLength={100}
-                      />
-                    </div>
-
-                    {/* Message */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Message (HTML supported)</label>
-                      <Textarea
-                        placeholder="Write your announcement here... You can use basic HTML like <b>bold</b>, <i>italic</i>, <a href='...'>links</a>"
-                        value={announcementMessage}
-                        onChange={(e) => setAnnouncementMessage(e.target.value)}
-                        rows={8}
-                        className="font-mono text-sm"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Tip: Use &lt;p&gt; for paragraphs, &lt;b&gt; for bold, &lt;a href="..."&gt; for links
-                      </p>
-                    </div>
-
-                    {/* Preview */}
-                    {announcementMessage && (
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Preview</label>
-                        <div
-                          className="border rounded-lg p-4 bg-muted/50"
-                          dangerouslySetInnerHTML={{ __html: announcementMessage }}
-                        />
-                      </div>
-                    )}
-
-                    {/* Send Button */}
-                    <Button
-                      onClick={() => setShowConfirmDialog(true)}
-                      disabled={!announcementSubject.trim() || !announcementMessage.trim() || sendingAnnouncement}
-                      className="w-full md:w-auto"
-                    >
-                      <Send className="h-4 w-4 mr-2" />
-                      {sendingAnnouncement ? "Sending..." : "Send Announcement"}
-                    </Button>
-                  </CardContent>
-                </Card>
-              </TabsContent>
             </Tabs>
 
-            {/* Confirmation Dialog */}
+            {/* Confirm Send Dialog */}
             <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Confirm Send</DialogTitle>
                   <DialogDescription>
-                    You are about to send an email to{" "}
-                    <strong>
-                      {announcementAudience === "all"
-                        ? `all ${stats.totalCustomers} users`
-                        : announcementAudience === "vendors"
-                          ? `${stats.totalVendors} vendors`
-                          : `${stats.totalCustomers - stats.totalVendors} customers`}
-                    </strong>.
+                    Send to {announcementAudience === "all" ? `all ${stats.totalCustomers} users` :
+                      announcementAudience === "vendors" ? `${stats.totalVendors} vendors` :
+                        `${stats.totalCustomers - stats.totalVendors} customers`}?
                   </DialogDescription>
                 </DialogHeader>
-                <div className="py-4">
-                  <p className="text-sm"><strong>Subject:</strong> {announcementSubject}</p>
-                  <div className="mt-2 p-3 bg-muted rounded-lg text-sm max-h-32 overflow-y-auto" dangerouslySetInnerHTML={{ __html: announcementMessage }} />
-                </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={async () => {
-                      setShowConfirmDialog(false);
-                      setSendingAnnouncement(true);
-                      try {
-                        const { data: sessionData } = await supabase.auth.getSession();
-                        const response = await supabase.functions.invoke("send-announcement", {
-                          body: {
-                            subject: announcementSubject,
-                            htmlContent: announcementMessage,
-                            targetAudience: announcementAudience,
-                          },
-                        });
-
-                        if (response.error) {
-                          throw new Error(response.error.message);
-                        }
-
-                        const result = response.data;
-                        if (result.success) {
-                          toast({
-                            title: "Announcement Sent!",
-                            description: result.message,
-                          });
-                          setAnnouncementSubject("");
-                          setAnnouncementMessage("");
-                        } else {
-                          throw new Error(result.error || "Failed to send");
-                        }
-                      } catch (error: any) {
-                        toast({
-                          title: "Failed to send",
-                          description: error.message || "Something went wrong",
-                          variant: "destructive",
-                        });
-                      } finally {
-                        setSendingAnnouncement(false);
-                      }
-                    }}
-                    disabled={sendingAnnouncement}
-                  >
-                    {sendingAnnouncement ? "Sending..." : "Confirm & Send"}
+                  <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>Cancel</Button>
+                  <Button onClick={sendAnnouncement} disabled={sendingAnnouncement}>
+                    {sendingAnnouncement ? "Sending..." : "Send"}
                   </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+
+            {/* Delete Product Confirmation */}
+            <AlertDialog open={!!productToDelete} onOpenChange={() => setProductToDelete(null)}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Product?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently remove the product. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => productToDelete && deleteProduct(productToDelete)}>
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </>
         )}
       </main>
