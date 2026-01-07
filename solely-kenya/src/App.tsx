@@ -120,8 +120,22 @@ const AnimatedRoutes = () => {
   );
 };
 
+const Maintenance = lazyRetry(() => import("./pages/Maintenance"));
+
 const AppLayout = () => {
   const location = useLocation();
+
+  // EMERGENCY MAINTENANCE MODE
+  // Set to true to hide the website from the public
+  const IS_MAINTENANCE_MODE = true;
+
+  if (IS_MAINTENANCE_MODE) {
+    return (
+      <React.Suspense fallback={<SneakerLoader message="Maintenance..." />}>
+        <Maintenance />
+      </React.Suspense>
+    );
+  }
 
   // Hide main navbar/footer on vendor and admin pages (they have their own)
   const isVendorOrAdminPage = location.pathname.startsWith('/vendor/') || location.pathname.startsWith('/admin');
