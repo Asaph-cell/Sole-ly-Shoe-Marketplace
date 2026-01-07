@@ -49,6 +49,21 @@ const Terms = () => {
                             </section>
 
                             <section>
+                                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                                    <Scale className="h-5 w-5 text-amber-600" />
+                                    0. Platform Disclaimer (Important)
+                                </h3>
+                                <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg mb-4">
+                                    <p className="text-amber-900 font-medium mb-2">Sole-ly Kenya is an Online Marketplace</p>
+                                    <ul className="list-disc pl-6 space-y-2 text-amber-800 text-sm">
+                                        <li>Sole-ly Kenya does not own or sell the products listed on this platform. We are a venue connecting third-party independent vendors with buyers.</li>
+                                        <li><strong>No Affiliation:</strong> Sole-ly Kenya is NOT affiliated, associated, authorized, endorsed by, or in any way officially connected with any brands listed on the platform (such as Nike, Adidas, Puma, etc.). All brand names, logos, and trademarks are the property of their respective owners.</li>
+                                        <li><strong>"Mint" / "Unworn" Condition:</strong> Items listed as "Mint" or "Unworn" are resale items in brand-new condition. They are sold by independent owners, not by authorized retailers, and may not come with the original manufacturer's warranty.</li>
+                                    </ul>
+                                </div>
+                            </section>
+
+                            <section>
                                 <h3 className="text-xl font-semibold mb-3">1. Account Registration</h3>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li><strong>Accuracy:</strong> You must provide accurate personal information and valid contact details during registration</li>
@@ -395,7 +410,7 @@ const Terms = () => {
                     </section>
                 </Card>
             </div>
-        </div>
+        </div >
     );
 };
 

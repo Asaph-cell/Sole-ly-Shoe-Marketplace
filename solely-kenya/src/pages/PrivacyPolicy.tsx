@@ -127,6 +127,9 @@ const PrivacyPolicy = () => {
                             <li><strong>For pickup orders:</strong> Buyers receive vendor contact information and pickup location</li>
                             <li><strong>Reviews:</strong> Your rating is shared but your identity remains anonymous to vendors</li>
                         </ul>
+                        <p className="text-muted-foreground mt-2 mb-4 bg-muted/50 p-3 rounded-lg text-sm">
+                            <strong>Note:</strong> When you purchase from a vendor, that vendor acts as an independent controller of your data (name, address, phone) solely for the purpose of order fulfillment. We contractually require vendors to protect your data and not to misuse it for marketing without your consent.
+                        </p>
 
                         <h3 className="text-lg font-semibold mb-2">Third-Party Service Providers</h3>
                         <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">

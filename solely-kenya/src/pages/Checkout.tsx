@@ -15,7 +15,8 @@ import { LocationPinMap } from "@/components/LocationPinMap";
 import { calculateDeliveryFee } from "@/utils/deliveryPricing";
 
 const paymentOptions = [
-  { value: "paystack", label: "Pay with M-Pesa / Card", icon: "💳", description: "Secure payment via Paystack" },
+  { value: "paystack", label: "Pay with M-Pesa / Card (Online)", icon: "💳", description: "Automatic payment via Paystack" },
+  { value: "mpesa", label: "M-Pesa Paybill (Manual)", icon: "📱", description: "Manually pay via M-Pesa Paybill" },
 ];
 
 const Checkout = () => {
@@ -302,7 +303,7 @@ const Checkout = () => {
         .from("payments")
         .insert({
           order_id: order.id,
-          gateway: "paystack", // Paystack gateway for M-Pesa and card payments
+          gateway: paymentGateway === "paystack" ? "paystack" : "mpesa",
           status: "pending",
           amount_ksh: total,
           currency: "KES",
@@ -316,6 +317,19 @@ const Checkout = () => {
         await supabase.from("order_items").delete().eq("order_id", order.id);
         await supabase.from("orders").delete().eq("id", order.id);
         throw new Error(paymentError?.message || "Failed to create payment record");
+      }
+
+      // Handle Manual Paybill (M-Pesa)
+      if (paymentGateway === "mpesa") {
+        // Notify buyer about order placed (non-blocking)
+        supabase.functions.invoke("notify-buyer-order-placed", {
+          body: { orderId: order.id },
+        }).catch(err => console.log("Buyer order confirmation failed (non-critical):", err));
+
+        clearCart();
+        toast.success("Order placed! Redirecting to payment...");
+        navigate(`/orders/${order.id}?payment=manual_pending`);
+        return;
       }
 
       // Process Paystack payment
@@ -350,7 +364,7 @@ const Checkout = () => {
         throw new Error(errorMsg);
       }
 
-      // Notify buyer about successful order placement (non-blocking)
+      // Notify buyer about successful order placement (non-blocking) - moved here for Paystack
       supabase.functions.invoke("notify-buyer-order-placed", {
         body: { orderId: order.id },
       }).catch(err => console.log("Buyer order confirmation failed (non-critical):", err));
@@ -362,8 +376,6 @@ const Checkout = () => {
       // Redirect to Paystack
       window.location.href = paystackResponse.url;
 
-      // We don't navigate to /orders here because we are redirecting the whole page to Paystack. 
-      // The user will return to /orders/:id via the successUrl.
     } catch (error) {
       console.error("Checkout error", error);
       const errorMessage = error instanceof Error

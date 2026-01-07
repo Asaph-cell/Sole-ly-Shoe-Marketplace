@@ -127,7 +127,7 @@ const AppLayout = () => {
 
   // EMERGENCY MAINTENANCE MODE
   // Set to true to hide the website from the public
-  const IS_MAINTENANCE_MODE = true;
+  const IS_MAINTENANCE_MODE = false;
 
   if (IS_MAINTENANCE_MODE) {
     return (

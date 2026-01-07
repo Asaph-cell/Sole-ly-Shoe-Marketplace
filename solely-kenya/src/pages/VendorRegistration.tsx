@@ -181,7 +181,7 @@ const VendorRegistration = () => {
                   required
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                   <strong>Required:</strong> This M-Pesa number will receive your sales payouts (90% of order value). Must be a valid Kenyan M-Pesa number.
+                  <strong>Required:</strong> This M-Pesa number will receive your sales payouts (90% of order value). Must be a valid Kenyan M-Pesa number.
                 </p>
               </div>
 
@@ -272,7 +272,7 @@ const VendorRegistration = () => {
                     </Link>{" "}
                     *
                   </Label>
-                  <p className="text-xs text-muted-foreground">
+                  <div className="text-xs text-muted-foreground mt-2">
                     By checking this box, you agree to Solely's Terms and Conditions, including:
                     <ul className="list-disc list-inside mt-2 space-y-1">
                       <li>You are responsible for all product deliveries</li>
@@ -280,8 +280,11 @@ const VendorRegistration = () => {
                       <li>Solely takes a 10% commission on each sale</li>
                       <li>Payments are held in escrow until delivery is confirmed</li>
                       <li>You must provide accurate product information</li>
+                      <li className="font-bold text-amber-800">You certify that you have the right to sell these items and they are authentic</li>
+                      <li className="font-bold text-amber-800">You agree to indemnify Solely Kenya against any intellectual property claims arising from your listings</li>
+                      <li>Solely Kenya acts only as a platform and is not liable for vendor products</li>
                     </ul>
-                  </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -312,4 +315,3 @@ const VendorRegistration = () => {
 };
 
 export default VendorRegistration;
-

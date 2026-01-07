@@ -282,7 +282,7 @@ const Shop = () => {
                     <SelectItem value="new">
                       <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                        New
+                        Mint
                       </div>
                     </SelectItem>
                     <SelectItem value="like_new">
@@ -434,7 +434,7 @@ const Shop = () => {
                         <SelectItem value="new">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                            New
+                            Mint
                           </div>
                         </SelectItem>
                         <SelectItem value="like_new">

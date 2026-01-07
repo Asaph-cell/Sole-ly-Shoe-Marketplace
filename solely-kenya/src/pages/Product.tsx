@@ -16,7 +16,7 @@ import { ShoeSizeChart } from "@/components/ShoeSizeChart";
 
 // Condition labels for display - with footwear and accessory-specific descriptions
 const conditionLabels: Record<string, { label: string; color: string; footwearDesc: string; accessoryDesc: string }> = {
-  new: { label: "New", color: "bg-green-500", footwearDesc: "Brand new, never worn", accessoryDesc: "Brand new, unopened" },
+  new: { label: "Mint", color: "bg-green-500", footwearDesc: "Brand new condition, resale", accessoryDesc: "Brand new condition, resale" },
   like_new: { label: "Like New", color: "bg-blue-500", footwearDesc: "Worn 1-2 times, no visible wear", accessoryDesc: "Used once, like new condition" },
   good: { label: "Good", color: "bg-yellow-500", footwearDesc: "Light wear, minor scuffs", accessoryDesc: "Good condition, minor signs of use" },
   fair: { label: "Fair", color: "bg-orange-500", footwearDesc: "Visible wear, still functional", accessoryDesc: "Visible wear, fully functional" },

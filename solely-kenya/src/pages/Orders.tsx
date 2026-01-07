@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { OrderReviewDialog } from "@/components/OrderReviewDialog";
 import { OrderConfirmationModal } from "@/components/OrderConfirmationModal";
 import { OrderReceipt } from "@/components/OrderReceipt";
+import { Input } from "@/components/ui/input";
 import { Phone, MessageCircle, PhoneCall, CheckCircle, Download } from "lucide-react";
 import {
   DropdownMenu,
@@ -113,6 +114,38 @@ const Orders = () => {
   const [selectedOrderForConfirmation, setSelectedOrderForConfirmation] = useState<OrderRecord | null>(null);
   const [receiptOrder, setReceiptOrder] = useState<OrderRecord | null>(null);
   const [reviewedOrders, setReviewedOrders] = useState<Set<string>>(new Set());
+  const [mpesaCodes, setMpesaCodes] = useState<Record<string, string>>({});
+  const [submittingMpesa, setSubmittingMpesa] = useState<string | null>(null);
+
+  const handleSubmitMpesaCode = async (orderId: string, paymentId: string) => {
+    const code = mpesaCodes[orderId]?.trim().toUpperCase();
+    if (!code || code.length < 10) {
+      toast.error("Please enter a valid M-Pesa transaction code");
+      return;
+    }
+
+    setSubmittingMpesa(orderId);
+    try {
+      const { error } = await supabase
+        .from("payments")
+        .update({
+          transaction_reference: code,
+          status: "pending",
+          metadata: { method: "manual_paybill", submitted_at: new Date().toISOString() }
+        })
+        .eq("id", paymentId);
+
+      if (error) throw error;
+
+      toast.success("Payment submitted for verification! We will notify you once confirmed.");
+      fetchOrders();
+    } catch (error) {
+      console.error("Payment submission error:", error);
+      toast.error("Failed to submit code");
+    } finally {
+      setSubmittingMpesa(null);
+    }
+  };
 
   const fetchOrders = async () => {
     if (!user) return;
@@ -449,27 +482,92 @@ const Orders = () => {
 
                     {/* Payment Status Section */}
                     {hasPendingBalance ? (
-                      <div className="bg-red-50 dark:bg-red-950/20 p-4 rounded-lg border border-red-200 dark:border-red-800 space-y-3">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="destructive">Payment Required</Badge>
-                        </div>
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-red-700 dark:text-red-400">Amount to pay</span>
-                          <span className="text-red-700 dark:text-red-400 font-bold">KES {pendingAmount.toLocaleString()}</span>
-                        </div>
-                        <p className="text-xs text-red-600 dark:text-red-400">
-                          Your payment was not completed. Please ensure you have sufficient funds and retry.
-                        </p>
-                        <Button
-                          size="sm"
-                          className="w-full"
-                          variant="destructive"
-                          onClick={() => handlePayDeliveryFee(order)}
-                          disabled={processingPayment === order.id}
-                        >
-                          {processingPayment === order.id ? "Processing..." : "Retry Payment"}
-                        </Button>
-                      </div>
+                      (() => {
+                        const latestPayment = order.payments?.[0];
+                        const isManualPaybill = latestPayment?.gateway === "mpesa";
+                        const paymentId = latestPayment?.id;
+                        const isPendingVerification = isManualPaybill && latestPayment?.transaction_reference && latestPayment?.status === 'pending';
+
+                        if (isPendingVerification) {
+                          return (
+                            <div className="bg-yellow-50 dark:bg-yellow-950/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800 space-y-3">
+                              <div className="flex items-center gap-2">
+                                <Badge variant="secondary" className="bg-yellow-200 text-yellow-800 hover:bg-yellow-300">Verification Pending</Badge>
+                              </div>
+                              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                                We are verifying your M-Pesa payment (Ref: <strong>{latestPayment.transaction_reference}</strong>). This usually takes a few minutes.
+                              </p>
+                            </div>
+                          );
+                        }
+
+                        if (isManualPaybill && paymentId) {
+                          return (
+                            <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800 space-y-4">
+                              <div className="flex items-center gap-2">
+                                <Badge className="bg-blue-600 hover:bg-blue-700">Complete Payment</Badge>
+                              </div>
+                              <div className="text-sm space-y-3">
+                                <div className="bg-card/50 p-3 rounded border">
+                                  <p className="font-semibold mb-2">Step 1: Pay via M-Pesa</p>
+                                  <ul className="list-disc pl-5 space-y-1 text-muted-foreground text-xs sm:text-sm">
+                                    <li>Go to <strong>Lipa na M-Pesa</strong> &gt; <strong>Paybill</strong></li>
+                                    <li>Business No: <strong className="text-foreground">400200</strong> (PesaPal)</li>
+                                    <li>Account No: <strong className="text-foreground">Solely-{order.id.slice(0, 8)}</strong></li>
+                                    <li>Amount: <strong className="text-foreground">KES {pendingAmount.toLocaleString()}</strong></li>
+                                  </ul>
+                                </div>
+
+                                <div>
+                                  <p className="font-semibold mb-2">Step 2: Enter M-Pesa Code</p>
+                                  <div className="flex gap-2">
+                                    <Input
+                                      placeholder="e.g. SGH123ABCD"
+                                      value={mpesaCodes[order.id] || ""}
+                                      onChange={(e) => setMpesaCodes(prev => ({ ...prev, [order.id]: e.target.value }))}
+                                      className="uppercase font-mono"
+                                    />
+                                    <Button
+                                      onClick={() => handleSubmitMpesaCode(order.id, paymentId)}
+                                      disabled={submittingMpesa === order.id}
+                                    >
+                                      {submittingMpesa === order.id ? "..." : "Confirm"}
+                                    </Button>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mt-2">
+                                    By clicking Confirm, you agree that you have transferred the funds.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        // Default Paystack Retry UI
+                        return (
+                          <div className="bg-red-50 dark:bg-red-950/20 p-4 rounded-lg border border-red-200 dark:border-red-800 space-y-3">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="destructive">Payment Required</Badge>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-red-700 dark:text-red-400">Amount to pay</span>
+                              <span className="text-red-700 dark:text-red-400 font-bold">KES {pendingAmount.toLocaleString()}</span>
+                            </div>
+                            <p className="text-xs text-red-600 dark:text-red-400">
+                              Your payment was not completed. Please ensure you have sufficient funds and retry.
+                            </p>
+                            <Button
+                              size="sm"
+                              className="w-full"
+                              variant="destructive"
+                              onClick={() => handlePayDeliveryFee(order)}
+                              disabled={processingPayment === order.id}
+                            >
+                              {processingPayment === order.id ? "Processing..." : "Retry Payment"}
+                            </Button>
+                          </div>
+                        );
+                      })()
                     ) : order.status === "pending_vendor_confirmation" ? (
                       <div className="bg-green-50 dark:bg-green-950/20 p-3 rounded-lg border border-green-200 dark:border-green-800">
                         <div className="flex items-center gap-2">
