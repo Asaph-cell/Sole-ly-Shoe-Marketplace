@@ -165,6 +165,34 @@ Deno.serve(async (req: Request) => {
             console.log("Could not store notification (table may not exist)");
         }
 
+        // Send push notification to vendor's devices
+        let pushSent = false;
+        try {
+            const pushResponse = await fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${supabaseServiceKey}`,
+                },
+                body: JSON.stringify({
+                    userId: vendorId,
+                    title: `🛒 New Order #${orderId.slice(0, 8)}`,
+                    body: `${itemsList} - KES ${order.total_ksh.toLocaleString()}. Respond within 48hrs!`,
+                    url: "/vendor/orders",
+                    orderId: orderId,
+                }),
+            });
+
+            if (pushResponse.ok) {
+                const pushResult = await pushResponse.json();
+                pushSent = pushResult.sent > 0;
+                console.log("Push notification result:", pushResult);
+            } else {
+                console.log("Push notification failed:", await pushResponse.text());
+            }
+        } catch (pushError) {
+            console.log("Could not send push notification:", pushError);
+        }
 
         return new Response(
             JSON.stringify({
@@ -173,6 +201,7 @@ Deno.serve(async (req: Request) => {
                 vendorId,
                 orderId,
                 emailSent: !!vendorEmail,
+                pushSent,
             }),
             { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );

@@ -10,6 +10,7 @@ import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 
 const VendorDashboard = () => {
   const { user, loading } = useAuth();
@@ -194,7 +195,8 @@ const VendorDashboard = () => {
         <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
           <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Dashboard Overview</h1>
 
-          {null}
+          {/* Push Notification Prompt - shows if vendor hasn't enabled notifications */}
+          <PushNotificationPrompt variant="banner" />
 
           {dataLoading ? (
             <div className="text-center py-12 text-muted-foreground">
