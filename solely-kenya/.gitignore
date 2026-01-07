@@ -35,3 +35,7 @@ dist-ssr
 
 # Netlify
 .netlify/
+
+# VAPID keys (sensitive - never commit these!)
+.vapid-keys.json
+vapid-keys.txt
