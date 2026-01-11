@@ -82,8 +82,8 @@ serve(async (req: Request) => {
         // The previous code in `VendorOrders.tsx` didn't seem to set `payout_amount` on creation?
         // Let's check if `payout_amount` exists on the order.
 
-        const payoutAmount = order.payout_amount ?? (order.total_ksh * 0.90);
-        const commissionAmount = order.commission_amount ?? (order.total_ksh * 0.10);
+        const payoutAmount = order.payout_amount ?? (order.total_ksh * 0.89);
+        const commissionAmount = order.commission_amount ?? (order.total_ksh * 0.11);
 
         const { error: payoutError } = await supabase
             .from("payouts")

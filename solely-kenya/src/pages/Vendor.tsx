@@ -17,7 +17,7 @@ const Vendor = () => {
           />
           <h1 className="text-5xl font-bold mb-6">Become a Vendor</h1>
           <p className="text-xl text-muted-foreground leading-relaxed mb-8">
-            Join Kenya's secure commission-based marketplace! Start selling with zero upfront fees. We only take 10% commission when you make a sale. Your customers pay through our escrow system, and you receive payouts after delivery confirmation.
+            Join Kenya's secure commission-based marketplace! Start selling with zero upfront fees. We only take 11% commission when you make a sale. Your customers pay through our escrow system, and you receive payouts after delivery confirmation.
           </p>
           <div className="flex gap-4 justify-center">
             <Button size="lg" asChild>
@@ -75,7 +75,7 @@ const Vendor = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Only 10% commission per sale. No subscription fees, no monthly costs. You only pay when you make money. Payouts go directly to your M-Pesa or bank account.
+                  Only 11% commission per sale. No subscription fees, no monthly costs. You only pay when you make money. Payouts go directly to your M-Pesa or bank account.
                 </p>
               </CardContent>
             </Card>
@@ -119,7 +119,7 @@ const Vendor = () => {
               </div>
               <h3 className="font-semibold mb-2">Get Paid</h3>
               <p className="text-sm text-muted-foreground">
-                After buyer confirms delivery, receive payout (minus 10% commission) to your account
+                After buyer confirms delivery, receive payout (minus 11% commission) to your account
               </p>
             </div>
           </div>
@@ -176,7 +176,7 @@ const Vendor = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  No upfront fees! We operate on a commission model. You only pay 10% commission when you make a sale. No subscriptions, no monthly costs.
+                  No upfront fees! We operate on a commission model. You only pay 11% commission when you make a sale. No subscriptions, no monthly costs.
                 </p>
               </CardContent>
             </Card>
@@ -186,7 +186,7 @@ const Vendor = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  All payments go through Solely's escrow system. When a buyer places an order, payment is held securely. After you ship and the buyer confirms delivery, we release your payout (90% of order value) to your registered M-Pesa or bank account.
+                  All payments go through Solely's escrow system. When a buyer places an order, payment is held securely. After the buyer confirms delivery, your earnings (89% of order value) are added to your balance. When your balance reaches <strong>KES 1,500</strong>, we automatically send it to your M-Pesa — and Solely pays the KES 100 processing fee! For smaller balances (KES 500+), you can request early payout but the fee comes from your balance.
                 </p>
               </CardContent>
             </Card>

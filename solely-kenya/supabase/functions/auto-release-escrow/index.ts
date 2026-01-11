@@ -104,7 +104,7 @@ serve(async (req) => {
           .insert({
             order_id: order.id,
             vendor_id: order.vendor_id,
-            commission_rate: 10, // 10% commission
+            commission_rate: 11, // 11% commission
             commission_amount: escrow.commission_amount,
             notes: 'Auto-released 24 hours after marked arrived (no buyer action)',
           });

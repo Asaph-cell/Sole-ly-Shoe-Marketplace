@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { VendorNavbar } from "@/components/vendor/VendorNavbar";
 import { VendorSidebar } from "@/components/vendor/VendorSidebar";
+import { VendorBalanceCard } from "@/components/vendor/VendorBalanceCard";
+import { PayoutHistory } from "@/components/vendor/PayoutHistory";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, Star, TrendingUp, Eye, ShoppingCart, DollarSign } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
@@ -298,18 +300,12 @@ const VendorDashboard = () => {
                     <div className="text-2xl font-bold text-green-700 dark:text-green-300">KES {stats.paidOut.toLocaleString()}</div>
                     <p className="text-xs text-green-600 dark:text-green-400">Sent to your M-Pesa</p>
                   </CardContent>
-                </Card>
+              </div>
 
-                <Card className={stats.pendingBalance > 0 ? "border-yellow-500/50" : ""}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Pending Balance</CardTitle>
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">KES {stats.pendingBalance.toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">Awaiting payout</p>
-                  </CardContent>
-                </Card>
+              {/* New Payout Management Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                <VendorBalanceCard vendorId={user?.id!} />
+                <PayoutHistory vendorId={user?.id!} />
               </div>
 
 

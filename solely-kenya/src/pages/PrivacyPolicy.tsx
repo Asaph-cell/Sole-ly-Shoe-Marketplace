@@ -134,7 +134,7 @@ const PrivacyPolicy = () => {
                         <h3 className="text-lg font-semibold mb-2">Third-Party Service Providers</h3>
                         <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
                             <li><strong>Supabase:</strong> Database and authentication services</li>
-                            <li><strong>Paystack:</strong> Payment processing (card payments)</li>
+                            <li><strong>IntaSend:</strong> Payment collection and vendor payout processing</li>
                             <li><strong>M-Pesa/Safaricom:</strong> Mobile money payments and vendor payouts</li>
                             <li><strong>Google:</strong> Authentication (when using "Sign in with Google")</li>
                             <li><strong>Resend:</strong> Email delivery service</li>
@@ -181,7 +181,7 @@ const PrivacyPolicy = () => {
                             <li><strong>Encryption:</strong> All data transmitted between your browser and our servers is encrypted using HTTPS/TLS</li>
                             <li><strong>Password Protection:</strong> Passwords are securely hashed and never stored in plain text</li>
                             <li><strong>Access Control:</strong> Only authorized personnel have access to your personal data</li>
-                            <li><strong>Secure Payments:</strong> Payment information is processed by PCI-DSS compliant providers (Paystack)</li>
+                            <li><strong>Secure Payments:</strong> Payment information is processed by PCI-DSS compliant providers (IntaSend)</li>
                             <li><strong>Regular Security Audits:</strong> We regularly review and update our security practices</li>
                         </ul>
                         <p className="text-muted-foreground">

@@ -20,7 +20,7 @@ interface ProductCardProps {
 }
 
 const conditionLabels: Record<string, { label: string; color: string }> = {
-  new: { label: "New", color: "bg-green-500" },
+  new: { label: "Mint", color: "bg-green-500" },
   like_new: { label: "Like New", color: "bg-blue-500" },
   good: { label: "Good", color: "bg-yellow-500" },
   fair: { label: "Fair", color: "bg-orange-500" },

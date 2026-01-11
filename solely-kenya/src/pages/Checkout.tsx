@@ -15,7 +15,7 @@ import { LocationPinMap } from "@/components/LocationPinMap";
 import { calculateDeliveryFee } from "@/utils/deliveryPricing";
 
 const paymentOptions = [
-  { value: "paystack", label: "Pay with M-Pesa / Card (Online)", icon: "💳", description: "Automatic payment via Paystack" },
+  { value: "intasend", label: "Pay with M-Pesa / Card (Online)", icon: "💳", description: "Secure payment via IntaSend" },
 ];
 
 const Checkout = () => {
@@ -23,12 +23,11 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 
-  // CHECKOUT TEMPORARILY DISABLED
-  // Remove this block to re-enable checkout
-  const CHECKOUT_DISABLED = true;
+  // CHECKOUT ENABLED
+  const CHECKOUT_DISABLED = false;
 
   const [processing, setProcessing] = useState(false);
-  const [paymentGateway, setPaymentGateway] = useState<string>("paystack");
+  const [paymentGateway, setPaymentGateway] = useState<string>("intasend");
   const [deliveryType, setDeliveryType] = useState<"delivery" | "pickup">("delivery");
   const [vendorProfile, setVendorProfile] = useState<any>(null);
   const [vendorCounty, setVendorCounty] = useState<string | null>(null);
@@ -228,7 +227,7 @@ const Checkout = () => {
       const vendorId = products[0].vendor_id;
 
       // Calculate totals
-      const commissionRate = 10;
+      const commissionRate = 11;
       let calculatedSubtotal = 0;
       const orderItems = items.map((cartItem) => {
         const product = products.find((p) => p.id === cartItem.productId);
@@ -331,7 +330,7 @@ const Checkout = () => {
         .from("payments")
         .insert({
           order_id: order.id,
-          gateway: paymentGateway === "paystack" ? "paystack" : "mpesa",
+          gateway: paymentGateway === "intasend" ? "intasend" : "mpesa",
           status: "pending",
           amount_ksh: total,
           currency: "KES",
@@ -360,8 +359,8 @@ const Checkout = () => {
         return;
       }
 
-      // Process Paystack payment
-      const { data: paystackResponse, error: paystackError } = await supabase.functions.invoke("paystack-initiate-payment", {
+      // Process IntaSend payment
+      const { data: intasendResponse, error: intasendError } = await supabase.functions.invoke("intrasend-initiate-payment", {
         body: {
           orderId: order.id,
           successUrl: `${window.location.origin}/orders/${order.id}?payment_success=true`,
@@ -369,30 +368,30 @@ const Checkout = () => {
         },
       });
 
-      if (paystackError) {
+      if (intasendError) {
         // Rollback everything
         await supabase.from("payments").delete().eq("id", payment.id);
         await supabase.from("order_shipping_details").delete().eq("order_id", order.id);
         await supabase.from("order_items").delete().eq("order_id", order.id);
         await supabase.from("orders").delete().eq("id", order.id);
 
-        console.error("Paystack payment error:", paystackError);
-        throw new Error(paystackError.message || "Failed to initiate payment. Please try again.");
+        console.error("IntaSend payment error:", intasendError);
+        throw new Error(intasendError.message || "Failed to initiate payment. Please try again.");
       }
 
-      if (!paystackResponse?.success || !paystackResponse?.url) {
+      if (!intasendResponse?.success || !intasendResponse?.url) {
         // Rollback everything
         await supabase.from("payments").delete().eq("id", payment.id);
         await supabase.from("order_shipping_details").delete().eq("order_id", order.id);
         await supabase.from("order_items").delete().eq("order_id", order.id);
         await supabase.from("orders").delete().eq("id", order.id);
 
-        const errorMsg = paystackResponse?.error || "Failed to initiate payment";
-        console.error("Paystack payment error:", paystackResponse);
+        const errorMsg = intasendResponse?.error || "Failed to initiate payment";
+        console.error("IntaSend payment error:", intasendResponse);
         throw new Error(errorMsg);
       }
 
-      // Notify buyer about successful order placement (non-blocking) - moved here for Paystack
+      // Notify buyer about successful order placement (non-blocking)
       supabase.functions.invoke("notify-buyer-order-placed", {
         body: { orderId: order.id },
       }).catch(err => console.log("Buyer order confirmation failed (non-critical):", err));
@@ -401,8 +400,8 @@ const Checkout = () => {
       clearCart();
       toast.success("Opening secure payment page...");
 
-      // Redirect to Paystack
-      window.location.href = paystackResponse.url;
+      // Redirect to IntaSend payment page
+      window.location.href = intasendResponse.url;
 
     } catch (error) {
       console.error("Checkout error", error);
@@ -619,10 +618,10 @@ const Checkout = () => {
                 ))}
               </RadioGroup>
 
-              {paymentGateway === "paystack" && (
+              {paymentGateway === "intasend" && (
                 <div className="pt-4 border-t">
                   <p className="text-sm text-muted-foreground">
-                    You'll be redirected to Paystack's secure checkout page to complete payment using M-Pesa or Card.
+                    You'll be redirected to IntaSend's secure checkout page to pay via M-Pesa or Card.
                   </p>
                 </div>
               )}

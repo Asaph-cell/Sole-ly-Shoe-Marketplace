@@ -227,11 +227,11 @@ const Terms = () => {
                                     2. Commission and Payments
                                 </h3>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                                    <li>Solely charges a <strong>10% commission</strong> on the product price of each completed sale</li>
+                                    <li>Solely charges a <strong>11% commission</strong> on the product price of each completed sale</li>
                                     <li>Payments are held in escrow until the buyer confirms delivery or the auto-release period expires</li>
-                                    <li><strong>Payout Timing:</strong> Funds are released within 24–48 hours after the funds are cleared from escrow</li>
-                                    <li><strong>Payout Method:</strong> Payouts are sent via M-Pesa B2C to your registered number</li>
-                                    <li><strong>Transaction Fees:</strong> Standard M-Pesa B2C transaction charges may be deducted from the final payout amount</li>
+                                    <li><strong>Automatic Payouts:</strong> When your balance reaches <strong>KES 1,500 or more</strong>, your earnings are automatically paid to your M-Pesa. Solely pays the KES 100 IntaSend processing fee.</li>
+                                    <li><strong>Manual Payouts:</strong> For balances between <strong>KES 500 - 1,499</strong>, you can request early payout. The KES 100 processing fee will be deducted from your balance.</li>
+                                    <li><strong>Payout Method:</strong> All payouts are sent via M-Pesa B2C to your registered number</li>
                                 </ul>
                             </section>
 

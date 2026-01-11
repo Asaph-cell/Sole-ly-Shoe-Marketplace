@@ -157,7 +157,7 @@ const VendorSettings = () => {
                     required
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Your sales payouts (90% of order value) will be sent to this M-Pesa number
+                    Your sales payouts (89% of order value) will be sent to this M-Pesa number
                   </p>
                 </div>
 
