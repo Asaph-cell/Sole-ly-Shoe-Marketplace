@@ -348,10 +348,8 @@ const Checkout = () => {
 
       // Handle Manual Paybill (M-Pesa)
       if (paymentGateway === "mpesa") {
-        // Notify buyer about order placed (non-blocking)
-        supabase.functions.invoke("notify-buyer-order-placed", {
-          body: { orderId: order.id },
-        }).catch(err => console.log("Buyer order confirmation failed (non-critical):", err));
+        // NOTE: Email notifications will be sent after payment confirmation
+        // Manual M-Pesa payments require admin verification before notifications
 
         clearCart();
         toast.success("Order placed! Redirecting to payment...");
@@ -391,10 +389,8 @@ const Checkout = () => {
         throw new Error(errorMsg);
       }
 
-      // Notify buyer about successful order placement (non-blocking)
-      supabase.functions.invoke("notify-buyer-order-placed", {
-        body: { orderId: order.id },
-      }).catch(err => console.log("Buyer order confirmation failed (non-critical):", err));
+      // NOTE: Email notifications will be sent by the webhook after payment confirmation
+      // This ensures buyer and vendor are only notified once payment is successful
 
       // Clear cart before redirecting
       clearCart();
