@@ -289,7 +289,7 @@ const Orders = () => {
   const handlePayDeliveryFee = async (order: OrderRecord) => {
     // Calculate remaining amount (delivery fee)
     const totalPaid = order.payments
-      ?.filter((p: any) => p.status === 'captured')
+      ?.filter((p: any) => p.status === 'captured' || p.status === 'completed')
       .reduce((sum: number, p: any) => sum + Number(p.amount_ksh), 0) || 0;
 
     const remainingAmount = order.total_ksh - totalPaid;
@@ -333,7 +333,7 @@ const Orders = () => {
   // Helper to check if order has pending/failed payment and needs retry
   const needsPaymentRetry = (order: OrderRecord): boolean => {
     const totalPaid = order.payments
-      ?.filter((p: any) => p.status === 'captured')
+      ?.filter((p: any) => p.status === 'captured' || p.status === 'completed')
       .reduce((sum: number, p: any) => sum + Number(p.amount_ksh), 0) || 0;
     return totalPaid < order.total_ksh;
   };
@@ -408,7 +408,7 @@ const Orders = () => {
               const isPickup = (order.order_shipping_details as any)?.delivery_type === "pickup";
 
               const totalPaid = order.payments
-                ?.filter((p: any) => p.status === 'captured')
+                ?.filter((p: any) => p.status === 'captured' || p.status === 'completed')
                 .reduce((sum: number, p: any) => sum + Number(p.amount_ksh), 0) || 0;
               const pendingAmount = order.total_ksh - totalPaid;
               const hasPendingBalance = pendingAmount > 1; // Tolerance for float errors
