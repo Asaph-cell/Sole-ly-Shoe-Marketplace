@@ -24,14 +24,26 @@ serve(async (req: Request) => {
     try {
         const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
         const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+        // Service role client for database operations
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-        // Get the user from the authorization header (for security)
+        // Get the user from the authorization header
         const authHeader = req.headers.get('Authorization');
         if (!authHeader) throw new Error('Missing auth header');
 
-        const { data: { user }, error: userError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
-        if (userError || !user) throw new Error('Invalid user');
+        const token = authHeader.replace('Bearer ', '');
+
+        // Decode JWT to get user ID (JWT payload is base64 encoded)
+        const parts = token.split('.');
+        if (parts.length !== 3) throw new Error('Invalid token format');
+
+        const payload = JSON.parse(atob(parts[1]));
+        const userId = payload.sub;
+
+        if (!userId) throw new Error('Invalid user token');
+
+        console.log(`User ID from token: ${userId}`);
 
         const { orderId, rating, review } = await req.json();
 
@@ -45,10 +57,10 @@ serve(async (req: Request) => {
             .single();
 
         if (orderError || !order) throw new Error('Order not found');
-        if (order.customer_id !== user.id) throw new Error('Unauthorized');
+        if (order.customer_id !== userId) throw new Error('Unauthorized');
         if (order.status === 'completed') throw new Error('Order already completed');
 
-        console.log(`Confirming order ${orderId} for user ${user.id}`);
+        console.log(`Confirming order ${orderId} for user ${userId}`);
 
         // 2. Transact: Update Order, Escrow, and Create Payout
         // We do this sequentially since Supabase HTTP clients don't support SQL transactions easily in JS
@@ -85,6 +97,8 @@ serve(async (req: Request) => {
         const payoutAmount = order.payout_amount ?? (order.total_ksh * 0.89);
         const commissionAmount = order.commission_amount ?? (order.total_ksh * 0.11);
 
+        console.log(`Creating payout: vendor=${order.vendor_id}, order=${orderId}, amount=${payoutAmount}, commission=${commissionAmount}`);
+
         const { error: payoutError } = await supabase
             .from("payouts")
             .insert({
@@ -92,14 +106,13 @@ serve(async (req: Request) => {
                 order_id: orderId,
                 amount_ksh: payoutAmount,
                 commission_amount: commissionAmount,
-                status: "pending", // Waiting for process-payouts to pick it up
-                method: "mpesa",   // Default to M-Pesa
-                created_at: new Date().toISOString()
+                status: "pending",
+                method: "mpesa"
             });
 
         if (payoutError) {
-            console.error('Failed to create payout record:', payoutError);
-            // We should probably alert admin or store a failure record
+            console.error('Failed to create payout record:', JSON.stringify(payoutError));
+            // Don't throw - just log the error and continue
         } else {
             console.log(`Payout created for order ${orderId}: ${payoutAmount} KES (commission: ${commissionAmount} KES)`);
         }
@@ -112,7 +125,7 @@ serve(async (req: Request) => {
                     .from("vendor_ratings")
                     .insert({
                         order_id: orderId,
-                        buyer_id: user.id,
+                        buyer_id: userId,
                         vendor_id: order.vendor_id,
                         rating,
                         review: review || null,

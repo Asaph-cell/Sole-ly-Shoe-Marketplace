@@ -81,7 +81,7 @@ serve(async (req) => {
         const { error: paymentUpdateError } = await supabaseClient
             .from('payments')
             .update({
-                status: state === 'COMPLETE' ? 'completed' : state === 'FAILED' ? 'failed' : 'pending',
+                status: state === 'COMPLETE' ? 'captured' : state === 'FAILED' ? 'pending' : 'pending',
                 transaction_id: invoice_id,
                 updated_at: new Date().toISOString(),
             })
