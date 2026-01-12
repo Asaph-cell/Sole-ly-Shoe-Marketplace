@@ -114,6 +114,49 @@ const Orders = () => {
   const [receiptOrder, setReceiptOrder] = useState<OrderRecord | null>(null);
   const [reviewedOrders, setReviewedOrders] = useState<Set<string>>(new Set());
 
+  // Poll for payment status when returning from IntaSend (webhook may be delayed)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paymentSuccess = params.get('payment_success');
+
+    if (paymentSuccess === 'true' && orderId) {
+      console.log('[Orders] Payment redirect detected, polling for status...');
+
+      // Poll every 2 seconds for up to 20 seconds
+      let attempts = 0;
+      const maxAttempts = 10;
+
+      const pollInterval = setInterval(async () => {
+        attempts++;
+        console.log(`[Orders] Polling attempt ${attempts}/${maxAttempts}`);
+
+        // Check if payment is captured
+        const { data: payment } = await supabase
+          .from('payments')
+          .select('status')
+          .eq('order_id', orderId)
+          .eq('gateway', 'intasend')
+          .single();
+
+        if (payment?.status === 'captured') {
+          console.log('[Orders] Payment confirmed!');
+          clearInterval(pollInterval);
+          toast.success('Payment confirmed! Your order is being processed.');
+          // Clear URL params and refresh
+          window.history.replaceState({}, '', `/orders/${orderId}`);
+          window.location.reload();
+        } else if (attempts >= maxAttempts) {
+          console.log('[Orders] Polling timeout - webhook may still be processing');
+          clearInterval(pollInterval);
+          toast.info('Checking payment status... Please refresh if needed.');
+        }
+      }, 2000);
+
+      return () => clearInterval(pollInterval);
+    }
+  }, [orderId]);
+
+
   const fetchOrders = async () => {
     if (!user) return;
     setRefreshing(true);

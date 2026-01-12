@@ -76,6 +76,9 @@ serve(async (req) => {
         const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : 'Buyer';
 
         // 5. Build IntaSend payload (public_key goes in body, NOT in headers)
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+        const webhookUrl = `${supabaseUrl}/functions/v1/intasend-webhook`;
+
         const payload: Record<string, unknown> = {
             public_key: Deno.env.get('INTASEND_PUBLISHABLE_KEY'),
             amount: amount,
@@ -85,6 +88,7 @@ serve(async (req) => {
             last_name: lastName,
             api_ref: orderId,
             redirect_url: successUrl || cancelUrl || 'https://solelyshoes.co.ke/orders',
+            webhook_url: webhookUrl, // CRITICAL: This tells IntaSend where to POST payment confirmations
         };
 
         // Add phone if valid (at least 9 digits after formatting)
