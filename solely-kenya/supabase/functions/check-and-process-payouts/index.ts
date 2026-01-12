@@ -1,7 +1,7 @@
 /**
  * Check and Process Automatic Payouts
- * Called by cron job every 2 hours
- * Finds all vendors with balance >= KES 1,500 and triggers automatic payouts
+ * Called by cron job every minute
+ * Finds vendors with balance >= KES 1,500 and processes payouts directly
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -13,6 +13,7 @@ const corsHeaders = {
 };
 
 const MINIMUM_AUTO_PAYOUT = 1500;
+const PAYOUT_FEE = 100;
 
 serve(async (req: Request) => {
     if (req.method === "OPTIONS") {
@@ -25,12 +26,17 @@ serve(async (req: Request) => {
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
         );
 
+        const INTASEND_SECRET_KEY = Deno.env.get('INTASEND_SECRET_KEY');
+        if (!INTASEND_SECRET_KEY) {
+            throw new Error('INTASEND_SECRET_KEY is not configured');
+        }
+
         console.log(`[Auto-Payout Checker] Starting payout check...`);
 
         // Find all vendors with balance >= minimum payout threshold
         const { data: eligibleVendors, error: vendorsError } = await supabase
             .from('vendor_balances')
-            .select('vendor_id, pending_balance')
+            .select('vendor_id, pending_balance, total_paid_out')
             .gte('pending_balance', MINIMUM_AUTO_PAYOUT);
 
         if (vendorsError) {
@@ -54,37 +60,118 @@ serve(async (req: Request) => {
 
         // Process each vendor's payout
         const results = [];
-        for (const vendor of eligibleVendors) {
-            try {
-                console.log(`[Auto-Payout Checker] Processing payout for vendor ${vendor.vendor_id}: KES ${vendor.pending_balance}`);
+        for (const vendorBalanceRec of eligibleVendors) {
+            const vendorId = vendorBalanceRec.vendor_id;
+            const balance = vendorBalanceRec.pending_balance;
 
-                // Call the process-auto-payout function
-                const { data, error } = await supabase.functions.invoke('process-auto-payout', {
-                    body: {
-                        vendor_id: vendor.vendor_id,
-                        balance: vendor.pending_balance
-                    }
+            try {
+                console.log(`[Auto-Payout Checker] Processing payout for vendor ${vendorId}: KES ${balance}`);
+
+                // 1. Get vendor profile for M-Pesa number
+                const { data: vendorProfile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('mpesa_number, full_name, email')
+                    .eq('id', vendorId)
+                    .single();
+
+                if (profileError || !vendorProfile?.mpesa_number) {
+                    throw new Error('Vendor has no M-Pesa number');
+                }
+
+                // 2. Normalize phone number
+                let normalizedPhone = vendorProfile.mpesa_number.replace(/[^0-9]/g, '');
+                if (normalizedPhone.startsWith('0')) {
+                    normalizedPhone = '254' + normalizedPhone.substring(1);
+                } else if (normalizedPhone.startsWith('+254')) {
+                    normalizedPhone = normalizedPhone.substring(1);
+                } else if (!normalizedPhone.startsWith('254')) {
+                    normalizedPhone = '254' + normalizedPhone;
+                }
+
+                const netPayout = balance; // Platform pays the KES 100 fee
+
+                // 3. Call IntaSend API
+                console.log(`[Auto-Payout Checker] Initiating IntaSend transfer to ${normalizedPhone}`);
+                const intasendResponse = await fetch('https://api.intasend.com/api/v1/send-money/initiate/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${INTASEND_SECRET_KEY}`,
+                    },
+                    body: JSON.stringify({
+                        provider: 'MPESA-B2C',
+                        currency: 'KES',
+                        requires_approval: 'NO',
+                        transactions: [{
+                            name: vendorProfile.full_name || 'Vendor',
+                            account: normalizedPhone,
+                            amount: netPayout,
+                            narrative: 'Solely Kenya payout',
+                        }],
+                    }),
                 });
 
-                if (error) {
-                    console.error(`[Auto-Payout Checker] Failed to process payout for ${vendor.vendor_id}:`, error);
-                    results.push({
-                        vendor_id: vendor.vendor_id,
-                        success: false,
-                        error: error.message
-                    });
+                let intasendResult;
+                const contentType = intasendResponse.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    intasendResult = await intasendResponse.json();
                 } else {
-                    console.log(`[Auto-Payout Checker] Successfully initiated payout for ${vendor.vendor_id}`);
-                    results.push({
-                        vendor_id: vendor.vendor_id,
-                        success: true,
-                        amount: vendor.pending_balance
-                    });
+                    const text = await intasendResponse.text();
+                    throw new Error(`IntaSend returned non-JSON: ${text.substring(0, 100)}`);
                 }
-            } catch (error) {
-                console.error(`[Auto-Payout Checker] Exception processing vendor ${vendor.vendor_id}:`, error);
+
+                if (!intasendResponse.ok) {
+                    throw new Error(`IntaSend error: ${JSON.stringify(intasendResult)}`);
+                }
+
+                // 4. Record Payout
+                let payoutId = null;
+                const { data: payout, error: payoutError } = await supabase
+                    .from('payouts')
+                    .insert({
+                        vendor_id: vendorId,
+                        amount_ksh: netPayout,
+                        commission_amount: 0,
+                        method: 'mpesa',
+                        reference: intasendResult.tracking_id || intasendResult.id || `auto-${Date.now()}`,
+                        status: 'paid',
+                    })
+                    .select()
+                    .single();
+
+                if (payoutError) {
+                    console.error('Failed to record payout to DB (non-fatal):', payoutError);
+                } else {
+                    payoutId = payout?.id;
+                }
+
+                // 5. Update Balance
+                const { error: updateError } = await supabase
+                    .from('vendor_balances')
+                    .update({
+                        pending_balance: 0,
+                        total_paid_out: (vendorBalanceRec.total_paid_out || 0) + netPayout,
+                        last_payout_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString(),
+                    })
+                    .eq('vendor_id', vendorId);
+
+                if (updateError) {
+                    console.error('Failed to update balance:', updateError);
+                    throw updateError;
+                }
+
+                console.log(`[Auto-Payout Checker] Successfully processed payout for ${vendorId}`);
                 results.push({
-                    vendor_id: vendor.vendor_id,
+                    vendor_id: vendorId,
+                    success: true,
+                    amount: netPayout
+                });
+
+            } catch (error) {
+                console.error(`[Auto-Payout Checker] Exception processing vendor ${vendorId}:`, error);
+                results.push({
+                    vendor_id: vendorId,
                     success: false,
                     error: error instanceof Error ? error.message : 'Unknown error'
                 });
@@ -99,9 +186,6 @@ serve(async (req: Request) => {
         return new Response(
             JSON.stringify({
                 success: true,
-                total_checked: eligibleVendors.length,
-                successful: successCount,
-                failed: failCount,
                 results: results
             }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }

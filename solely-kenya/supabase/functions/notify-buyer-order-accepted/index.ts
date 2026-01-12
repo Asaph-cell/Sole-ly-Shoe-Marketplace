@@ -40,6 +40,7 @@ Deno.serve(async (req: Request) => {
                 customer_id,
                 vendor_id,
                 accepted_at,
+                delivery_method,
                 order_items(product_name, quantity),
                 order_shipping_details(recipient_name, email)
             `)
@@ -81,10 +82,12 @@ Deno.serve(async (req: Request) => {
             ?.map((item: any) => `${item.quantity}x ${item.product_name}`)
             .join(", ") || "Items";
 
-        // Calculate estimated ship date (3 days from acceptance)
+        const isPickup = order.delivery_method === 'pickup';
+
+        // Calculate estimated ship/ready date (3 days from acceptance)
         const acceptedDate = new Date(order.accepted_at || Date.now());
-        const estimatedShipDate = new Date(acceptedDate.getTime() + 3 * 24 * 60 * 60 * 1000);
-        const formattedShipDate = estimatedShipDate.toLocaleDateString('en-US', {
+        const estimatedDate = new Date(acceptedDate.getTime() + 3 * 24 * 60 * 60 * 1000);
+        const formattedDate = estimatedDate.toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
@@ -99,7 +102,8 @@ Deno.serve(async (req: Request) => {
                 orderId: orderId.slice(0, 8),
                 items: itemsList,
                 vendorName,
-                estimatedShipDate: formattedShipDate,
+                estimatedDate: formattedDate,
+                isPickup,
             }),
         });
 

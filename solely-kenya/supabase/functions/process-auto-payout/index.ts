@@ -46,31 +46,52 @@ serve(async (req: Request) => {
             throw new Error('Vendor has no M-Pesa number');
         }
 
+        // Normalize phone number to 2547... format (required by IntaSend)
+        let normalizedPhone = vendor.mpesa_number.replace(/[^0-9]/g, '');
+        if (normalizedPhone.startsWith('0')) {
+            normalizedPhone = '254' + normalizedPhone.substring(1);
+        } else if (normalizedPhone.startsWith('+254')) {
+            normalizedPhone = normalizedPhone.substring(1);
+        } else if (!normalizedPhone.startsWith('254')) {
+            normalizedPhone = '254' + normalizedPhone;
+        }
+
         // Platform pays the payout fee for auto payouts - vendor gets FULL balance
-        // IntaSend charges: balance + 100 fee (platform absorbs the 100)
         const netPayout = balance;
 
-        console.log(`Processing auto-payout: ${netPayout} KES to ${vendor.mpesa_number} for vendor ${vendor_id} (platform pays KES ${PAYOUT_FEE} fee)`);
+        console.log(`Processing auto-payout: ${netPayout} KES to ${normalizedPhone} for vendor ${vendor_id} (platform pays KES ${PAYOUT_FEE} fee)`);
 
         // Call IntaSend API for M-Pesa payout
-        const intasendResponse = await fetch('https://api.intasend.com/api/v1/send-money/mpesa/', {
+        const intasendResponse = await fetch('https://api.intasend.com/api/v1/send-money/initiate/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${INTASEND_SECRET_KEY}`,
             },
             body: JSON.stringify({
+                provider: 'MPESA-B2C',
                 currency: 'KES',
+                requires_approval: 'NO',
                 transactions: [{
                     name: vendor.full_name || 'Vendor',
-                    account: vendor.mpesa_number,
+                    account: normalizedPhone,
                     amount: netPayout,
                     narrative: 'Solely Kenya payout',
                 }],
             }),
         });
 
-        const intasendResult = await intasendResponse.json();
+        // Check response content type before parsing
+        const contentType = intasendResponse.headers.get('content-type');
+        let intasendResult;
+
+        if (contentType && contentType.includes('application/json')) {
+            intasendResult = await intasendResponse.json();
+        } else {
+            const textResponse = await intasendResponse.text();
+            console.error('IntaSend returned non-JSON response:', textResponse.substring(0, 500));
+            throw new Error('IntaSend API error: Response was not JSON');
+        }
 
         if (!intasendResponse.ok) {
             console.error('IntaSend error:', intasendResult);
@@ -80,25 +101,29 @@ serve(async (req: Request) => {
         console.log('IntaSend response:', intasendResult);
 
         // Record payout in database
-        const { data: payout, error: payoutError } = await supabase
-            .from('payouts')
-            .insert({
-                vendor_id,
-                amount_ksh: netPayout,
-                commission_amount: 0, // Already deducted from orders
-                method: 'mpesa',
-                reference: intasendResult.tracking_id || intasendResult.id,
-                status: 'processing',
-                trigger_type: 'automatic',
-                balance_before: balance,
-                fee_paid_by: 'platform',
-            })
-            .select()
-            .single();
+        let payoutId = null;
+        try {
+            const { data: payout, error: payoutError } = await supabase
+                .from('payouts')
+                .insert({
+                    vendor_id,
+                    amount_ksh: netPayout,
+                    commission_amount: 0,
+                    method: 'mpesa',
+                    reference: intasendResult.tracking_id || intasendResult.id || `auto-${Date.now()}`,
+                    status: 'paid',
+                })
+                .select()
+                .single();
 
-        if (payoutError) {
-            console.error('Failed to record payout:', payoutError);
-            throw payoutError;
+            if (payoutError) {
+                console.error('Failed to record payout (non-fatal):', JSON.stringify(payoutError));
+            } else {
+                payoutId = payout?.id;
+            }
+        } catch (err) {
+            console.error('Payout record error (non-fatal):', err);
+            // Do not throw, continue to update balance
         }
 
         // Update vendor balance to 0 and increment total_paid_out
@@ -125,12 +150,12 @@ serve(async (req: Request) => {
             console.error('Failed to update balance:', balanceError);
         }
 
-        console.log(`Auto-payout successful: ${payout.id}`);
+        console.log(`Auto-payout successful: ${payoutId || 'no-record'}`);
 
         return new Response(
             JSON.stringify({
                 success: true,
-                payout_id: payout.id,
+                payout_id: payoutId,
                 amount: netPayout,
                 tracking_id: intasendResult.tracking_id || intasendResult.id
             }),

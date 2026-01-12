@@ -33,16 +33,21 @@ function normalizeKenyanPhone(phone: string): string {
   // Remove all non-digit characters
   let digits = phone.replace(/[^0-9]/g, '');
 
-  // If starts with 0, replace with 254 (e.g., 0722123456 → 254722123456)
-  if (digits.startsWith('0')) {
-    digits = '254' + digits.slice(1);
-  }
-  // If doesn't start with 254, assume it needs it
-  else if (!digits.startsWith('254') && digits.length >= 9) {
-    digits = '254' + digits;
+  // Handle 254 prefix (strip it first to normalize)
+  if (digits.startsWith('254')) {
+    digits = digits.slice(3);
   }
 
-  return digits;
+  // Handle 0 prefix (e.g. 07... or 01...)
+  if (digits.startsWith('0')) {
+    digits = digits.slice(1);
+  }
+
+  // Ensure we have a valid length (optional, but good for sanity)
+  // Standard kenyan number without prefix is 9 digits (e.g. 712345678)
+
+  // Re-add 254
+  return '254' + digits;
 }
 
 export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
@@ -318,7 +323,8 @@ export const emailTemplates = {
     orderId: string;
     items: string;
     vendorName: string;
-    estimatedShipDate: string;
+    estimatedDate: string;
+    isPickup?: boolean;
   }) => `
     <!DOCTYPE html>
     <html>
@@ -340,17 +346,17 @@ export const emailTemplates = {
         </div>
         <div class="content">
           <p>Hi ${data.customerName},</p>
-          <p>Great news! <strong>${data.vendorName}</strong> has accepted your order and is preparing it for shipment.</p>
+          <p>Great news! <strong>${data.vendorName}</strong> has accepted your order and is ${data.isPickup ? 'preparing it for pickup' : 'preparing it for shipment'}.</p>
           
           <div class="order-details">
             <p><strong>Order #${data.orderId}</strong></p>
             <p><strong>Items:</strong> ${data.items}</p>
             <p><strong>Vendor:</strong> ${data.vendorName}</p>
-            <p><strong>Expected to ship by:</strong> ${data.estimatedShipDate}</p>
-            <p><span class="status-badge">📦 Preparing for Shipment</span></p>
+            <p><strong>${data.isPickup ? 'Expected ready by' : 'Expected to ship by'}:</strong> ${data.estimatedDate}</p>
+            <p><span class="status-badge">📦 ${data.isPickup ? 'Preparing for Pickup' : 'Preparing for Shipment'}</span></p>
           </div>
           
-          <p>You'll receive another email with tracking information once your order ships.</p>
+          <p>You'll receive another email ${data.isPickup ? 'when your order is ready for collection' : 'with tracking information once your order ships'}.</p>
         </div>
         <div class="footer">
           <p>This email was sent by Sole-ly Kenya</p>
