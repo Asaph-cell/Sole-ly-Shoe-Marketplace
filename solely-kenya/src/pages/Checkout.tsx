@@ -24,7 +24,7 @@ const Checkout = () => {
   const { user, loading: authLoading } = useAuth();
 
   // CHECKOUT ENABLED
-  const CHECKOUT_DISABLED = true;
+  const CHECKOUT_DISABLED = false;
 
   const [processing, setProcessing] = useState(false);
   const [paymentGateway, setPaymentGateway] = useState<string>("intasend");
@@ -358,7 +358,7 @@ const Checkout = () => {
       }
 
       // Process IntaSend payment
-      const { data: intasendResponse, error: intasendError } = await supabase.functions.invoke("intrasend-initiate-payment", {
+      const { data: intasendResponse, error: intasendError } = await supabase.functions.invoke("intasend-initiate-payment", {
         body: {
           orderId: order.id,
           successUrl: `${window.location.origin}/orders/${order.id}?payment_success=true`,

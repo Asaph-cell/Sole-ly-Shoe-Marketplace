@@ -302,7 +302,7 @@ const Orders = () => {
     setProcessingPayment(order.id);
     try {
       // Use IntaSend for payment
-      const { data, error } = await supabase.functions.invoke('intrasend-initiate-payment', {
+      const { data, error } = await supabase.functions.invoke('intasend-initiate-payment', {
         body: {
           orderId: order.id,
           successUrl: `${window.location.origin}/orders/${order.id}?payment_success=true`,

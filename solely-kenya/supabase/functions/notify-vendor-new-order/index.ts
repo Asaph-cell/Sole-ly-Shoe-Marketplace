@@ -73,20 +73,20 @@ Deno.serve(async (req: Request) => {
             );
         }
 
-        // Fetch vendor details including email
+        // Fetch vendor details from profiles table
         const { data: vendor, error: vendorError } = await supabase
-            .from("vendor_profiles")
-            .select("business_name, phone, user_id")
-            .eq("user_id", vendorId)
+            .from("profiles")
+            .select("store_name, whatsapp_number, id")
+            .eq("id", vendorId)
             .single();
 
         if (vendorError || !vendor) {
             console.error("Failed to fetch vendor:", vendorError);
-            return new Response(
-                JSON.stringify({ error: "Vendor not found" }),
-                { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
+            // Continue anyway - we can still notify via email
         }
+
+        // Use store_name as business_name fallback
+        const businessName = vendor?.store_name || "Vendor";
 
         // Get vendor email from auth.users
         const { data: vendorAuth } = await supabase.auth.admin.getUserById(vendorId);
@@ -134,7 +134,7 @@ Deno.serve(async (req: Request) => {
                 to: vendorEmail,
                 subject: `🛒 New Order #${orderId.slice(0, 8)} - Action Required`,
                 html: emailTemplates.vendorNewOrder({
-                    businessName: vendor.business_name,
+                    businessName: businessName,
                     orderId: orderId.slice(0, 8),
                     items: itemsList,
                     total: order.total_ksh,

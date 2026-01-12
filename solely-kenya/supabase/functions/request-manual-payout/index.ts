@@ -121,12 +121,21 @@ serve(async (req: Request) => {
             throw payoutError;
         }
 
-        // Update vendor balance to 0
+        // Update vendor balance to 0 and increment total_paid_out
+        // First get current total_paid_out
+        const { data: currentBalanceData } = await supabase
+            .from('vendor_balances')
+            .select('total_paid_out')
+            .eq('vendor_id', user.id)
+            .single();
+
+        const currentPaidOut = currentBalanceData?.total_paid_out || 0;
+
         const { error: updateError } = await supabase
             .from('vendor_balances')
             .update({
                 pending_balance: 0,
-                total_paid_out: supabase.rpc('increment', { x: netPayout }),
+                total_paid_out: currentPaidOut + netPayout,
                 last_payout_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
             })

@@ -77,12 +77,12 @@ Deno.serve(async (req: Request) => {
 
         // Get vendor business name
         const { data: vendor } = await supabase
-            .from("vendor_profiles")
-            .select("business_name")
-            .eq("user_id", order.vendor_id)
+            .from("profiles")
+            .select("store_name")
+            .eq("id", order.vendor_id)
             .single();
 
-        const vendorName = vendor?.business_name || "The vendor";
+        const vendorName = vendor?.store_name || "The vendor";
 
         // Build items list
         const itemsList = order.order_items

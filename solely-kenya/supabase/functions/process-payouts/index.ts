@@ -1,8 +1,9 @@
 /**
- * Process Payouts - Paystack Transfer API
+ * Process Payouts - IntaSend M-Pesa API
  * 
- * Sends vendor payouts via Paystack Transfers to M-Pesa
- * Runs daily at 9 AM via cron job
+ * Sends vendor payouts via IntaSend Transfers to M-Pesa
+ * This is a fallback/batch processor for pending payouts
+ * Primary automatic payouts are handled by process-auto-payout
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -13,18 +14,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-/**
- * Calculate Paystack transfer fee for Kenya M-Pesa
- * Fees as of 2024:
- * - KES 10-1,500: KES 20
- * - KES 1,501-20,000: KES 40
- * - KES 20,001+: KES 60
- */
-function getTransferFee(amountKsh: number): number {
-  if (amountKsh <= 1500) return 20;
-  if (amountKsh <= 20000) return 40;
-  return 60;
-}
+// IntaSend payout fee (platform absorbs this for batch payouts)
+const PAYOUT_FEE = 100;
 
 serve(async (req) => {
 
@@ -38,12 +29,12 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY');
-    if (!paystackSecretKey) {
-      throw new Error('PAYSTACK_SECRET_KEY not configured');
+    const intasendSecretKey = Deno.env.get('INTASEND_SECRET_KEY');
+    if (!intasendSecretKey) {
+      throw new Error('INTASEND_SECRET_KEY not configured');
     }
 
-    // Get pending payouts (include commission_amount for net revenue calculation)
+    // Get pending payouts
     const { data: pendingPayouts, error: payoutsError } = await supabase
       .from('payouts')
       .select(`
@@ -70,7 +61,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Processing ${pendingPayouts.length} pending payouts via Paystack`);
+    console.log(`Processing ${pendingPayouts.length} pending payouts via IntaSend`);
 
     const processedPayouts = [];
     const failedPayouts = [];
@@ -91,7 +82,7 @@ serve(async (req) => {
           throw new Error('Vendor has no M-Pesa number configured');
         }
 
-        // Format phone number for Paystack (should be like 254712345678)
+        // Format phone number for IntaSend (should be like 254712345678)
         let phoneNumber = vendorProfile.mpesa_number.replace(/\D/g, '');
         if (phoneNumber.startsWith('0')) {
           phoneNumber = '254' + phoneNumber.slice(1);
@@ -99,78 +90,48 @@ serve(async (req) => {
           phoneNumber = '254' + phoneNumber;
         }
 
-        // Step 1: Create a transfer recipient
-        const recipientResponse = await fetch('https://api.paystack.co/transferrecipient', {
+        // Call IntaSend API for M-Pesa payout
+        const intasendResponse = await fetch('https://api.intasend.com/api/v1/send-money/mpesa/', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${paystackSecretKey}`,
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${intasendSecretKey}`,
           },
           body: JSON.stringify({
-            type: 'mobile_money_kenya',
-            name: vendorProfile.full_name || 'Vendor',
-            account_number: phoneNumber,
-            bank_code: 'MPESA', // Paystack's code for M-Pesa Kenya
             currency: 'KES',
+            transactions: [{
+              name: vendorProfile.full_name || 'Vendor',
+              account: phoneNumber,
+              amount: payout.amount_ksh,
+              narrative: `Solely Kenya payout for order ${payout.order_id?.substring(0, 8) || 'batch'}`,
+            }],
           }),
         });
 
-        const recipientData = await recipientResponse.json();
-        console.log('Recipient creation response:', recipientData);
+        const intasendResult = await intasendResponse.json();
+        console.log('IntaSend response:', intasendResult);
 
-        if (!recipientData.status || !recipientData.data?.recipient_code) {
-          throw new Error(recipientData.message || 'Failed to create transfer recipient');
+        if (!intasendResponse.ok) {
+          throw new Error(`IntaSend error: ${JSON.stringify(intasendResult)}`);
         }
 
-        const recipientCode = recipientData.data.recipient_code;
+        // Update payout with success status
+        await supabase
+          .from('payouts')
+          .update({
+            status: 'processing', // IntaSend processes async, will be updated by webhook
+            paid_at: new Date().toISOString(),
+            reference: intasendResult.tracking_id || intasendResult.id,
+            transfer_fee_ksh: PAYOUT_FEE,
+            metadata: {
+              intasend_tracking_id: intasendResult.tracking_id,
+              intasend_status: intasendResult.status,
+            },
+          })
+          .eq('id', payout.id);
 
-        // Step 2: Initiate transfer
-        const transferResponse = await fetch('https://api.paystack.co/transfer', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${paystackSecretKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            source: 'balance',
-            amount: Math.round(payout.amount_ksh * 100), // Paystack uses kobo/cents
-            recipient: recipientCode,
-            reason: `Payout for order ${payout.order_id.substring(0, 8)}`,
-            reference: `payout_${payout.id}`,
-          }),
-        });
-
-        const transferData = await transferResponse.json();
-        console.log('Transfer response:', transferData);
-
-        if (transferData.status && transferData.data) {
-          // Calculate transfer fee for internal tracking (admin reporting)
-          const transferFee = getTransferFee(payout.amount_ksh);
-          const netCommission = (payout.commission_amount || 0) - transferFee;
-
-          // Update payout with success status and fee tracking
-          await supabase
-            .from('payouts')
-            .update({
-              status: 'paid',
-              paid_at: new Date().toISOString(),
-              reference: transferData.data.transfer_code || transferData.data.reference,
-              transfer_fee_ksh: transferFee,
-              net_commission_ksh: netCommission,
-              metadata: {
-                paystack_transfer_code: transferData.data.transfer_code,
-                paystack_recipient_code: recipientCode,
-                paystack_status: transferData.data.status,
-              },
-            })
-            .eq('id', payout.id);
-
-          processedPayouts.push(payout.id);
-          console.log(`✅ Processed payout ${payout.id} - KES ${payout.amount_ksh} to ${phoneNumber} (fee: KES ${transferFee})`);
-        } else {
-          throw new Error(transferData.message || 'Transfer failed');
-        }
-
+        processedPayouts.push(payout.id);
+        console.log(`✅ Initiated payout ${payout.id} - KES ${payout.amount_ksh} to ${phoneNumber}`);
 
       } catch (error) {
         console.error(`❌ Failed to process payout ${payout.id}:`, error);
@@ -194,7 +155,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Processed ${processedPayouts.length} payouts, ${failedPayouts.length} failed`,
+        message: `Initiated ${processedPayouts.length} payouts, ${failedPayouts.length} failed`,
         processed: processedPayouts.length,
         failed: failedPayouts.length,
         processedPayouts,
