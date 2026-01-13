@@ -20,3 +20,6 @@ verify_jwt = true
 
 [functions.pesapal-register-ipn]
 verify_jwt = true
+
+[functions.intasend-webhook]
+verify_jwt = false
