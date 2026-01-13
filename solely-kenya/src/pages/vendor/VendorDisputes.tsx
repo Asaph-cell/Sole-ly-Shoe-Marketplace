@@ -128,6 +128,7 @@ const VendorDisputes = () => {
                 .update({
                     vendor_response: response,
                     vendor_response_at: new Date().toISOString(),
+                    evidence_urls: uploadedUrls.length > 0 ? uploadedUrls : null,
                     resolution_notes: existingNotes
                         ? `${existingNotes}\n\n---\n\n${vendorResponseText}`
                         : vendorResponseText,
