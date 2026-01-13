@@ -117,6 +117,24 @@ serve(async (req: Request) => {
             console.log(`Payout created for order ${orderId}: ${payoutAmount} KES (commission: ${commissionAmount} KES)`);
         }
 
+        // D. Record commission in ledger (for admin dashboard tracking)
+        const { error: commissionError } = await supabase
+            .from("commission_ledger")
+            .insert({
+                order_id: orderId,
+                vendor_id: order.vendor_id,
+                commission_rate: 11, // 11% commission
+                commission_amount: commissionAmount,
+                notes: "Buyer confirmed delivery",
+            });
+
+        if (commissionError) {
+            console.error("Failed to record commission:", commissionError);
+            // Don't throw - just log
+        } else {
+            console.log(`Commission recorded: ${commissionAmount} KES`);
+        }
+
         // E. Decrement Stock for each order item
         const { data: orderItems, error: itemsError } = await supabase
             .from("order_items")
