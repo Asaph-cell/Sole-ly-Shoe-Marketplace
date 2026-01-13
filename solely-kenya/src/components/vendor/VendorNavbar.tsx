@@ -1,4 +1,4 @@
-import { LogOut, User, Shield } from "lucide-react";
+import { LogOut, User, Shield, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,6 +18,7 @@ import { PendingOrdersBanner } from "./PendingOrdersBanner";
 export const VendorNavbar = () => {
   const { signOut, user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [openDisputes, setOpenDisputes] = useState(0);
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -46,6 +47,42 @@ export const VendorNavbar = () => {
     checkAdminStatus();
   }, [user]);
 
+  // Fetch open disputes count
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchDisputes = async () => {
+      const { count } = await supabase
+        .from("disputes")
+        .select("*", { count: "exact", head: true })
+        .eq("vendor_id", user.id)
+        .in("status", ["open", "under_review"]);
+
+      setOpenDisputes(count || 0);
+    };
+
+    fetchDisputes();
+
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel("navbar-disputes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "disputes",
+          filter: `vendor_id=eq.${user.id}`,
+        },
+        () => fetchDisputes()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
   return (
     <>
       <header className="border-b border-border bg-card">
@@ -55,6 +92,19 @@ export const VendorNavbar = () => {
           </Link>
 
           <div className="flex items-center gap-2 sm:gap-3 shrink-0 flex-nowrap">
+            {/* Disputes Alert - Always visible when there are open disputes */}
+            {openDisputes > 0 && (
+              <Link to="/vendor/disputes">
+                <Badge
+                  variant="destructive"
+                  className="gap-1 cursor-pointer hover:bg-destructive/90 transition-colors animate-pulse"
+                >
+                  <AlertTriangle className="h-3 w-3" />
+                  <span>{openDisputes} Dispute{openDisputes !== 1 ? 's' : ''}</span>
+                </Badge>
+              </Link>
+            )}
+
             {isAdmin && (
               <Link to="/admin/dashboard" className="hidden sm:inline-flex">
                 <Badge variant="secondary" className="gap-1 cursor-pointer hover:bg-secondary/80 transition-colors text-xs">
