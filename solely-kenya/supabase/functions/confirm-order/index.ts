@@ -117,6 +117,45 @@ serve(async (req: Request) => {
             console.log(`Payout created for order ${orderId}: ${payoutAmount} KES (commission: ${commissionAmount} KES)`);
         }
 
+        // E. Decrement Stock for each order item
+        const { data: orderItems, error: itemsError } = await supabase
+            .from("order_items")
+            .select("product_id, quantity")
+            .eq("order_id", orderId);
+
+        if (itemsError) {
+            console.error("Failed to fetch order items for stock update:", itemsError);
+        } else if (orderItems && orderItems.length > 0) {
+            console.log(`Updating stock for ${orderItems.length} items`);
+            for (const item of orderItems) {
+                // Get current stock
+                const { data: product, error: productError } = await supabase
+                    .from("products")
+                    .select("stock")
+                    .eq("id", item.product_id)
+                    .single();
+
+                if (productError || !product) {
+                    console.error(`Failed to fetch product ${item.product_id} for stock update:`, productError);
+                    continue;
+                }
+
+                // Only update if stock is tracked (not null)
+                if (product.stock !== null && typeof product.stock === "number") {
+                    const newStock = Math.max(0, product.stock - item.quantity);
+                    const { error: updateError } = await supabase
+                        .from("products")
+                        .update({ stock: newStock })
+                        .eq("id", item.product_id);
+
+                    if (updateError) {
+                        console.error(`Failed to update stock for product ${item.product_id}:`, updateError);
+                    } else {
+                        console.log(`Stock updated for product ${item.product_id}: ${product.stock} -> ${newStock}`);
+                    }
+                }
+            }
+        }
 
         // D. Add Rating (Optional)
         if (rating && rating > 0) {

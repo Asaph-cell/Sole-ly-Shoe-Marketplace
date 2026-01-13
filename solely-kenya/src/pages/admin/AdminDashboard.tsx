@@ -131,8 +131,8 @@ const AdminDashboard = () => {
         supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "pending_vendor_confirmation"),
         supabase.from("disputes").select("*", { count: "exact", head: true }).eq("status", "open"),
         supabase.from("commission_ledger").select("commission_amount"),
-        supabase.from("orders").select("total_ksh"),
-        supabase.from("orders").select("total_ksh").gte("created_at", monthStart),
+        supabase.from("orders").select("total_ksh").eq("status", "completed"),
+        supabase.from("orders").select("total_ksh").eq("status", "completed").gte("created_at", monthStart),
         supabase.from("product_views").select("*", { count: "exact", head: true }),
         // Recent orders
         supabase.from("orders")
@@ -281,7 +281,7 @@ const AdminDashboard = () => {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-muted-foreground">Revenue</p>
+                      <p className="text-xs text-muted-foreground">Completed Revenue</p>
                       <p className="text-lg font-bold">KES {stats.totalRevenue.toLocaleString()}</p>
                     </div>
                     <DollarSign className="h-5 w-5 text-green-500" />
@@ -293,7 +293,7 @@ const AdminDashboard = () => {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-muted-foreground">This Month</p>
+                      <p className="text-xs text-muted-foreground">This Month (Completed)</p>
                       <p className="text-lg font-bold">KES {stats.monthlyRevenue.toLocaleString()}</p>
                     </div>
                     <TrendingUp className="h-5 w-5 text-blue-500" />

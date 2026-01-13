@@ -86,6 +86,7 @@ const ContactVendorButton = ({ phoneNumber, className = "" }: { phoneNumber: str
 };
 
 const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
+  pending_payment: { label: "Payment pending", variant: "secondary" },
   pending_vendor_confirmation: { label: "Awaiting vendor", variant: "secondary" },
   accepted: { label: "Vendor accepted", variant: "default" },
   shipped: { label: "In Transit", variant: "default" },

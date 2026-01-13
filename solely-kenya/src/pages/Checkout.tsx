@@ -277,7 +277,7 @@ const Checkout = () => {
           commission_rate: commissionRate,
           commission_amount: commissionAmount,
           payout_amount: payoutAmount,
-          status: "pending_vendor_confirmation",
+          status: "pending_payment", // Order awaits payment confirmation
         })
         .select()
         .single();

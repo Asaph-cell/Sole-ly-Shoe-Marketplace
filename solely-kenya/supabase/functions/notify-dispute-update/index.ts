@@ -76,11 +76,19 @@ Deno.serve(async (req: Request) => {
         }
 
         const customerName = order.order_shipping_details?.recipient_name || "Customer";
-        const isRefund = dispute.status === "resolved_refunded" || dispute.resolution?.toLowerCase().includes("refund");
+        const isRefund = dispute.status === "resolved_refund" || dispute.status === "resolved_refunded";
 
         // Helper to format status display
         const formatStatus = (status: string) => {
             return status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        };
+
+        // Build resolution message based on status
+        const getResolutionMessage = () => {
+            if (isRefund) return "Your payment will be refunded.";
+            if (dispute.status === "resolved_release") return "Payment has been released to the vendor.";
+            if (dispute.resolution_notes) return dispute.resolution_notes;
+            return "Our team has reviewed this case.";
         };
 
         // Send email
@@ -88,13 +96,13 @@ Deno.serve(async (req: Request) => {
             to: customerEmail,
             subject: isRefund
                 ? `💰 Refund Issued - Dispute Resolved #${dispute.order_id.slice(0, 8)}`
-                : `📋 Dispute Update status: ${formatStatus(dispute.status)} #${dispute.order_id.slice(0, 8)}`,
+                : `📋 Dispute Update: ${formatStatus(dispute.status)} #${dispute.order_id.slice(0, 8)}`,
             html: emailTemplates.disputeStatusUpdate({
                 userName: customerName,
                 orderId: dispute.order_id.slice(0, 8),
                 newStatus: formatStatus(dispute.status),
-                resolution: dispute.resolution || "Pending review",
-                adminNotes: dispute.admin_notes,
+                resolution: getResolutionMessage(),
+                adminNotes: dispute.resolution_notes,
                 isRefund: isRefund,
                 refundAmount: dispute.refund_amount
             }),

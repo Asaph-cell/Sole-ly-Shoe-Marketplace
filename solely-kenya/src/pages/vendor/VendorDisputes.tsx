@@ -39,6 +39,8 @@ interface Dispute {
     resolved_at: string | null;
     resolution_notes: string | null;
     evidence_urls: string[] | null;
+    vendor_response: string | null;
+    vendor_response_at: string | null;
     order?: { total_ksh: number; created_at: string };
 }
 
@@ -117,13 +119,15 @@ const VendorDisputes = () => {
             }
 
             // Update dispute with vendor response
-            // Storing in resolution_notes with a prefix to identify vendor response
+            // Store in dedicated vendor_response column AND resolution_notes for visibility
             const existingNotes = selectedDispute.resolution_notes || "";
             const vendorResponseText = `[VENDOR RESPONSE - ${new Date().toLocaleDateString()}]\n${response}\n${uploadedUrls.length > 0 ? `\nEvidence: ${uploadedUrls.join(", ")}` : ""}`;
 
             const { error } = await supabase
                 .from("disputes")
                 .update({
+                    vendor_response: response,
+                    vendor_response_at: new Date().toISOString(),
                     resolution_notes: existingNotes
                         ? `${existingNotes}\n\n---\n\n${vendorResponseText}`
                         : vendorResponseText,

@@ -40,6 +40,8 @@ interface Dispute {
     resolved_at: string | null;
     resolution_notes: string | null;
     evidence_urls: string[] | null;
+    vendor_response: string | null;
+    vendor_response_at: string | null;
     // Joined data
     customer?: { full_name: string; email: string };
     vendor?: { full_name: string; email: string; store_name: string };
@@ -141,17 +143,33 @@ const AdminDisputes = () => {
 
             if (disputeError) throw disputeError;
 
-            // 2. Update escrow based on action
+            // 2. Process based on action
             if (action === "refund") {
-                await supabase
-                    .from("escrow_transactions")
-                    .update({ status: "refunded" })
-                    .eq("order_id", selectedDispute.order_id);
+                // Call process-refund Edge Function to initiate IntaSend refund
+                const { data: refundResult, error: refundError } = await supabase.functions.invoke("process-refund", {
+                    body: {
+                        orderId: selectedDispute.order_id,
+                        disputeId: selectedDispute.id,
+                        reason: selectedDispute.reason,
+                    },
+                });
 
-                await supabase
-                    .from("orders")
-                    .update({ status: "refunded" })
-                    .eq("id", selectedDispute.order_id);
+                if (refundError) {
+                    console.error("Refund error:", refundError);
+                    throw new Error(refundError.message || "Failed to process refund");
+                }
+
+                if (!refundResult?.success) {
+                    throw new Error(refundResult?.error || "Refund processing failed");
+                }
+
+                // Note: process-refund already updates escrow and order status
+                toast({
+                    title: "Refund Initiated",
+                    description: refundResult.alreadyRefunded
+                        ? "This payment was already refunded"
+                        : "Refund has been initiated via IntaSend. Customer will receive funds shortly.",
+                });
             } else if (action === "release") {
                 await supabase
                     .from("escrow_transactions")
@@ -162,16 +180,21 @@ const AdminDisputes = () => {
                     .from("orders")
                     .update({ status: "completed" })
                     .eq("id", selectedDispute.order_id);
+
+                toast({
+                    title: "Success",
+                    description: "Payment released to vendor",
+                });
+            } else {
+                toast({
+                    title: "Success",
+                    description: "Dispute closed",
+                });
             }
 
             // 3. Send email notification
             await supabase.functions.invoke("notify-dispute-update", {
                 body: { disputeId: selectedDispute.id },
-            });
-
-            toast({
-                title: "Success",
-                description: `Dispute ${action === "refund" ? "resolved with refund" : action === "release" ? "resolved - payment released" : "closed"}`,
             });
 
             setDetailOpen(false);
@@ -443,40 +466,54 @@ const AdminDisputes = () => {
                                 {/* Vendor Response Section */}
                                 <div className="border-t pt-4">
                                     <Label className="text-sm font-medium">Vendor Response</Label>
-                                    {selectedDispute.evidence_urls && selectedDispute.evidence_urls.length > 0 ? (
+                                    {selectedDispute.vendor_response ? (
                                         <div className="mt-2 space-y-3">
-                                            <p className="text-xs text-muted-foreground">
-                                                Vendor submitted {selectedDispute.evidence_urls.length} evidence file(s)
-                                            </p>
-                                            <div className="grid grid-cols-2 gap-2">
-                                                {selectedDispute.evidence_urls.map((url, idx) => (
-                                                    <a
-                                                        key={idx}
-                                                        href={url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="block"
-                                                    >
-                                                        {url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                                                            <img
-                                                                src={url}
-                                                                alt={`Evidence ${idx + 1}`}
-                                                                className="w-full h-32 object-cover rounded-lg border hover:border-primary transition-colors"
-                                                            />
-                                                        ) : (
-                                                            <div className="p-4 bg-muted rounded-lg text-center hover:bg-muted/80 transition-colors">
-                                                                <Eye className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                                                                <span className="text-sm">View Evidence {idx + 1}</span>
-                                                            </div>
-                                                        )}
-                                                    </a>
-                                                ))}
+                                            <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <CheckCircle className="h-4 w-4 text-green-600" />
+                                                    <span className="text-sm font-medium text-green-700 dark:text-green-400">
+                                                        Vendor Responded {selectedDispute.vendor_response_at &&
+                                                            `on ${new Date(selectedDispute.vendor_response_at).toLocaleDateString()}`}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm">{selectedDispute.vendor_response}</p>
                                             </div>
+                                            {selectedDispute.evidence_urls && selectedDispute.evidence_urls.length > 0 && (
+                                                <>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Vendor submitted {selectedDispute.evidence_urls.length} evidence file(s)
+                                                    </p>
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        {selectedDispute.evidence_urls.map((url, idx) => (
+                                                            <a
+                                                                key={idx}
+                                                                href={url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="block"
+                                                            >
+                                                                {url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                                                                    <img
+                                                                        src={url}
+                                                                        alt={`Evidence ${idx + 1}`}
+                                                                        className="w-full h-32 object-cover rounded-lg border hover:border-primary transition-colors"
+                                                                    />
+                                                                ) : (
+                                                                    <div className="p-4 bg-muted rounded-lg text-center hover:bg-muted/80 transition-colors">
+                                                                        <Eye className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                                                                        <span className="text-sm">View Evidence {idx + 1}</span>
+                                                                    </div>
+                                                                )}
+                                                            </a>
+                                                        ))}
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
                                     ) : (
                                         <div className="mt-2 p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
                                             <p className="text-sm text-yellow-700 dark:text-yellow-400">
-                                                ⚠️ Vendor has not yet submitted a response or evidence.
+                                                ⚠️ Vendor has not yet submitted a response.
                                             </p>
                                             <p className="text-xs text-muted-foreground mt-1">
                                                 Consider contacting the vendor via email before making a decision.
