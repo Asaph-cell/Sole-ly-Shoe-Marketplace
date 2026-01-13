@@ -138,6 +138,34 @@ serve(async (req) => {
             } else {
                 console.log(`[IntaSend Webhook] Order ${orderId} status updated to pending_vendor_confirmation`);
 
+                // Decrement stock for each order item when payment is confirmed
+                const { data: orderItems, error: itemsError } = await supabaseClient
+                    .from('order_items')
+                    .select('product_id, quantity')
+                    .eq('order_id', orderId);
+
+                if (itemsError) {
+                    console.error('[IntaSend Webhook] Failed to fetch order items:', itemsError);
+                } else if (orderItems && orderItems.length > 0) {
+                    console.log(`[IntaSend Webhook] Decrementing stock for ${orderItems.length} items`);
+                    for (const item of orderItems) {
+                        const { data: product, error: productError } = await supabaseClient
+                            .from('products')
+                            .select('stock')
+                            .eq('id', item.product_id)
+                            .single();
+
+                        if (!productError && product && product.stock !== null && typeof product.stock === 'number') {
+                            const newStock = Math.max(0, product.stock - item.quantity);
+                            await supabaseClient
+                                .from('products')
+                                .update({ stock: newStock })
+                                .eq('id', item.product_id);
+                            console.log(`[IntaSend Webhook] Stock for ${item.product_id}: ${product.stock} -> ${newStock}`);
+                        }
+                    }
+                }
+
                 // Notify vendor about new order (non-blocking)
                 supabaseClient.functions
                     .invoke('notify-vendor-new-order', {
