@@ -7,18 +7,46 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+    // Always return 200 for OPTIONS (CORS preflight)
     if (req.method === 'OPTIONS') {
         return new Response(null, { headers: corsHeaders });
     }
 
+    console.log('[IntaSend Webhook] Received request:', req.method);
+
     try {
+        // Read body as text first for safe parsing
+        const bodyText = await req.text();
+        console.log('[IntaSend Webhook] Body length:', bodyText.length, 'Body preview:', bodyText.substring(0, 200));
+
+        // Handle empty body (IntaSend test pings or health checks)
+        if (!bodyText || bodyText.trim() === '') {
+            console.log('[IntaSend Webhook] Empty body - responding with success (ping/health check)');
+            return new Response(
+                JSON.stringify({ success: true, message: 'Webhook endpoint active' }),
+                { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+        }
+
+        // Safely parse JSON
+        let payload;
+        try {
+            payload = JSON.parse(bodyText);
+        } catch (parseError) {
+            console.error('[IntaSend Webhook] JSON parse error:', parseError, 'Body was:', bodyText.substring(0, 500));
+            // Return 200 to acknowledge receipt - don't cause retry loops
+            return new Response(
+                JSON.stringify({ success: true, message: 'Acknowledged' }),
+                { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+        }
+
+        console.log('[IntaSend Webhook] Parsed payload:', JSON.stringify(payload, null, 2));
+
         const supabaseClient = createClient(
             Deno.env.get('SUPABASE_URL') ?? '',
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         );
-
-        const payload = await req.json();
-        console.log('[IntaSend Webhook] Received webhook:', JSON.stringify(payload, null, 2));
 
         // IntaSend webhook payload structure:
         // {
@@ -52,10 +80,10 @@ serve(async (req) => {
         } = payload;
 
         if (!api_ref) {
-            console.error('[IntaSend Webhook] No api_ref in payload');
+            console.log('[IntaSend Webhook] No api_ref in payload - likely a test or notification webhook');
             return new Response(
-                JSON.stringify({ error: 'Missing api_ref' }),
-                { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                JSON.stringify({ success: true, message: 'Acknowledged (no api_ref)' }),
+                { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
         }
 
