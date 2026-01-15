@@ -206,10 +206,22 @@ const VendorOrders = () => {
     await loadOrders();
   };
 
+  // Helper to check if order is expired (48 hours passed)
+  const isOrderExpired = (order: OrderRecord): boolean => {
+    const hoursSinceOrder = differenceInHours(new Date(), new Date(order.created_at));
+    return hoursSinceOrder >= 48;
+  };
+
   const handleAccept = async (order: OrderRecord) => {
     // Validate order status
     if (order.status !== "pending_vendor_confirmation") {
       toast.error("This order cannot be accepted. It may have already been processed.");
+      return;
+    }
+
+    // Check if order has expired (48 hours passed)
+    if (isOrderExpired(order)) {
+      toast.error("This order has expired. It will be automatically cancelled and refunded to the buyer.");
       return;
     }
 
@@ -612,9 +624,9 @@ const VendorOrders = () => {
                         <Button
                           size="sm"
                           onClick={() => handleAccept(order)}
-                          disabled={saving || order.status !== "pending_vendor_confirmation"}
+                          disabled={saving || order.status !== "pending_vendor_confirmation" || hoursUntilAutoCancel <= 0}
                         >
-                          {saving ? "Accepting..." : order.status === "accepted" ? "Already Accepted" : "Accept Order"}
+                          {saving ? "Accepting..." : hoursUntilAutoCancel <= 0 ? "Expired" : order.status === "accepted" ? "Already Accepted" : "Accept Order"}
                         </Button>
                       </div>
                     </div>

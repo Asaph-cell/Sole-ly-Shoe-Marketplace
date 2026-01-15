@@ -95,7 +95,7 @@ export const PendingOrdersBanner = () => {
     // Calculate time remaining for the most urgent order
     const getTimeRemaining = (createdAt: string) => {
         const created = new Date(createdAt);
-        const deadline = new Date(created.getTime() + 24 * 60 * 60 * 1000); // 24 hours from creation
+        const deadline = new Date(created.getTime() + 48 * 60 * 60 * 1000); // 48 hours from creation
         const hoursLeft = differenceInHours(deadline, currentTime);
         const minutesLeft = differenceInMinutes(deadline, currentTime) % 60;
 
