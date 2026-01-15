@@ -130,7 +130,7 @@ const AdminDashboard = () => {
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "completed"),
         supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "pending_vendor_confirmation"),
-        supabase.from("disputes").select("*", { count: "exact", head: true }).eq("status", "open"),
+        supabase.from("disputes").select("*", { count: "exact", head: true }).in("status", ["open", "under_review"]),
         supabase.from("commission_ledger").select("commission_amount"),
         supabase.from("orders").select("total_ksh").eq("status", "completed"),
         supabase.from("orders").select("total_ksh").eq("status", "completed").gte("created_at", monthStart),
@@ -143,7 +143,7 @@ const AdminDashboard = () => {
         // Open disputes
         supabase.from("disputes")
           .select(`id, reason, opened_at, order_id, customer:customer_id (full_name)`)
-          .eq("status", "open")
+          .in("status", ["open", "under_review"])
           .limit(5),
         // Daily orders for graph (last 30 days)
         supabase.from("orders")

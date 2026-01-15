@@ -14,7 +14,7 @@ const corsHeaders = {
 };
 
 // Support email address
-const SUPPORT_EMAIL = "support@solelyshoes.co.ke";
+const SUPPORT_EMAIL = "solely.kenya@gmail.com";
 const ADMIN_DISPUTES_URL = "https://solelyshoes.co.ke/admin/disputes";
 
 Deno.serve(async (req: Request) => {
