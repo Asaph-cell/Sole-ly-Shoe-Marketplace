@@ -18,7 +18,7 @@ const Terms = () => {
                 <div className="text-center mb-8">
                     <h1 className="text-4xl font-bold mb-4">Terms and Conditions</h1>
                     <p className="text-muted-foreground">
-                        Last updated: December 2025
+                        Last updated: January 2026
                     </p>
                 </div>
 
@@ -42,7 +42,7 @@ const Terms = () => {
                                     <Shield className="h-6 w-6 text-primary" />
                                     Welcome to Solely Marketplace
                                 </h2>
-                                <p className="text-sm text-muted-foreground mb-4">Last Updated: December 2025</p>
+                                <p className="text-sm text-muted-foreground mb-4">Last Updated: January 2026</p>
                                 <p className="text-muted-foreground leading-relaxed">
                                     Welcome to Solely, Kenya's trusted online shoe marketplace. These Terms and Conditions constitute a legally binding agreement between you ("the Buyer") and Solely ("the Platform"). By creating an account or purchasing products, you agree to these terms.
                                 </p>
@@ -204,7 +204,7 @@ const Terms = () => {
                                     <Store className="h-6 w-6 text-primary" />
                                     Solely Vendor Agreement
                                 </h2>
-                                <p className="text-sm text-muted-foreground mb-4">Last Updated: December 2025</p>
+                                <p className="text-sm text-muted-foreground mb-4">Last Updated: January 2026</p>
                                 <p className="text-muted-foreground leading-relaxed">
                                     By registering as a vendor on Solely, you agree to provide high-quality products
                                     and excellent customer service. These terms govern your relationship with Solely and buyers on the platform.

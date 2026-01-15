@@ -275,8 +275,8 @@ const VendorRegistration = () => {
                   <div className="text-xs text-muted-foreground mt-2">
                     By checking this box, you agree to Solely's Terms and Conditions, including:
                     <ul className="list-disc list-inside mt-2 space-y-1">
+                      <li className="text-destructive font-medium">You must respond to orders within 48 hours or they will be auto-cancelled</li>
                       <li>You are responsible for all product deliveries</li>
-                      <li>You will set appropriate delivery charges when accepting orders</li>
                       <li>Solely takes a 11% commission on each sale</li>
                       <li>Payments are held in escrow until delivery is confirmed</li>
                       <li>You must provide accurate product information</li>
