@@ -714,5 +714,85 @@ export const emailTemplates = {
     </body>
     </html>
   `,
+
+  // NEW: Dispute Filed - Admin/Support Notification
+  disputeFiledAdmin: (data: {
+    orderId: string;
+    buyerName: string;
+    buyerEmail: string;
+    vendorName: string;
+    vendorEmail: string;
+    reason: string;
+    description: string;
+    orderAmount: number;
+    evidenceUrls: string[];
+    adminUrl: string;
+  }) => `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #dc2626; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+        .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
+        .dispute-box { background: #fee2e2; border: 2px solid #dc2626; padding: 15px; border-radius: 8px; margin: 15px 0; }
+        .info-section { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #e5e7eb; }
+        .cta-button { display: inline-block; background: #dc2626; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; margin-top: 15px; font-weight: bold; }
+        .evidence-list { background: #fef3c7; padding: 10px; border-radius: 6px; margin-top: 10px; }
+        .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1 style="margin: 0;">🚨 New Dispute Filed - Action Required</h1>
+        </div>
+        <div class="content">
+          <p>A new dispute has been filed and requires admin review.</p>
+          
+          <div class="dispute-box">
+            <p><strong>Order ID:</strong> #${data.orderId}</p>
+            <p><strong>Order Amount:</strong> KES ${data.orderAmount.toLocaleString()}</p>
+            <p><strong>Reason:</strong> ${data.reason}</p>
+            <p><strong>Description:</strong> ${data.description}</p>
+          </div>
+          
+          <div class="info-section">
+            <h3 style="margin-top: 0;">👤 Buyer Information</h3>
+            <p><strong>Name:</strong> ${data.buyerName}</p>
+            <p><strong>Email:</strong> <a href="mailto:${data.buyerEmail}">${data.buyerEmail}</a></p>
+          </div>
+          
+          <div class="info-section">
+            <h3 style="margin-top: 0;">🏪 Vendor Information</h3>
+            <p><strong>Store:</strong> ${data.vendorName}</p>
+            <p><strong>Email:</strong> <a href="mailto:${data.vendorEmail}">${data.vendorEmail}</a></p>
+          </div>
+          
+          ${data.evidenceUrls && data.evidenceUrls.length > 0 ? `
+          <div class="evidence-list">
+            <strong>📎 Buyer Evidence (${data.evidenceUrls.length} file(s)):</strong>
+            <ul style="margin: 5px 0; padding-left: 20px;">
+              ${data.evidenceUrls.map((url, i) => `<li><a href="${url}" target="_blank">Evidence ${i + 1}</a></li>`).join('')}
+            </ul>
+          </div>
+          ` : ''}
+          
+          <div style="text-align: center;">
+            <a href="${data.adminUrl}" class="cta-button">Review Dispute in Admin Panel</a>
+          </div>
+          
+          <p style="margin-top: 20px; font-size: 14px; color: #6b7280;">
+            Please review this dispute and take appropriate action. The buyer and vendor have been notified.
+          </p>
+        </div>
+        <div class="footer">
+          <p>This is an automated notification from Sole-ly Kenya Admin System</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `,
 };
 

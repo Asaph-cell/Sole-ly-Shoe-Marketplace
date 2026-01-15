@@ -214,7 +214,7 @@ export const OrderConfirmationModal = ({
             }
 
             // 1. Create dispute
-            const { error: disputeError } = await supabase
+            const { data: disputeData, error: disputeError } = await supabase
                 .from("disputes")
                 .insert({
                     order_id: orderId,
@@ -223,10 +223,19 @@ export const OrderConfirmationModal = ({
                     reason: issueReason as "no_delivery" | "wrong_item" | "damaged" | "other",
                     description: issueDescription,
                     status: "open",
-                    evidence_urls: uploadedUrls.length > 0 ? uploadedUrls : null
-                });
+                    buyer_evidence_urls: uploadedUrls.length > 0 ? uploadedUrls : null
+                })
+                .select("id")
+                .single();
 
             if (disputeError) throw disputeError;
+
+            // 1b. Send notifications (buyer, vendor, and support)
+            if (disputeData?.id) {
+                supabase.functions.invoke("notify-dispute-filed", {
+                    body: { disputeId: disputeData.id }
+                }).catch(e => console.error("Notification error:", e));
+            }
 
             // 2. Update order status to disputed
             const { error: orderError } = await supabase

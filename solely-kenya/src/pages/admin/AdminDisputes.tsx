@@ -39,7 +39,8 @@ interface Dispute {
     opened_at: string;
     resolved_at: string | null;
     resolution_notes: string | null;
-    evidence_urls: string[] | null;
+    buyer_evidence_urls: string[] | null;
+    vendor_evidence_urls: string[] | null;
     vendor_response: string | null;
     vendor_response_at: string | null;
     // Joined data
@@ -463,6 +464,40 @@ const AdminDisputes = () => {
                                     </p>
                                 </div>
 
+                                {/* Buyer Evidence Section */}
+                                {selectedDispute.buyer_evidence_urls && selectedDispute.buyer_evidence_urls.length > 0 && (
+                                    <div className="border-t pt-4">
+                                        <Label className="text-sm font-medium">Buyer Evidence</Label>
+                                        <p className="text-xs text-muted-foreground mt-1 mb-2">
+                                            Buyer submitted {selectedDispute.buyer_evidence_urls.length} evidence file(s)
+                                        </p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {selectedDispute.buyer_evidence_urls.map((url, idx) => (
+                                                <a
+                                                    key={idx}
+                                                    href={url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="block"
+                                                >
+                                                    {url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                                                        <img
+                                                            src={url}
+                                                            alt={`Buyer Evidence ${idx + 1}`}
+                                                            className="w-full h-32 object-cover rounded-lg border hover:border-primary transition-colors"
+                                                        />
+                                                    ) : (
+                                                        <div className="p-4 bg-muted rounded-lg text-center hover:bg-muted/80 transition-colors">
+                                                            <Eye className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                                                            <span className="text-sm">View Evidence {idx + 1}</span>
+                                                        </div>
+                                                    )}
+                                                </a>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Vendor Response Section */}
                                 <div className="border-t pt-4">
                                     <Label className="text-sm font-medium">Vendor Response</Label>
@@ -478,13 +513,13 @@ const AdminDisputes = () => {
                                                 </div>
                                                 <p className="text-sm">{selectedDispute.vendor_response}</p>
                                             </div>
-                                            {selectedDispute.evidence_urls && selectedDispute.evidence_urls.length > 0 && (
+                                            {selectedDispute.vendor_evidence_urls && selectedDispute.vendor_evidence_urls.length > 0 && (
                                                 <>
                                                     <p className="text-xs text-muted-foreground">
-                                                        Vendor submitted {selectedDispute.evidence_urls.length} evidence file(s)
+                                                        Vendor submitted {selectedDispute.vendor_evidence_urls.length} evidence file(s)
                                                     </p>
                                                     <div className="grid grid-cols-2 gap-2">
-                                                        {selectedDispute.evidence_urls.map((url, idx) => (
+                                                        {selectedDispute.vendor_evidence_urls.map((url, idx) => (
                                                             <a
                                                                 key={idx}
                                                                 href={url}
@@ -495,7 +530,7 @@ const AdminDisputes = () => {
                                                                 {url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
                                                                     <img
                                                                         src={url}
-                                                                        alt={`Evidence ${idx + 1}`}
+                                                                        alt={`Vendor Evidence ${idx + 1}`}
                                                                         className="w-full h-32 object-cover rounded-lg border hover:border-primary transition-colors"
                                                                     />
                                                                 ) : (

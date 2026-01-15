@@ -38,7 +38,7 @@ interface Dispute {
     opened_at: string;
     resolved_at: string | null;
     resolution_notes: string | null;
-    evidence_urls: string[] | null;
+    vendor_evidence_urls: string[] | null;
     vendor_response: string | null;
     vendor_response_at: string | null;
     order?: { total_ksh: number; created_at: string };
@@ -128,7 +128,7 @@ const VendorDisputes = () => {
                 .update({
                     vendor_response: response,
                     vendor_response_at: new Date().toISOString(),
-                    evidence_urls: uploadedUrls.length > 0 ? uploadedUrls : null,
+                    vendor_evidence_urls: uploadedUrls.length > 0 ? uploadedUrls : null,
                     resolution_notes: existingNotes
                         ? `${existingNotes}\n\n---\n\n${vendorResponseText}`
                         : vendorResponseText,

@@ -2,7 +2,7 @@
  * Notify Dispute Filed
  * 
  * Sends email notifications when a NEW dispute is filed.
- * Notifies both the Buyer (confirmation) and the Vendor (alert).
+ * Notifies the Buyer (confirmation), Vendor (alert), and Support team (action required).
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -12,6 +12,10 @@ const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Support email address
+const SUPPORT_EMAIL = "support@solelyshoes.co.ke";
+const ADMIN_DISPUTES_URL = "https://solelyshoes.co.ke/admin/disputes";
 
 Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") {
@@ -40,6 +44,7 @@ Deno.serve(async (req: Request) => {
                 *,
                 orders (
                     id,
+                    total_ksh,
                     order_items (product_name),
                     order_shipping_details(recipient_name, email)
                 ),
@@ -76,6 +81,17 @@ Deno.serve(async (req: Request) => {
 
         const buyerName = order?.order_shipping_details?.recipient_name || buyer?.full_name || "Customer";
         const vendorName = vendor?.store_name || vendor?.full_name || "Vendor";
+        const orderAmount = order?.total_ksh || 0;
+        const buyerEvidenceUrls = dispute.buyer_evidence_urls || [];
+
+        // Format dispute reason for display
+        const reasonLabels: Record<string, string> = {
+            no_delivery: "Did not receive item",
+            wrong_item: "Received wrong item",
+            damaged: "Item arrived damaged",
+            other: "Other issue",
+        };
+        const formattedReason = reasonLabels[dispute.reason] || dispute.reason;
 
         const emailPromises = [];
 
@@ -87,7 +103,7 @@ Deno.serve(async (req: Request) => {
                 html: emailTemplates.disputeFiled({
                     userName: buyerName,
                     orderId: dispute.order_id.slice(0, 8),
-                    reason: dispute.reason,
+                    reason: formattedReason,
                     description: dispute.description,
                     isVendor: false
                 }),
@@ -102,7 +118,7 @@ Deno.serve(async (req: Request) => {
                 html: emailTemplates.disputeFiled({
                     userName: vendorName, // addressing the vendor
                     orderId: dispute.order_id.slice(0, 8),
-                    reason: dispute.reason,
+                    reason: formattedReason,
                     description: dispute.description,
                     isVendor: true
                 }),
@@ -113,17 +129,35 @@ Deno.serve(async (req: Request) => {
                 user_id: dispute.vendor_id,
                 type: "dispute_filed",
                 title: "New Dispute Filed",
-                message: `Buyer filed a dispute for Order #${dispute.order_id.slice(0, 8)}. Reason: ${dispute.reason}`,
+                message: `Buyer filed a dispute for Order #${dispute.order_id.slice(0, 8)}. Reason: ${formattedReason}`,
                 related_id: disputeId
             }).catch(e => console.error("Vendor notification error", e));
         }
+
+        // 3. Email Support Team (Admin notification with full details)
+        emailPromises.push(sendEmail({
+            to: SUPPORT_EMAIL,
+            subject: `🚨 NEW DISPUTE: Order #${dispute.order_id.slice(0, 8)} - ${formattedReason}`,
+            html: emailTemplates.disputeFiledAdmin({
+                orderId: dispute.order_id.slice(0, 8),
+                buyerName: buyerName,
+                buyerEmail: buyerEmail || "Unknown",
+                vendorName: vendorName,
+                vendorEmail: vendorEmail || "Unknown",
+                reason: formattedReason,
+                description: dispute.description,
+                orderAmount: orderAmount,
+                evidenceUrls: buyerEvidenceUrls,
+                adminUrl: ADMIN_DISPUTES_URL,
+            }),
+        }));
 
         const results = await Promise.all(emailPromises);
 
         return new Response(
             JSON.stringify({
                 success: true,
-                message: "Dispute notifications sent",
+                message: "Dispute notifications sent (buyer, vendor, and support)",
                 results
             }),
             { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -136,3 +170,4 @@ Deno.serve(async (req: Request) => {
         );
     }
 });
+
