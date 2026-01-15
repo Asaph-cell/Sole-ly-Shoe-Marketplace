@@ -43,30 +43,13 @@ const VendorProducts = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this product?")) return;
+    if (!confirm("Are you sure you want to delete this product? This cannot be undone.")) return;
 
-    // First try hard delete
     const { error } = await supabase.from("products").delete().eq("id", id);
 
     if (error) {
-      // If foreign key constraint, try soft delete instead
-      if (error.code === "23503" || error.message?.includes("foreign key") || error.message?.includes("referenced")) {
-        const { error: softDeleteError } = await supabase
-          .from("products")
-          .update({ status: "draft", stock: 0 })
-          .eq("id", id);
-
-        if (softDeleteError) {
-          console.error("Delete error:", softDeleteError);
-          toast.error("Failed to delete product");
-        } else {
-          toast.success("Product removed from listings (kept for order history)");
-          fetchProducts();
-        }
-      } else {
-        console.error("Delete error:", error);
-        toast.error(error.message || "Failed to delete product");
-      }
+      console.error("Delete error:", error);
+      toast.error(error.message || "Failed to delete product");
     } else {
       toast.success("Product deleted successfully");
       fetchProducts();
