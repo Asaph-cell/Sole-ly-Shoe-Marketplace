@@ -106,8 +106,8 @@ const Home = () => {
   return (
     <div className="min-h-screen overflow-x-hidden">
       <SEO
-        title="Buy & Sell Shoes in Kenya"
-        description="Kenya's friendly shoe marketplace. Buy quality shoes from trusted vendors or start selling your shoes today. Delivered Nairobi & Kenya-wide. Shop sneakers, casual, formal & sports shoes."
+        title="Buy & Sell Shoes Online Kenya"
+        description="Kenya's trusted online shoe marketplace. Shop authentic Nike, Adidas, Jordan sneakers. Buy formal, casual & sports shoes in Nairobi. Sell with escrow protection. Free Kenya-wide delivery."
         isHomepage={true}
       />
 

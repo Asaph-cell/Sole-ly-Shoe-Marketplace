@@ -176,8 +176,11 @@ const Shop = () => {
   return (
     <div className="min-h-screen py-4 sm:py-8 overflow-x-hidden">
       <SEO
-        title={isAccessoriesView ? "Shop Shoe Accessories" : selectedCategory !== "all" ? `Shop ${getCategoryName(selectedCategory)} Shoes` : "Shop All Shoes"}
-        description={`Browse ${filteredProducts.length} ${isAccessoriesView ? "shoe care products and accessories" : "quality shoes"} from trusted vendors across Kenya. Filter by brand, size, condition & price.`}
+        title={isAccessoriesView ? "Shoe Care Accessories Kenya" : selectedCategory !== "all" ? `${getCategoryName(selectedCategory)} Shoes for Sale Kenya` : "Shop Shoes Online Kenya"}
+        description={isAccessoriesView
+          ? `Shop ${filteredProducts.length} shoe care products & accessories in Kenya. Cleaners, protectors, laces & more from trusted vendors.`
+          : `Browse ${filteredProducts.length} ${selectedCategory !== "all" ? getCategoryName(selectedCategory).toLowerCase() : ""} shoes for sale in Nairobi & Kenya. Nike, Adidas, Jordan & more. Filter by brand, size, condition. Escrow-protected payments.`
+        }
         breadcrumbs={[
           { name: "Home", url: "/" },
           { name: "Shop", url: "/shop" },
