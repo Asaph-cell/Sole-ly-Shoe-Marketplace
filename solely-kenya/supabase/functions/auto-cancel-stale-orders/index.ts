@@ -4,8 +4,9 @@
  * This scheduled Edge Function runs periodically to:
  * 1. Find orders pending_vendor_confirmation for > 48 hours
  * 2. Cancel them automatically
- * 3. Update escrow to refunded status
- * 4. Notify the customer
+ * 3. Process IntaSend refund to customer
+ * 4. Notify the customer (refund confirmation)
+ * 5. Notify the vendor (missed order warning)
  * 
  * Schedule: Run every hour via Supabase cron or external scheduler
  * 
@@ -15,6 +16,7 @@
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendEmail, emailTemplates } from "../_shared/email-service.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -126,7 +128,45 @@ Deno.serve(async (req: Request) => {
                     }),
                 }).catch(err => console.log(`Buyer notification failed for ${order.id}:`, err));
 
-                console.log(`Order ${order.id} auto-cancelled, IntaSend refund initiated, buyer notified`);
+                // 4. Notify vendor about missed order and reputation impact
+                try {
+                    // Get vendor email
+                    const { data: vendorAuth } = await supabase.auth.admin.getUserById(order.vendor_id);
+                    const vendorEmail = vendorAuth?.user?.email;
+
+                    // Get vendor profile for store name
+                    const { data: vendorProfile } = await supabase
+                        .from("profiles")
+                        .select("store_name, full_name")
+                        .eq("id", order.vendor_id)
+                        .single();
+
+                    const businessName = vendorProfile?.store_name || vendorProfile?.full_name || "Vendor";
+                    const itemsList = order.order_items
+                        ?.map((item: any) => `${item.quantity}x ${item.product_name}`)
+                        .join(", ") || "Items";
+                    const customerName = order.order_shipping_details?.recipient_name || "Customer";
+
+                    if (vendorEmail) {
+                        await sendEmail({
+                            to: vendorEmail,
+                            subject: `⚠️ Missed Order Alert - Order #${order.id.slice(0, 8)}`,
+                            html: emailTemplates.vendorMissedOrder({
+                                businessName,
+                                orderId: order.id.slice(0, 8),
+                                items: itemsList,
+                                total: order.total_ksh,
+                                customerName,
+                            }),
+                        });
+                        console.log(`Vendor ${order.vendor_id} notified about missed order`);
+                    }
+                } catch (vendorNotifyError) {
+                    console.warn(`Vendor notification failed for ${order.id}:`, vendorNotifyError);
+                    // Non-blocking - continue with other orders
+                }
+
+                console.log(`Order ${order.id} auto-cancelled, IntaSend refund initiated, buyer and vendor notified`);
 
                 results.cancelled++;
             } catch (error) {

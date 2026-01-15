@@ -146,6 +146,74 @@ export const emailTemplates = {
     </html>
   `,
 
+  vendorMissedOrder: (data: {
+    businessName: string;
+    orderId: string;
+    items: string;
+    total: number;
+    customerName: string;
+  }) => `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #dc2626; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+        .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
+        .order-details { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #e5e7eb; }
+        .warning-box { background: #fef2f2; border: 2px solid #dc2626; padding: 15px; border-radius: 8px; margin: 15px 0; }
+        .reputation-box { background: #fffbeb; border: 1px solid #f59e0b; padding: 15px; border-radius: 8px; margin: 15px 0; }
+        .cta-button { display: inline-block; background: #6366f1; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; margin-top: 15px; font-weight: bold; }
+        .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1 style="margin: 0;">⚠️ Missed Order Alert</h1>
+        </div>
+        <div class="content">
+          <p>Hi ${data.businessName},</p>
+          <p>We're reaching out because you did not respond to an order within the required 48-hour window.</p>
+          
+          <div class="order-details">
+            <p><strong>Order #${data.orderId}</strong></p>
+            <p><strong>Items:</strong> ${data.items}</p>
+            <p><strong>Value:</strong> KES ${data.total.toLocaleString()}</p>
+            <p><strong>Customer:</strong> ${data.customerName}</p>
+          </div>
+          
+          <div class="warning-box">
+            <p style="margin: 0 0 10px 0; font-size: 16px;"><strong>❌ Order Cancelled & Customer Refunded</strong></p>
+            <p style="margin: 0;">Because you didn't respond in time, this order has been automatically cancelled and the customer has received a full refund.</p>
+          </div>
+          
+          <div class="reputation-box">
+            <p style="margin: 0 0 10px 0;"><strong>⚡ This Affects Your Reputation</strong></p>
+            <p style="margin: 0; font-size: 14px;">Missed orders negatively impact your seller rating and may affect your visibility on Sole-ly Kenya. Customers trust vendors who respond quickly and reliably.</p>
+            <ul style="margin: 10px 0 0 0; padding-left: 20px; font-size: 14px;">
+              <li>Respond to orders within 24 hours for best results</li>
+              <li>Enable push notifications to never miss an order</li>
+              <li>Check your dashboard regularly</li>
+            </ul>
+          </div>
+          
+          <p style="margin-top: 20px;">We understand things happen. If you need to pause your store temporarily, you can do so from your vendor dashboard.</p>
+          
+          <div style="text-align: center;">
+            <a href="https://solelyshoes.co.ke/vendor/orders" class="cta-button">View Your Dashboard</a>
+          </div>
+        </div>
+        <div class="footer">
+          <p>This is an automated message from Sole-ly Kenya</p>
+          <p>Questions? Contact us at support@solelyshoes.co.ke</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `,
+
   buyerOrderDeclined: (data: {
     customerName: string;
     orderId: string;
