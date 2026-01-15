@@ -27,10 +27,7 @@ const Home = () => {
 
   const fetchFeaturedProducts = async () => {
     try {
-      const minLoadTime = 800; // Minimum 800ms loading time for better UX
-      const startTime = Date.now();
-
-      // 1. Fetch products first
+      // Fetch products
       const { data: productsData, error } = await supabase
         .from("products")
         .select("*")
@@ -40,59 +37,42 @@ const Home = () => {
 
       if (error) throw error;
 
-      // Enforce minimum loading time
-      const elapsed = Date.now() - startTime;
-      if (elapsed < minLoadTime) {
-        await new Promise((resolve) => setTimeout(resolve, minLoadTime - elapsed));
-      }
-
+      // Fetch reviews for these products
       if (productsData && productsData.length > 0) {
-        // Show products immediately without ratings
-        const initialProducts = productsData.map(product => ({
-          ...product,
-          averageRating: null,
-          reviewCount: 0,
-        }));
-        setFeaturedProducts(initialProducts);
-        setLoading(false); // Stop loading spinner immediately
-
-        // 2. Fetch reviews in background
         const productIds = productsData.map(p => p.id);
         const { data: reviewsData } = await supabase
           .from("reviews")
           .select("product_id, rating")
           .in("product_id", productIds);
 
-        if (reviewsData && reviewsData.length > 0) {
-          // Group reviews
-          const reviewStats: Record<string, { sum: number; count: number }> = {};
-          reviewsData.forEach(review => {
-            if (!reviewStats[review.product_id]) {
-              reviewStats[review.product_id] = { sum: 0, count: 0 };
-            }
-            reviewStats[review.product_id].sum += review.rating;
-            reviewStats[review.product_id].count += 1;
-          });
+        // Group reviews by product_id and calculate stats
+        const reviewStats: Record<string, { sum: number; count: number }> = {};
+        (reviewsData || []).forEach(review => {
+          if (!reviewStats[review.product_id]) {
+            reviewStats[review.product_id] = { sum: 0, count: 0 };
+          }
+          reviewStats[review.product_id].sum += review.rating;
+          reviewStats[review.product_id].count += 1;
+        });
 
-          // Update state with ratings
-          setFeaturedProducts(prev =>
-            prev.map(product => {
-              const stats = reviewStats[product.id];
-              return {
-                ...product,
-                averageRating: stats ? stats.sum / stats.count : null,
-                reviewCount: stats ? stats.count : 0,
-              };
-            })
-          );
-        }
+        // Map products with their review stats
+        const productsWithStats = productsData.map(product => {
+          const stats = reviewStats[product.id];
+          return {
+            ...product,
+            averageRating: stats ? stats.sum / stats.count : null,
+            reviewCount: stats ? stats.count : 0,
+          };
+        });
+
+        setFeaturedProducts(productsWithStats);
       } else {
         setFeaturedProducts([]);
-        setLoading(false);
       }
     } catch (error) {
       console.error("Error fetching featured products:", error);
-      setLoading(false); // Ensure loading stops on error
+    } finally {
+      setLoading(false);
     }
   };
 
