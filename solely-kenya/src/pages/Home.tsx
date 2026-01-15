@@ -140,7 +140,7 @@ const Home = () => {
                 />
               </h1>
               <p className="text-base sm:text-lg md:text-xl text-muted-foreground font-bold mb-6 sm:mb-8">
-                Sole-ly is an online marketplace where independent shoe sellers list their products and customers discover and buy footwear from multiple vendors in one platform.
+                Buy authentic shoes from verified local vendors. Sell your footwear with escrow protection. One platform, endless styles.
               </p>
               <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
                 <Button size="lg" asChild className="hover:scale-105 transition-transform min-h-[48px] w-full sm:w-auto tap-active">

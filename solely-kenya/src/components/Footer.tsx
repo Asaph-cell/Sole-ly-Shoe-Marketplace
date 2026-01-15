@@ -71,12 +71,13 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
           {/* Brand - Bigger Logo */}
           <div className="space-y-4">
-            <Link to="/" className="flex items-center gap-3 group">
+            <Link to="/" className="flex flex-col items-start group">
               <img
                 src={logo}
                 alt="Solely Marketplace"
                 className="h-14 w-auto transition-transform group-hover:scale-105 brightness-0 invert"
               />
+              <span className="text-[10px] text-secondary-foreground/60 tracking-wide uppercase -mt-3 pl-1">the shoe marketplace</span>
             </Link>
             <p className="text-sm text-secondary-foreground/80">
               Kenya's Premier Secure Marketplace for Authentic Footwear.

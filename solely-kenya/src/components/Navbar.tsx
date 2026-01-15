@@ -57,12 +57,13 @@ const Navbar = () => {
       <div className="container mx-auto px-4 py-3 sm:py-4">
         <div className="flex items-center justify-between flex-nowrap">
           {/* Logo - Left */}
-          <Link to="/" className="flex items-center gap-3 group shrink-0">
+          <Link to="/" className="flex flex-col items-start group shrink-0">
             <img
               src={logo}
               alt="Solely Marketplace"
               className="h-10 sm:h-12 w-auto transition-transform group-hover:scale-105"
             />
+            <span className="text-[9px] sm:text-[10px] text-muted-foreground tracking-wide uppercase -mt-3 pl-1">the shoe marketplace</span>
           </Link>
 
           {/* Desktop Navigation - Center */}
