@@ -91,21 +91,29 @@ Deno.serve(async (req: Request) => {
                     throw new Error(`Failed to cancel order: ${cancelError.message}`);
                 }
 
-                // 2. Update escrow to released (for refund)
-                const { error: escrowError } = await supabase
-                    .from("escrow_transactions")
-                    .update({
-                        status: "released",
-                        released_at: new Date().toISOString(),
-                    })
-                    .eq("order_id", order.id);
+                // 2. Process actual IntaSend refund (this also updates escrow)
+                const refundResponse = await fetch(`${supabaseUrl}/functions/v1/process-refund`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${supabaseServiceKey}`,
+                    },
+                    body: JSON.stringify({
+                        orderId: order.id,
+                        reason: "Vendor did not respond within 48 hours",
+                    }),
+                });
 
-                if (escrowError) {
-                    console.warn(`Escrow update warning for order ${order.id}:`, escrowError);
-                    // Continue anyway - order is cancelled
+                const refundResult = await refundResponse.json();
+
+                if (!refundResponse.ok || !refundResult.success) {
+                    console.warn(`Refund warning for order ${order.id}:`, refundResult.error || "Unknown refund error");
+                    // Continue anyway - order is cancelled, manual intervention may be needed
+                } else {
+                    console.log(`IntaSend refund initiated for order ${order.id}`);
                 }
 
-                // 3. Notify customer about refund via email
+                // 3. Notify customer about auto-cancellation and refund
                 fetch(`${supabaseUrl}/functions/v1/notify-buyer-order-declined`, {
                     method: 'POST',
                     headers: {
@@ -118,7 +126,7 @@ Deno.serve(async (req: Request) => {
                     }),
                 }).catch(err => console.log(`Buyer notification failed for ${order.id}:`, err));
 
-                console.log(`Order ${order.id} auto-cancelled, refund initiated, buyer notified`);
+                console.log(`Order ${order.id} auto-cancelled, IntaSend refund initiated, buyer notified`);
 
                 results.cancelled++;
             } catch (error) {
