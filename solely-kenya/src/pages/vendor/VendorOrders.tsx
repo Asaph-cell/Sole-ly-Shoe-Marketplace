@@ -54,6 +54,7 @@ const VendorOrders = () => {
   const [saving, setSaving] = useState(false);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [orderToDecline, setOrderToDecline] = useState<OrderRecord | null>(null);
+  const [declineReason, setDeclineReason] = useState<string>("");
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const shippingFormRef = useRef<HTMLDivElement>(null);
 
@@ -612,15 +613,20 @@ const VendorOrders = () => {
                     </div>
                     <div className="flex items-end gap-3">
                       <div className="space-x-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-destructive hover:bg-destructive/10"
-                          onClick={() => setOrderToDecline(order)}
-                          disabled={saving || order.status !== "pending_vendor_confirmation"}
-                        >
-                          Decline & Refund
-                        </Button>
+                        {hoursUntilAutoCancel > 0 && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-destructive hover:bg-destructive/10"
+                            onClick={() => {
+                              setDeclineReason("");
+                              setOrderToDecline(order);
+                            }}
+                            disabled={saving || order.status !== "pending_vendor_confirmation"}
+                          >
+                            Can't Fulfill
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           onClick={() => handleAccept(order)}
@@ -882,30 +888,50 @@ const VendorOrders = () => {
       </div>
 
       {/* Decline Confirmation Dialog */}
-      <AlertDialog open={!!orderToDecline} onOpenChange={(open) => !open && setOrderToDecline(null)}>
+      <AlertDialog open={!!orderToDecline} onOpenChange={(open) => { if (!open) { setOrderToDecline(null); setDeclineReason(""); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancel Order & Refund Customer?</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <p>
-                You are about to cancel order <strong>#{orderToDecline?.id.slice(0, 8)}</strong>.
-              </p>
-              <p className="font-medium text-foreground">
-                A full refund of KES {orderToDecline?.total_ksh.toLocaleString()} will be processed to the customer.
-              </p>
-              <p className="text-sm text-muted-foreground">
-                This action cannot be undone. The customer will be notified and the payment will be returned.
-              </p>
+            <AlertDialogTitle>Can't Fulfill This Order?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <p>
+                  You are about to cancel order <strong>#{orderToDecline?.id.slice(0, 8)}</strong>.
+                </p>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Reason for declining:</label>
+                  <select
+                    className="w-full p-2 border rounded-md bg-background text-foreground"
+                    value={declineReason}
+                    onChange={(e) => setDeclineReason(e.target.value)}
+                  >
+                    <option value="">Select a reason...</option>
+                    <option value="out_of_stock">Out of stock</option>
+                    <option value="wrong_size">Size not available</option>
+                    <option value="pricing_error">Pricing error</option>
+                    <option value="cannot_deliver">Cannot deliver to location</option>
+                    <option value="damaged_item">Item damaged</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                <p className="font-medium text-foreground">
+                  A full refund of KES {orderToDecline?.total_ksh.toLocaleString()} will be processed to the customer.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  The customer will be notified immediately.
+                </p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={saving}>Keep Order</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => orderToDecline && handleDecline(orderToDecline)}
-              disabled={saving}
+              disabled={saving || !declineReason}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {saving ? "Processing..." : "Cancel & Refund"}
+              {saving ? "Processing..." : "Confirm & Refund"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
