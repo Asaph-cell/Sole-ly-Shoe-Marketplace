@@ -283,7 +283,7 @@ const VendorEditAccessory = () => {
                                                 <SelectItem value="new">
                                                     <div className="flex items-center gap-2">
                                                         <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                                                        Mint - Brand new condition, resale
+                                                        Mint - Brand new
                                                     </div>
                                                 </SelectItem>
                                                 <SelectItem value="like_new">
