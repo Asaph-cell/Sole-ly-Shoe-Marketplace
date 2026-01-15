@@ -12,7 +12,7 @@ const corsHeaders = {
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const MINIMUM_AUTO_PAYOUT = 1500;
+const MINIMUM_AUTO_PAYOUT = 250; // TEMP: lowered from 1500 for testing
 const PAYOUT_FEE = 100;
 
 serve(async (req: Request) => {
