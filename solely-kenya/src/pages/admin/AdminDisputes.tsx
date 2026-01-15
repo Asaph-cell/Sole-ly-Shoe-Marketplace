@@ -559,43 +559,83 @@ const AdminDisputes = () => {
 
                                 {/* Resolution Actions */}
                                 {(selectedDispute.status === "open" || selectedDispute.status === "under_review") && (
-                                    <div className="border-t pt-4 space-y-4">
-                                        <div>
-                                            <Label htmlFor="notes">Resolution Notes (Optional)</Label>
-                                            <Textarea
-                                                id="notes"
-                                                placeholder="Add notes about your decision..."
-                                                value={resolutionNotes}
-                                                onChange={(e) => setResolutionNotes(e.target.value)}
-                                                rows={3}
-                                            />
+                                    <div className="border-t pt-6 space-y-4">
+                                        <div className="bg-muted/30 p-4 rounded-lg border border-border">
+                                            <h3 className="font-semibold mb-3 flex items-center gap-2">
+                                                <Mail className="h-4 w-4" />
+                                                Step 1: Communication
+                                            </h3>
+                                            <p className="text-sm text-muted-foreground mb-3">
+                                                Communicate with both parties before making a final decision.
+                                            </p>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <Button variant="outline" className="h-auto py-3 flex flex-col items-center justify-center gap-1 hover:bg-primary/5 hover:text-primary border-dashed" asChild>
+                                                    <a href={`mailto:${selectedDispute.customer?.email}?subject=Dispute Update for Order #${selectedDispute.order_id.slice(0, 8)}&body=Dear ${selectedDispute.customer?.full_name},%0A%0ARegarding your dispute for order #${selectedDispute.order_id.slice(0, 8)}...`}>
+                                                        <span className="font-medium flex items-center gap-2 text-sm"><Mail className="h-3 w-3" /> Email Customer</span>
+                                                        <span className="text-xs text-muted-foreground">{selectedDispute.customer?.email}</span>
+                                                    </a>
+                                                </Button>
+                                                <Button variant="outline" className="h-auto py-3 flex flex-col items-center justify-center gap-1 hover:bg-primary/5 hover:text-primary border-dashed" asChild>
+                                                    <a href={`mailto:${selectedDispute.vendor?.email}?subject=Dispute Inquiry for Order #${selectedDispute.order_id.slice(0, 8)}&body=Dear ${selectedDispute.vendor?.store_name || "Vendor"},%0A%0ARegarding the dispute for order #${selectedDispute.order_id.slice(0, 8)}...`}>
+                                                        <span className="font-medium flex items-center gap-2 text-sm"><Mail className="h-3 w-3" /> Email Vendor</span>
+                                                        <span className="text-xs text-muted-foreground">{selectedDispute.vendor?.email}</span>
+                                                    </a>
+                                                </Button>
+                                            </div>
                                         </div>
 
-                                        <div className="flex gap-3">
-                                            <Button
-                                                variant="destructive"
-                                                onClick={() => handleResolve("refund")}
-                                                disabled={resolving}
-                                                className="flex-1"
-                                            >
-                                                <XCircle className="h-4 w-4 mr-1" />
-                                                Issue Refund
-                                            </Button>
-                                            <Button
-                                                className="flex-1 bg-green-600 hover:bg-green-700"
-                                                onClick={() => handleResolve("release")}
-                                                disabled={resolving}
-                                            >
-                                                <CheckCircle className="h-4 w-4 mr-1" />
-                                                Release to Vendor
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => handleResolve("close")}
-                                                disabled={resolving}
-                                            >
-                                                Close
-                                            </Button>
+                                        <div className="pt-2">
+                                            <h3 className="font-semibold mb-3 flex items-center gap-2">
+                                                <CheckCircle className="h-4 w-4" />
+                                                Step 2: Final Resolution
+                                            </h3>
+                                            <div className="mb-4">
+                                                <Label htmlFor="notes" className="mb-1 block">Resolution Notes (Required for decision)</Label>
+                                                <Textarea
+                                                    id="notes"
+                                                    placeholder="Explain your decision. This will be saved in the dispute record."
+                                                    value={resolutionNotes}
+                                                    onChange={(e) => setResolutionNotes(e.target.value)}
+                                                    rows={3}
+                                                    className="resize-none"
+                                                />
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <Button
+                                                    variant="destructive"
+                                                    onClick={() => handleResolve("refund")}
+                                                    disabled={resolving || !resolutionNotes.trim()}
+                                                    className="h-auto py-4 flex flex-col gap-1"
+                                                >
+                                                    <div className="flex items-center gap-2 font-bold text-base">
+                                                        <XCircle className="h-5 w-5" />
+                                                        Refund Customer
+                                                    </div>
+                                                    <span className="text-xs opacity-90 font-normal">
+                                                        Return funds to buyer & close dispute
+                                                    </span>
+                                                </Button>
+
+                                                <Button
+                                                    className="bg-green-600 hover:bg-green-700 h-auto py-4 flex flex-col gap-1"
+                                                    onClick={() => handleResolve("release")}
+                                                    disabled={resolving || !resolutionNotes.trim()}
+                                                >
+                                                    <div className="flex items-center gap-2 font-bold text-base">
+                                                        <CheckCircle className="h-5 w-5" />
+                                                        Release to Vendor
+                                                    </div>
+                                                    <span className="text-xs opacity-90 font-normal">
+                                                        Pay vendor & close dispute
+                                                    </span>
+                                                </Button>
+                                            </div>
+                                            {!resolutionNotes.trim() && (
+                                                <p className="text-xs text-center text-muted-foreground mt-2">
+                                                    Please enter resolution notes to enable the decision buttons.
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 )}
