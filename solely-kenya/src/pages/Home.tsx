@@ -27,41 +27,32 @@ const Home = () => {
 
   const fetchFeaturedProducts = async () => {
     try {
-      // Fetch products
+      // Fetch products with their reviews in a single query
       const { data: productsData, error } = await supabase
         .from("products")
-        .select("*")
+        .select(`
+          *,
+          reviews (
+            rating
+          )
+        `)
         .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(4);
 
       if (error) throw error;
 
-      // Fetch reviews for these products
       if (productsData && productsData.length > 0) {
-        const productIds = productsData.map(p => p.id);
-        const { data: reviewsData } = await supabase
-          .from("reviews")
-          .select("product_id, rating")
-          .in("product_id", productIds);
+        // Process the data to calculate stats
+        const productsWithStats = productsData.map((product: any) => {
+          const reviews = product.reviews || [];
+          const reviewCount = reviews.length;
+          const reviewSum = reviews.reduce((sum: number, review: any) => sum + (review.rating || 0), 0);
 
-        // Group reviews by product_id and calculate stats
-        const reviewStats: Record<string, { sum: number; count: number }> = {};
-        (reviewsData || []).forEach(review => {
-          if (!reviewStats[review.product_id]) {
-            reviewStats[review.product_id] = { sum: 0, count: 0 };
-          }
-          reviewStats[review.product_id].sum += review.rating;
-          reviewStats[review.product_id].count += 1;
-        });
-
-        // Map products with their review stats
-        const productsWithStats = productsData.map(product => {
-          const stats = reviewStats[product.id];
           return {
             ...product,
-            averageRating: stats ? stats.sum / stats.count : null,
-            reviewCount: stats ? stats.count : 0,
+            averageRating: reviewCount > 0 ? reviewSum / reviewCount : null,
+            reviewCount: reviewCount,
           };
         });
 
