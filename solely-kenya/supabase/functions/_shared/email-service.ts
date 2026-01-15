@@ -211,21 +211,23 @@ export const emailTemplates = {
       <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #f59e0b; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+        .header { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; }
         .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
-        .order-details { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; }
-        .refund-notice { background: #d1fae5; border: 1px solid #10b981; padding: 12px; border-radius: 6px; margin-top: 15px; }
+        .order-details { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #e5e7eb; }
+        .refund-notice { background: #d1fae5; border: 2px solid #10b981; padding: 15px; border-radius: 8px; margin-top: 15px; }
+        .security-notice { background: #dbeafe; border: 1px solid #3b82f6; padding: 12px; border-radius: 6px; margin-top: 15px; }
+        .cta-button { display: inline-block; background: #6366f1; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; margin-top: 15px; font-weight: bold; }
         .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <h1 style="margin: 0;">Order Automatically Cancelled</h1>
+          <h1 style="margin: 0;">Order Update</h1>
         </div>
         <div class="content">
           <p>Hi ${data.customerName},</p>
-          <p>Unfortunately, the vendor did not respond to your order within 48 hours, so it has been automatically cancelled.</p>
+          <p>We're sorry to let you know that the vendor was unable to accept your order within the required 48-hour window.</p>
           
           <div class="order-details">
             <p><strong>Order #${data.orderId}</strong></p>
@@ -234,13 +236,26 @@ export const emailTemplates = {
           </div>
           
           <div class="refund-notice">
-            <strong>✅ Refund Initiated:</strong> Your payment of KES ${data.total.toLocaleString()} will be refunded to your original payment method within 3-5 business days.
+            <p style="margin: 0 0 10px 0; font-size: 18px;"><strong>💰 Full Refund Processed</strong></p>
+            <p style="margin: 0;">Your payment of <strong>KES ${data.total.toLocaleString()}</strong> has been refunded to your M-Pesa. You should receive it within minutes.</p>
           </div>
           
-          <p style="margin-top: 20px;">We apologize for any inconvenience. Please feel free to explore other products on Sole-ly Kenya!</p>
+          <div class="security-notice">
+            <p style="margin: 0;"><strong>🔒 Your Money is Safe</strong></p>
+            <p style="margin: 5px 0 0 0; font-size: 14px;">At Sole-ly Kenya, we take your financial security seriously. When a vendor fails to respond, we automatically protect your funds by issuing an immediate refund.</p>
+          </div>
+          
+          <p style="margin-top: 20px;">We've also notified the vendor about this missed order. In the meantime, we encourage you to explore other amazing products from our trusted sellers!</p>
+          
+          <div style="text-align: center;">
+            <a href="https://solelyshoes.co.ke/shop" class="cta-button">Continue Shopping</a>
+          </div>
+          
+          <p style="margin-top: 25px; font-size: 14px; color: #6b7280;">Thank you for choosing Sole-ly Kenya. We're committed to giving you the best shopping experience!</p>
         </div>
         <div class="footer">
           <p>This email was sent by Sole-ly Kenya</p>
+          <p>Questions? Contact us at support@solelyshoes.co.ke</p>
         </div>
       </div>
     </body>
