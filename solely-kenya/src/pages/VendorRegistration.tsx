@@ -112,6 +112,19 @@ const VendorRegistration = () => {
         throw roleError;
       }
 
+      // Create IntaSend wallet for the vendor (non-blocking)
+      supabase.functions.invoke('create-vendor-wallet', {
+        body: { vendor_id: user.id }
+      }).then((result) => {
+        if (result.error) {
+          console.warn('Failed to create vendor wallet:', result.error);
+        } else {
+          console.log('Vendor wallet created:', result.data);
+        }
+      }).catch((err) => {
+        console.warn('Wallet creation failed (non-critical):', err);
+      });
+
       toast.success("Vendor registration successful! You can now start selling.");
       navigate("/vendor/dashboard");
     } catch (error: any) {

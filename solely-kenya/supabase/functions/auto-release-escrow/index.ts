@@ -113,6 +113,19 @@ serve(async (req) => {
           console.error(`Failed to record commission for order ${order.id}:`, commissionError);
         }
 
+        // Transfer funds to vendor's IntaSend wallet (non-blocking)
+        supabase.functions.invoke('transfer-to-vendor-wallet', {
+          body: { order_id: order.id }
+        }).then((result: { data?: { success?: boolean }; error?: Error }) => {
+          if (result.error) {
+            console.error(`Fund transfer failed for order ${order.id}:`, result.error);
+          } else {
+            console.log(`Fund transfer initiated for order ${order.id}`);
+          }
+        }).catch((err: Error) => {
+          console.error(`Fund transfer exception for order ${order.id}:`, err);
+        });
+
         releasedOrders.push(order.id);
         console.log(`Auto-released escrow for order ${order.id}`);
       } catch (error) {

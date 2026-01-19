@@ -1,0 +1,168 @@
+/**
+ * Transfer to Vendor Wallet
+ * Transfers vendor's share (minus commission) from settlement to vendor wallet
+ * Called after order completion
+ */
+
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+const PLATFORM_COMMISSION_RATE = 0.11; // 11%
+const SETTLEMENT_WALLET_ID = Deno.env.get('INTASEND_SETTLEMENT_WALLET_ID') || 'KZRJ8VY';
+
+serve(async (req: Request) => {
+    if (req.method === "OPTIONS") {
+        return new Response(null, { headers: corsHeaders });
+    }
+
+    try {
+        const supabase = createClient(
+            Deno.env.get('SUPABASE_URL')!,
+            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+        );
+
+        const INTASEND_SECRET_KEY = Deno.env.get('INTASEND_SECRET_KEY');
+        if (!INTASEND_SECRET_KEY) {
+            throw new Error('INTASEND_SECRET_KEY is not configured');
+        }
+
+        const { order_id } = await req.json();
+
+        if (!order_id) {
+            throw new Error('order_id is required');
+        }
+
+        console.log(`[Transfer to Vendor] Processing order: ${order_id}`);
+
+        // Get order details
+        const { data: order, error: orderError } = await supabase
+            .from('orders')
+            .select('id, vendor_id, total_ksh, payout_amount, status')
+            .eq('id', order_id)
+            .single();
+
+        if (orderError || !order) {
+            throw new Error(`Order not found: ${order_id}`);
+        }
+
+        if (order.status !== 'completed') {
+            throw new Error(`Order is not completed: ${order.status}`);
+        }
+
+        // Get vendor's IntaSend wallet ID
+        const { data: vendorBalance, error: balanceError } = await supabase
+            .from('vendor_balances')
+            .select('intasend_wallet_id')
+            .eq('vendor_id', order.vendor_id)
+            .single();
+
+        if (balanceError || !vendorBalance?.intasend_wallet_id) {
+            console.error('[Transfer to Vendor] Vendor has no wallet, attempting to create one...');
+
+            // Try to create wallet for vendor
+            const { data: createResult, error: createError } = await supabase.functions.invoke('create-vendor-wallet', {
+                body: { vendor_id: order.vendor_id }
+            });
+
+            if (createError || !createResult?.wallet_id) {
+                throw new Error(`Vendor has no IntaSend wallet and creation failed`);
+            }
+
+            vendorBalance.intasend_wallet_id = createResult.wallet_id;
+        }
+
+        const vendorWalletId = vendorBalance.intasend_wallet_id;
+
+        // Calculate vendor share (order total minus commission)
+        const orderTotal = Number(order.total_ksh);
+        const commission = Math.round(orderTotal * PLATFORM_COMMISSION_RATE * 100) / 100;
+        const vendorShare = Math.round((orderTotal - commission) * 100) / 100;
+
+        console.log(`[Transfer to Vendor] Order total: ${orderTotal}, Commission: ${commission}, Vendor share: ${vendorShare}`);
+
+        // Transfer from settlement wallet to vendor wallet
+        const response = await fetch(`https://api.intasend.com/api/v1/wallets/${SETTLEMENT_WALLET_ID}/intra_transfer/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${INTASEND_SECRET_KEY}`,
+            },
+            body: JSON.stringify({
+                wallet_id: vendorWalletId,
+                amount: vendorShare,
+                narrative: `Order ${order_id.slice(0, 8)} - vendor share`,
+            }),
+        });
+
+        const responseText = await response.text();
+        console.log(`[Transfer to Vendor] IntaSend response:`, responseText);
+
+        let transferResult;
+        try {
+            transferResult = JSON.parse(responseText);
+        } catch {
+            throw new Error(`IntaSend returned invalid JSON: ${responseText.substring(0, 200)}`);
+        }
+
+        if (!response.ok) {
+            throw new Error(`IntaSend transfer error: ${JSON.stringify(transferResult)}`);
+        }
+
+        console.log(`[Transfer to Vendor] Successfully transferred ${vendorShare} to vendor wallet ${vendorWalletId}`);
+
+        // Update vendor_balances to reflect the transfer
+        const { error: updateError } = await supabase
+            .from('vendor_balances')
+            .update({
+                pending_balance: supabase.rpc('increment_balance', { amount: vendorShare }),
+                total_earned: supabase.rpc('increment_earned', { amount: vendorShare }),
+                updated_at: new Date().toISOString(),
+            })
+            .eq('vendor_id', order.vendor_id);
+
+        // Update using raw SQL since RPC might not exist
+        await supabase.rpc('sql', {
+            query: `
+                UPDATE vendor_balances 
+                SET pending_balance = pending_balance + $1,
+                    total_earned = total_earned + $1,
+                    updated_at = NOW()
+                WHERE vendor_id = $2
+            `,
+            params: [vendorShare, order.vendor_id]
+        }).catch(() => {
+            // Fallback: direct update
+            supabase.from('vendor_balances')
+                .update({
+                    pending_balance: vendorShare,
+                    updated_at: new Date().toISOString(),
+                })
+                .eq('vendor_id', order.vendor_id);
+        });
+
+        return new Response(
+            JSON.stringify({
+                success: true,
+                order_id: order_id,
+                vendor_share: vendorShare,
+                commission: commission,
+                vendor_wallet_id: vendorWalletId,
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+
+    } catch (error) {
+        console.error('[Transfer to Vendor] Error:', error);
+        return new Response(
+            JSON.stringify({
+                error: error instanceof Error ? error.message : 'Failed to transfer funds'
+            }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+    }
+});

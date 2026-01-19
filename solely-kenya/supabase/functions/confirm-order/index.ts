@@ -135,6 +135,21 @@ serve(async (req: Request) => {
             console.log(`Commission recorded: ${commissionAmount} KES`);
         }
 
+        // F. Transfer funds to vendor's IntaSend wallet (non-blocking)
+        // This moves the vendor's 89% from the settlement wallet to their own wallet
+        console.log(`Initiating fund transfer to vendor wallet for order ${orderId}`);
+        supabase.functions.invoke('transfer-to-vendor-wallet', {
+            body: { order_id: orderId }
+        }).then((result: { data?: { success?: boolean; vendor_share?: number }; error?: Error }) => {
+            if (result.error) {
+                console.error('Fund transfer to vendor wallet failed:', result.error);
+            } else if (result.data?.success) {
+                console.log(`Fund transfer successful: ${result.data.vendor_share} KES transferred to vendor wallet`);
+            }
+        }).catch((err: Error) => {
+            console.error('Fund transfer exception:', err);
+        });
+
         // E. Decrement Stock for each order item
         const { data: orderItems, error: itemsError } = await supabase
             .from("order_items")
