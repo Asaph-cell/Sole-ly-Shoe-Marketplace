@@ -97,7 +97,7 @@ export function LiveDeliveryTracker({ orderId, recipientName }: LiveDeliveryTrac
             )
             .subscribe((status) => {
                 console.log('[LiveTracker] Subscription status:', status);
-                setIsConnected(status === 'SUBSCRIBE');
+                setIsConnected(status === 'SUBSCRIBED');
             });
 
         return () => {
@@ -244,3 +244,4 @@ export function LiveDeliveryTracker({ orderId, recipientName }: LiveDeliveryTrac
 }
 
 export default LiveDeliveryTracker;
+
