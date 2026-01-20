@@ -67,9 +67,26 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
             if (data?.error) throw new Error(data.error);
             return data;
         },
-        onSuccess: (data) => {
+        onSuccess: (data: any, _variables, context) => { // Use 'any' temporarily or define expected shape
+            // Calculate fee: The API returns the AMOUNT SENT (net).
+            // But we don't have the original 'pendingBalance' easily accessible inside the mutation success unless we snapshot it.
+            // Wait, we can query the 'balance' from the hook scope! 'pendingBalance' is available in the component scope.
+
+            // However, the best way is if the backend returns the fee.
+            // Currently backend returns: { success: true, amount: withdrawAmount, new_balance: ... }
+            // In the retry logic (where fee is deducted), 'withdrawAmount' is the original requested amount, but 'netAmount' is what was sent.
+            // Let's look at the backend code again.
+            // Backend sends: JSON.stringify({ success: true, amount: withdrawAmount ... })
+            // Logic: "Keep withdrawAmount as the ORIGINAL requested amount for DB deduction"
+            // Wait, if it sends original amount, we can't see the net amount!
+            // I MUST UPDATE THE BACKEND FIRST to return the 'netAmount' or 'fee'.
+
+            // Let's assume I will update the backend to return 'fee'.
+            const received = data.net_amount || data.amount;
+            const fee = data.fee || 0;
+
             toast.success("Withdrawal Successful! 🎉", {
-                description: data.message || `KES ${data.amount?.toLocaleString()} sent to your M-Pesa!`,
+                description: `Sent: KES ${received.toLocaleString()} | Fee: KES ${fee.toLocaleString()}`,
             });
             queryClient.invalidateQueries({ queryKey: ['vendor-balance'] });
             queryClient.invalidateQueries({ queryKey: ['payouts'] });
@@ -180,9 +197,17 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
                         <AlertDialogDescription asChild>
                             <div className="space-y-4">
                                 <div className="bg-muted rounded-lg p-4 text-center">
-                                    <p className="text-sm text-muted-foreground">You will receive</p>
+                                    <p className="text-sm text-muted-foreground">Withdrawal Amount</p>
                                     <p className="text-3xl font-bold text-foreground mt-1">
                                         KES {pendingBalance.toLocaleString()}
+                                    </p>
+                                </div>
+                                <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md">
+                                    <p className="text-sm text-amber-800 dark:text-amber-200 font-medium mb-1">
+                                        ⚠️ Transaction Fee Notice
+                                    </p>
+                                    <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
+                                        Transaction costs are passed to the payment provider and deducted from your final received amount. You will receive the balance minus standard M-Pesa charges.
                                     </p>
                                 </div>
                                 <p className="text-sm text-muted-foreground">

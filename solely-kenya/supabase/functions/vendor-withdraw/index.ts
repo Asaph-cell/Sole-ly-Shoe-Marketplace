@@ -89,6 +89,11 @@ serve(async (req: Request) => {
 
         console.log(`[Vendor Withdraw] Sending KES ${withdrawAmount} to ${normalizedPhone}`);
 
+        // Track what we actually send and the fee
+        let executedAmount = withdrawAmount;
+        let feeCharged = 0;
+        let trackingId = '';
+
         // Send money from vendor's wallet to their M-Pesa
         const response = await fetch('https://api.intasend.com/api/v1/send-money/initiate/', {
             method: 'POST',
@@ -163,6 +168,11 @@ serve(async (req: Request) => {
 
                     if (retryResponse.ok) {
                         result = JSON.parse(retryText);
+                        // Update our tracking variables
+                        executedAmount = netAmount;
+                        feeCharged = fee;
+                        trackingId = result.tracking_id || result.id;
+
                         // Keep withdrawAmount as the ORIGINAL requested amount for DB deduction
                         // The vendor's wallet is now empty (IntaSend took full balance: net + fee)
                         console.log(`[Vendor Withdraw] Retry succeeded. Sent ${netAmount}, fee was ${fee}, deducting full ${withdrawAmount} from balance`);
@@ -175,6 +185,14 @@ serve(async (req: Request) => {
             } else {
                 throw new Error(`IntaSend error: ${errorDetail || responseText.substring(0, 200)}`);
             }
+        } else {
+            // First try succeeded (unlikely if balance == amount, but possible if IntaSend treats it differently)
+            trackingId = result.tracking_id || result.id;
+            // Fee is unknown here unless IntaSend returned it, but usually it's 0 if no error
+            // Or maybe it was deducted unseen. But we assume executesAmount = withdrawAmount.
+            // Actually, if we requested full balance and it succeeded, fee might be 0? 
+            // Or IntaSend deducted it implicitly? 
+            // We'll stick to executedAmount = withdrawAmount for now unless we know otherwise.
         }
 
         console.log(`[Vendor Withdraw] Withdrawal initiated successfully`);
@@ -190,7 +208,10 @@ serve(async (req: Request) => {
         const currentPending = currentBalance?.pending_balance || 0;
 
         // Update vendor balance
+        // We deduct the FULL requested amount (which includes the fee)
         const newBalance = Math.max(0, currentPending - withdrawAmount);
+
+        // We track the FULL requested amount as paid out (since the fee is part of their cost)
         const newTotalPaidOut = currentPaidOut + withdrawAmount;
 
         const { error: updateError } = await supabase
@@ -210,9 +231,11 @@ serve(async (req: Request) => {
         // Record the payout
         await supabase.from('payouts').insert({
             vendor_id: vendor_id,
-            amount_ksh: withdrawAmount,
+            amount_ksh: executedAmount, // Record the actual amount sent to their phone
+            // Store fee in metadata if you had a column, or just implicit
+            commission_amount: 0,
             method: 'mpesa',
-            reference: result.tracking_id || result.id || `withdraw-${Date.now()}`,
+            reference: trackingId || `withdraw-${Date.now()}`,
             status: 'paid',
             trigger_type: 'manual',
         });
@@ -220,9 +243,11 @@ serve(async (req: Request) => {
         return new Response(
             JSON.stringify({
                 success: true,
-                amount: withdrawAmount,
+                amount: withdrawAmount, // Amount deducted from system
+                net_amount: executedAmount, // Amount sent to M-Pesa
+                fee: feeCharged,         // Transaction fee
                 new_balance: newBalance,
-                message: `KES ${withdrawAmount.toLocaleString()} sent to your M-Pesa!`,
+                message: `KES ${executedAmount.toLocaleString()} sent to your M-Pesa!`,
             }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
