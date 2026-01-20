@@ -863,10 +863,10 @@ const VendorOrders = () => {
                           >
                             {saving ? "Updating..." :
                               isPickup
-                                ? "Mark as Ready for Pickup"
+                                ? "Ready for Pickup"
                                 : order.status === "shipped"
-                                  ? "Mark as Arrived / Delivered"
-                                  : "Mark as Shipped (In Transit)"
+                                  ? "Mark Delivered"
+                                  : "Start Delivery"
                             }
                           </Button>
                         </div>
