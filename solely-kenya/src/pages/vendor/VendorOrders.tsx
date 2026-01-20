@@ -614,10 +614,10 @@ const VendorOrders = () => {
                         </p>
                       )}
                     </div>
-                    <div className="flex flex-col gap-3 w-full mt-4">
+                    <div className="flex flex-row gap-3 w-full mt-4">
                       <Button
                         size="lg"
-                        className="w-full h-12"
+                        className="flex-1 h-12"
                         onClick={() => handleAccept(order)}
                         disabled={saving || order.status !== "pending_vendor_confirmation" || hoursUntilAutoCancel <= 0}
                       >
@@ -627,7 +627,7 @@ const VendorOrders = () => {
                         <Button
                           size="lg"
                           variant="ghost"
-                          className="w-full h-12 text-destructive hover:bg-destructive/10"
+                          className="flex-1 h-12 text-destructive hover:bg-destructive/10"
                           onClick={() => {
                             setDeclineReason("");
                             setOrderToDecline(order);
