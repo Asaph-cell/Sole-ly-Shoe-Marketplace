@@ -227,7 +227,7 @@ const Checkout = () => {
       const vendorId = products[0].vendor_id;
 
       // Calculate totals
-      const commissionRate = 11;
+      const commissionRate = 10;
       let calculatedSubtotal = 0;
       const orderItems = items.map((cartItem) => {
         const product = products.find((p) => p.id === cartItem.productId);

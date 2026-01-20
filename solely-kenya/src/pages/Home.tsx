@@ -197,7 +197,7 @@ const Home = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg">Fair Commission</h3>
-                  <p className="text-sm text-muted-foreground">11% commission, no hidden fees</p>
+                  <p className="text-sm text-muted-foreground">10% commission, no hidden fees</p>
                 </div>
               </div>
             </ScrollReveal>
@@ -289,7 +289,7 @@ const Home = () => {
                 <div className="bg-muted/30 border rounded-xl p-6 text-center h-full">
                   <TrendingUp className="h-10 w-10 text-primary mx-auto mb-4" />
                   <h3 className="font-semibold text-lg mb-2">Simple Commission</h3>
-                  <p className="text-muted-foreground text-sm">We only take a flat 11% commission when you make a successful sale.</p>
+                  <p className="text-muted-foreground text-sm">We only take a flat 10% commission when you make a successful sale.</p>
                 </div>
               </ScrollReveal>
               <ScrollReveal mode="zoom-in" delay={0.7}>

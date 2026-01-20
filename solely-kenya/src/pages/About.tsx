@@ -135,7 +135,7 @@ const About = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary mt-1">✓</span>
-                  Commission-based (11% per sale, no upfront fees)
+                  Commission-based (10% per sale, no upfront fees)
                 </li>
               </ul>
             </div>

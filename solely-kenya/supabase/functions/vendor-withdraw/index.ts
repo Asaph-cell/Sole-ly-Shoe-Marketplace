@@ -67,7 +67,7 @@ serve(async (req: Request) => {
         }
 
         // Determine withdrawal amount (full balance if not specified)
-        const withdrawAmount = amount ? Number(amount) : balance.pending_balance;
+        let withdrawAmount = amount ? Number(amount) : balance.pending_balance;
 
         if (withdrawAmount <= 0) {
             throw new Error('No balance available for withdrawal');
@@ -125,9 +125,56 @@ serve(async (req: Request) => {
             console.error(`[Vendor Withdraw] IntaSend API failed. Status: ${response.status}, Response: ${responseText}`);
             console.error(`[Vendor Withdraw] Request was: wallet_id=${profile.intasend_wallet_id}, amount=${withdrawAmount}, phone=${normalizedPhone}`);
 
-            // Return the actual error from IntaSend
-            const errorDetail = result.errors?.[0]?.detail || result.message || result.error || responseText.substring(0, 200);
-            throw new Error(`IntaSend error: ${errorDetail}`);
+            // Check if it's an insufficient balance error with fee info
+            const errorDetail = result.errors?.[0]?.detail || result.message || result.error || '';
+
+            // Try to extract fee from error: "Transaction charge estimate is KES 20.00"
+            const feeMatch = errorDetail.match(/charge estimate is KES\s*([\d.]+)/i);
+            if (feeMatch) {
+                const fee = parseFloat(feeMatch[1]);
+                const netAmount = Math.floor((withdrawAmount - fee) * 100) / 100;
+
+                if (netAmount > 0) {
+                    console.log(`[Vendor Withdraw] Retrying with net amount: ${netAmount} (deducted fee: ${fee})`);
+
+                    // Retry with the net amount
+                    const retryResponse = await fetch('https://api.intasend.com/api/v1/send-money/initiate/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${INTASEND_SECRET_KEY}`,
+                        },
+                        body: JSON.stringify({
+                            provider: 'MPESA-B2C',
+                            currency: 'KES',
+                            wallet_id: profile.intasend_wallet_id,
+                            requires_approval: 'NO',
+                            transactions: [{
+                                name: profile.full_name || 'Vendor',
+                                account: normalizedPhone,
+                                amount: netAmount,
+                                narrative: 'Solely Kenya withdrawal',
+                            }],
+                        }),
+                    });
+
+                    const retryText = await retryResponse.text();
+                    console.log(`[Vendor Withdraw] Retry response:`, retryText);
+
+                    if (retryResponse.ok) {
+                        result = JSON.parse(retryText);
+                        // Update withdrawAmount to reflect actual sent amount
+                        balance.pending_balance = withdrawAmount; // Store original for DB update
+                        withdrawAmount = netAmount;
+                    } else {
+                        throw new Error(`Withdrawal failed after retry: ${retryText.substring(0, 200)}`);
+                    }
+                } else {
+                    throw new Error(`Balance too low after fees. Balance: KES ${withdrawAmount}, Fee: KES ${fee}`);
+                }
+            } else {
+                throw new Error(`IntaSend error: ${errorDetail || responseText.substring(0, 200)}`);
+            }
         }
 
         console.log(`[Vendor Withdraw] Withdrawal initiated successfully`);

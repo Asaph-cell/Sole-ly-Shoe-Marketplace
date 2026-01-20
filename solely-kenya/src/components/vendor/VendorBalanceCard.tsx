@@ -144,11 +144,12 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
                                 </>
                             )}
                         </Button>
-                        {!canWithdraw && (
-                            <p className="text-white/40 text-xs text-center mt-3">
-                                No balance available for withdrawal
-                            </p>
-                        )}
+                        <p className="text-white/40 text-xs text-center mt-3">
+                            {!canWithdraw
+                                ? "No balance available for withdrawal"
+                                : "Standard transaction rates apply"
+                            }
+                        </p>
                     </div>
 
                     {/* Stats */}

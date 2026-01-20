@@ -290,7 +290,7 @@ const VendorRegistration = () => {
                     <ul className="list-disc list-inside mt-2 space-y-1">
                       <li className="text-destructive font-medium">You must respond to orders within 48 hours or they will be auto-cancelled</li>
                       <li>You are responsible for all product deliveries</li>
-                      <li>Solely takes a 11% commission on each sale</li>
+                      <li>Solely takes a 10% commission on each sale</li>
                       <li>Payments are held in escrow until delivery is confirmed</li>
                       <li>You must provide accurate product information</li>
                       <li className="font-bold text-amber-800">You certify that you have the right to sell these items and they are authentic</li>
