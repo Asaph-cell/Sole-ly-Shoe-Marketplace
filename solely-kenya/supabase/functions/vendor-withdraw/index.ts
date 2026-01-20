@@ -163,9 +163,9 @@ serve(async (req: Request) => {
 
                     if (retryResponse.ok) {
                         result = JSON.parse(retryText);
-                        // Update withdrawAmount to reflect actual sent amount
-                        balance.pending_balance = withdrawAmount; // Store original for DB update
-                        withdrawAmount = netAmount;
+                        // Keep withdrawAmount as the ORIGINAL requested amount for DB deduction
+                        // The vendor's wallet is now empty (IntaSend took full balance: net + fee)
+                        console.log(`[Vendor Withdraw] Retry succeeded. Sent ${netAmount}, fee was ${fee}, deducting full ${withdrawAmount} from balance`);
                     } else {
                         throw new Error(`Withdrawal failed after retry: ${retryText.substring(0, 200)}`);
                     }
@@ -179,27 +179,32 @@ serve(async (req: Request) => {
 
         console.log(`[Vendor Withdraw] Withdrawal initiated successfully`);
 
+        // Get current balance values for proper update
+        const { data: currentBalance } = await supabase
+            .from('vendor_balances')
+            .select('pending_balance, total_paid_out')
+            .eq('vendor_id', vendor_id)
+            .single();
+
+        const currentPaidOut = currentBalance?.total_paid_out || 0;
+        const currentPending = currentBalance?.pending_balance || 0;
+
         // Update vendor balance
-        const newBalance = balance.pending_balance - withdrawAmount;
+        const newBalance = Math.max(0, currentPending - withdrawAmount);
+        const newTotalPaidOut = currentPaidOut + withdrawAmount;
+
         const { error: updateError } = await supabase
             .from('vendor_balances')
             .update({
                 pending_balance: newBalance,
-                total_paid_out: supabase.sql`total_paid_out + ${withdrawAmount}`,
+                total_paid_out: newTotalPaidOut,
                 last_payout_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
             })
             .eq('vendor_id', vendor_id);
 
-        // Fallback update if the above fails
         if (updateError) {
-            await supabase.from('vendor_balances')
-                .update({
-                    pending_balance: newBalance,
-                    last_payout_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
-                })
-                .eq('vendor_id', vendor_id);
+            console.error('[Vendor Withdraw] Balance update failed:', updateError);
         }
 
         // Record the payout

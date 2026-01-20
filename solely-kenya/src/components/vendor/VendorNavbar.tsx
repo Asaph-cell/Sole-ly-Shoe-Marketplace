@@ -87,7 +87,7 @@ export const VendorNavbar = () => {
     <>
       <header className="border-b border-border bg-card">
         <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 flex-nowrap gap-2">
-          <Link to="/" className="flex flex-col items-start shrink-0">
+          <Link to="/" reloadDocument className="flex flex-col items-start shrink-0">
             <img src={logo} alt="Solely Marketplace" className="h-8 sm:h-10 w-auto" />
             <span className="text-[8px] sm:text-[9px] text-muted-foreground tracking-wide uppercase -mt-3 pl-1">the shoe marketplace</span>
           </Link>
