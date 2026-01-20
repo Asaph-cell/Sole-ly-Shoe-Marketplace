@@ -11,7 +11,7 @@ const About = () => {
     <div className="min-h-screen py-12">
       <SEO
         title="About Us"
-        description="Kenya's friendly shoe marketplace. Learn about Solely Marketplace's mission to connect shoe lovers with trusted vendors across Kenya through secure escrow-protected transactions."
+        description="Kenya's friendly shoe marketplace. Learn about Sole-ly Marketplace's mission to connect shoe lovers with trusted vendors across Kenya through secure escrow-protected transactions."
         breadcrumbs={[
           { name: "Home", url: "/" },
           { name: "About", url: "/about" }
@@ -25,7 +25,7 @@ const About = () => {
             alt="Solely Marketplace"
             className="h-20 w-auto mx-auto mb-6"
           />
-          <h1 className="text-5xl font-bold mb-6">About Solely Marketplace</h1>
+          <h1 className="text-5xl font-bold mb-6">About Sole-ly Marketplace</h1>
           <p className="text-xl text-muted-foreground leading-relaxed">
             Kenya's friendly shoe marketplace where buying and selling shoes is simple, safe, and exciting. We're on a mission to connect shoe lovers with amazing vendors across Kenya.
           </p>
@@ -37,7 +37,7 @@ const About = () => {
             <h2 className="text-3xl font-bold mb-6">Our Story</h2>
             <div className="space-y-4 text-muted-foreground leading-relaxed">
               <p>
-                Solely Marketplace started with a simple idea: make buying and selling shoes in Kenya as easy as chatting with a friend, and as safe as a handshake. We noticed that finding quality shoes or reaching customers was often complicated, and honestly, sometimes risky.
+                Sole-ly Marketplace started with a simple idea: make buying and selling shoes in Kenya as easy as chatting with a friend, and as safe as a handshake. We noticed that finding quality shoes or reaching customers was often complicated, and honestly, sometimes risky.
               </p>
               <p>
                 That is why we built a platform with a single obsession: security. We wanted to create a space where trust isn't a luxury, but a guarantee. By focusing on a safe, secure environment, we protect both the buyer's money and the seller's product.
@@ -88,14 +88,14 @@ const About = () => {
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-6">Our Mission</h2>
             <p className="text-xl leading-relaxed opacity-90">
-              To make Solely Marketplace the easiest and most trusted place to buy and sell shoes in Kenya. We believe everyone deserves access to quality shoes at fair prices, and every seller deserves a platform where they can grow their business without barriers.
+              To make Sole-ly Marketplace the easiest and most trusted place to buy and sell shoes in Kenya. We believe everyone deserves access to quality shoes at fair prices, and every seller deserves a platform where they can grow their business without barriers.
             </p>
           </div>
         </div>
 
         {/* Why Choose Us */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold text-center mb-12">Why Choose Solely?</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">Why Choose Sole-ly?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <div className="bg-card p-6 rounded-xl border-2 border-border shadow-soft">
               <h3 className="text-xl font-semibold mb-3">For Buyers</h3>
@@ -146,7 +146,7 @@ const About = () => {
         <div className="text-center max-w-2xl mx-auto">
           <h2 className="text-3xl font-bold mb-6">Join Our Community</h2>
           <p className="text-muted-foreground mb-8 text-lg">
-            Whether you're here to shop or sell, we're excited to have you as part of the Solely family.
+            Whether you're here to shop or sell, we're excited to have you as part of the Sole-ly family.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <Button size="lg" asChild>

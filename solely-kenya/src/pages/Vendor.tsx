@@ -12,7 +12,7 @@ const Vendor = () => {
         <div className="max-w-3xl mx-auto text-center mb-16">
           <img
             src={logo}
-            alt="Solely Marketplace"
+            alt="Sole-ly Marketplace"
             className="h-20 w-auto mx-auto mb-6"
           />
           <h1 className="text-5xl font-bold mb-6">Become a Vendor</h1>
@@ -36,7 +36,7 @@ const Vendor = () => {
 
         {/* Benefits */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold text-center mb-12">Why Sell on Solely?</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">Why Sell on Sole-ly?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card className="border-2 shadow-card hover:shadow-hover transition-all">
               <CardHeader>
@@ -186,7 +186,7 @@ const Vendor = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  All payments go through Solely's escrow system. When a buyer places an order, payment is held securely. After the buyer confirms delivery, your earnings (89% of order value) are added to your balance. When your balance reaches <strong>KES 1,500</strong>, we automatically send it to your M-Pesa — and Solely pays the KES 100 processing fee! For smaller balances (KES 500+), you can request early payout but the fee comes from your balance.
+                  All payments go through Sole-ly's escrow system. When a buyer places an order, payment is held securely. After the buyer confirms delivery, your earnings (90% of order value) are added to your balance. You can then withdraw your funds to M-Pesa at any time directly from your dashboard. Standard transaction fees apply.
                 </p>
               </CardContent>
             </Card>

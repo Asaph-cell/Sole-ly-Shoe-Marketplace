@@ -29,7 +29,7 @@ const PrivacyPolicy = () => {
                             Introduction
                         </h2>
                         <p className="text-muted-foreground leading-relaxed mb-4">
-                            Welcome to Solely ("we", "our", or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our shoe marketplace platform at solelyshoes.co.ke (the "Platform").
+                            Welcome to Sole-ly ("we", "our", or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our shoe marketplace platform at solelyshoes.co.ke (the "Platform").
                         </p>
                         <p className="text-muted-foreground leading-relaxed">
                             Please read this privacy policy carefully. By using our Platform, you consent to the collection, use, and disclosure of your information in accordance with this policy. If you do not agree with our policies and practices, please do not use our Platform.
@@ -154,16 +154,16 @@ const PrivacyPolicy = () => {
 
                         <h3 className="text-lg font-semibold mb-2">Google User Data</h3>
                         <p className="text-muted-foreground mb-3">
-                            When you use "Sign in with Google," Solely Marketplace accesses your Google email address and basic profile information (name and profile picture). We use this data strictly to:
+                            When you use "Sign in with Google," Sole-ly Marketplace accesses your Google email address and basic profile information (name and profile picture). We use this data strictly to:
                         </p>
                         <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
-                            <li>Authenticate your identity and create your Solely account.</li>
+                            <li>Authenticate your identity and create your Sole-ly account.</li>
                             <li>Securely manage your escrow transactions and protect our marketplace from fraudulent activity.</li>
                         </ul>
                         <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
                             <h4 className="font-semibold text-blue-800 mb-2">Limited Use Disclosure</h4>
                             <p className="text-sm text-muted-foreground">
-                                Solely Marketplace's use and transfer to any other app of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer" className="text-primary underline">Google API Services User Data Policy</a>, including the Limited Use requirements. We do not sell your Google user data to third parties or use it for serving advertisements.
+                                Sole-ly Marketplace's use and transfer to any other app of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer" className="text-primary underline">Google API Services User Data Policy</a>, including the Limited Use requirements. We do not sell your Google user data to third parties or use it for serving advertisements.
                             </p>
                         </div>
                     </section>
@@ -277,7 +277,7 @@ const PrivacyPolicy = () => {
                             If you have questions or concerns about this Privacy Policy or our data practices, please contact us:
                         </p>
                         <div className="bg-muted/50 border rounded-lg p-4">
-                            <p className="font-semibold mb-2">Solely Marketplace</p>
+                            <p className="font-semibold mb-2">Sole-ly Marketplace</p>
                             <p className="text-muted-foreground">
                                 Email: <a href="mailto:contact@solelyshoes.co.ke" className="text-primary underline">contact@solelyshoes.co.ke</a>
                             </p>

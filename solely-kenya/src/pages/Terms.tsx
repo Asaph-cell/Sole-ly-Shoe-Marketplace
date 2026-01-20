@@ -44,7 +44,7 @@ const Terms = () => {
                                 </h2>
                                 <p className="text-sm text-muted-foreground mb-4">Last Updated: January 2026</p>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    Welcome to Solely, Kenya's trusted online shoe marketplace. These Terms and Conditions constitute a legally binding agreement between you ("the Buyer") and Solely ("the Platform"). By creating an account or purchasing products, you agree to these terms.
+                                    Welcome to Sole-ly, Kenya's trusted online shoe marketplace. These Terms and Conditions constitute a legally binding agreement between you ("the Buyer") and Sole-ly ("the Platform"). By creating an account or purchasing products, you agree to these terms.
                                 </p>
                             </section>
 
@@ -68,7 +68,7 @@ const Terms = () => {
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li><strong>Accuracy:</strong> You must provide accurate personal information and valid contact details during registration</li>
                                     <li><strong>Security:</strong> You are responsible for maintaining the confidentiality of your account credentials. You are liable for all activities that occur under your account</li>
-                                    <li><strong>Eligibility:</strong> You must be at least 18 years old to make purchases on Solely</li>
+                                    <li><strong>Eligibility:</strong> You must be at least 18 years old to make purchases on Sole-ly</li>
                                     <li><strong>One Account:</strong> One person may only operate one buyer account. Creating duplicate accounts to abuse promotions is prohibited</li>
                                 </ul>
                             </section>
@@ -79,7 +79,7 @@ const Terms = () => {
                                     2. Escrow Payment Protection
                                 </h3>
                                 <p className="text-muted-foreground mb-3">
-                                    To guarantee trust, Solely uses a secure Escrow System for all transactions:
+                                    To guarantee trust, Sole-ly uses a secure Escrow System for all transactions:
                                 </p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li><strong>Payment:</strong> When you order, your money is held in a neutral escrow account—it is not sent directly to the vendor immediately</li>
@@ -121,7 +121,7 @@ const Terms = () => {
                                 </p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li><strong>Inspect:</strong> Check the shoes immediately for quality, size, and accuracy</li>
-                                    <li><strong>Confirm:</strong> Log in to Solely and click "Confirm Delivery" if you are satisfied</li>
+                                    <li><strong>Confirm:</strong> Log in to Sole-ly and click "Confirm Delivery" if you are satisfied</li>
                                     <li><strong>Report Issues:</strong> If there is a problem, file a dispute within your verification window</li>
                                 </ul>
                                 <div className="mt-4 bg-amber-50 border border-amber-200 p-4 rounded-lg">
@@ -187,7 +187,7 @@ const Terms = () => {
                             <section>
                                 <h3 className="text-xl font-semibold mb-3">8. Limitation of Liability</h3>
                                 <p className="text-muted-foreground">
-                                    Solely acts as a marketplace connecting buyers and vendors. While we verify vendors
+                                    Sole-ly acts as a marketplace connecting buyers and vendors. While we verify vendors
                                     and protect payments, we are not responsible for the quality of products sold by
                                     independent vendors. Our liability is limited to facilitating dispute resolution
                                     and refunds through our escrow system.
@@ -202,12 +202,12 @@ const Terms = () => {
                             <section>
                                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
                                     <Store className="h-6 w-6 text-primary" />
-                                    Solely Vendor Agreement
+                                    Sole-ly Vendor Agreement
                                 </h2>
                                 <p className="text-sm text-muted-foreground mb-4">Last Updated: January 2026</p>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    By registering as a vendor on Solely, you agree to provide high-quality products
-                                    and excellent customer service. These terms govern your relationship with Solely and buyers on the platform.
+                                    By registering as a vendor on Sole-ly, you agree to provide high-quality products
+                                    and excellent customer service. These terms govern your relationship with Sole-ly and buyers on the platform.
                                 </p>
                             </section>
 
@@ -216,7 +216,7 @@ const Terms = () => {
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li>You must provide accurate business information and valid contact details</li>
                                     <li>You must have legal authorization to sell the products you list</li>
-                                    <li>Solely reserves the right to verify vendor information</li>
+                                    <li>Sole-ly reserves the right to verify vendor information</li>
                                     <li>You are responsible for all taxes applicable to your sales</li>
                                 </ul>
                             </section>
@@ -227,10 +227,10 @@ const Terms = () => {
                                     2. Commission and Payments
                                 </h3>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                                    <li>Solely charges a <strong>10% commission</strong> on the product price of each completed sale</li>
+                                    <li>Sole-ly charges a <strong>10% commission</strong> on the product price of each completed sale</li>
                                     <li>Payments are held in escrow until the buyer confirms delivery or the auto-release period expires</li>
                                     <li><strong>On-Demand Withdrawals:</strong> You can withdraw your earnings to M-Pesa at any time directly from your vendor dashboard</li>
-                                    <li><strong>Transaction Fees:</strong> Standard payment processing fees apply when withdrawing to M-Pesa. These fees are charged by the payment processor, not Solely</li>
+                                    <li><strong>Transaction Fees:</strong> Standard payment processing fees apply when withdrawing to M-Pesa. These fees are charged by the payment processor, not Sole-ly</li>
                                     <li><strong>Payout Method:</strong> All payouts are sent via M-Pesa to your registered phone number</li>
                                 </ul>
                             </section>
@@ -296,14 +296,14 @@ const Terms = () => {
                                     <li>Vendors will be notified immediately when a dispute is raised</li>
                                     <li>You must respond with supporting evidence (e.g., photos of the packed item, courier receipts) within 48 hours</li>
                                     <li>Funds remain frozen in escrow during the investigation</li>
-                                    <li><strong>Solely Admin Decision:</strong> If the dispute is resolved in favor of the buyer, a full refund is issued. If resolved in favor of the vendor, funds are released</li>
+                                    <li><strong>Sole-ly Admin Decision:</strong> If the dispute is resolved in favor of the buyer, a full refund is issued. If resolved in favor of the vendor, funds are released</li>
                                 </ul>
 
                                 <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
                                     <h4 className="font-semibold text-foreground mb-2">"Fit" and "Change of Mind"</h4>
                                     <ul className="list-disc pl-6 space-y-2 text-sm text-muted-foreground">
                                         <li><strong>Vendor Responsibility:</strong> You are liable for returns if you sent the wrong size (e.g., Buyer ordered 42, you sent 43)</li>
-                                        <li><strong>Buyer Responsibility:</strong> If the item matches the description/size ordered but does not fit the buyer's foot comfortably, Solely does not mandate a refund. Vendors may choose to accept such returns at their own discretion, but the buyer is responsible for all shipping costs</li>
+                                        <li><strong>Buyer Responsibility:</strong> If the item matches the description/size ordered but does not fit the buyer's foot comfortably, Sole-ly does not mandate a refund. Vendors may choose to accept such returns at their own discretion, but the buyer is responsible for all shipping costs</li>
                                     </ul>
                                 </div>
                             </section>
@@ -331,18 +331,18 @@ const Terms = () => {
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li>Sell counterfeit, fake, or replica branded products</li>
                                     <li>Misrepresent product condition (e.g., selling "used" shoes as "new")</li>
-                                    <li>Conduct or attempt to conduct transactions outside the Solely platform (e.g., asking buyers to "pay via M-Pesa directly")</li>
+                                    <li>Conduct or attempt to conduct transactions outside the Sole-ly platform (e.g., asking buyers to "pay via M-Pesa directly")</li>
                                     <li>Inflate prices to cover commission fees dishonestly</li>
                                     <li>Harass buyers or respond aggressively to reviews</li>
                                 </ul>
                                 <div className="mt-4 bg-red-50 border border-red-200 p-4 rounded-lg">
                                     <h4 className="font-semibold text-red-700 mb-2">Counterfeit Policy</h4>
                                     <p className="text-sm text-muted-foreground">
-                                        Solely has a <strong>zero-tolerance policy</strong> for fakes. If you are found to be knowingly selling counterfeit goods:
+                                        Sole-ly has a <strong>zero-tolerance policy</strong> for fakes. If you are found to be knowingly selling counterfeit goods:
                                     </p>
                                     <ul className="list-disc pl-6 space-y-1 text-sm text-muted-foreground mt-2">
                                         <li>Your account will be immediately suspended</li>
-                                        <li>Solely reserves the right to withhold any funds currently in your escrow balance to refund defrauded buyers</li>
+                                        <li>Sole-ly reserves the right to withhold any funds currently in your escrow balance to refund defrauded buyers</li>
                                     </ul>
                                 </div>
                             </section>
@@ -353,7 +353,7 @@ const Terms = () => {
                                     8. Account Suspension and Termination
                                 </h3>
                                 <p className="text-muted-foreground mb-3">
-                                    Solely may suspend or terminate your vendor account if you:
+                                    Sole-ly may suspend or terminate your vendor account if you:
                                 </p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li>Violate these terms and conditions</li>
@@ -370,7 +370,7 @@ const Terms = () => {
                             <section>
                                 <h3 className="text-xl font-semibold mb-3">9. Indemnification</h3>
                                 <p className="text-muted-foreground">
-                                    You agree to indemnify and hold Solely harmless from any claims, damages, or
+                                    You agree to indemnify and hold Sole-ly harmless from any claims, damages, or
                                     expenses arising from your products, your violation of these terms, or any
                                     dispute with buyers resulting from your actions.
                                 </p>
@@ -386,7 +386,7 @@ const Terms = () => {
                     <section>
                         <h3 className="text-lg font-semibold mb-2">Changes to Terms</h3>
                         <p className="text-muted-foreground">
-                            Solely reserves the right to modify these terms at any time. Continued use of
+                            Sole-ly reserves the right to modify these terms at any time. Continued use of
                             the platform after changes constitutes acceptance of the new terms.
                         </p>
                     </section>

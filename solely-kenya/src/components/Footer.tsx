@@ -25,7 +25,7 @@ const faqs = [
     answer: "If your order isn't delivered within the expected timeframe, you can open a dispute. Our team will investigate and initiate a refund if the vendor cannot provide proof of delivery."
   },
   {
-    question: "How do I become a vendor on Solely?",
+    question: "How do I become a vendor on Sole-ly?",
     answer: "Simply click 'Sell Your Shoes' and complete the vendor registration form. You'll need to agree to our Terms & Conditions. Once registered, you can start listing your products immediately!"
   },
   {
@@ -74,7 +74,7 @@ const Footer = () => {
             <Link to="/" className="flex flex-col items-start group">
               <img
                 src={logo}
-                alt="Solely Marketplace"
+                alt="Sole-ly Marketplace"
                 className="h-14 w-auto transition-transform group-hover:scale-105 brightness-0 invert"
               />
               <span className="text-[10px] text-secondary-foreground/60 tracking-wide uppercase -mt-3 pl-1">the shoe marketplace</span>
@@ -113,7 +113,7 @@ const Footer = () => {
 
           {/* Why Solely - Advantages */}
           <div>
-            <h3 className="font-semibold mb-4 text-primary-foreground">Why Solely?</h3>
+            <h3 className="font-semibold mb-4 text-primary-foreground">Why Sole-ly?</h3>
             <ul className="space-y-2 text-sm text-secondary-foreground/80">
               <li className="flex items-start gap-2">
                 <span className="text-green-400">✓</span>
@@ -187,7 +187,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-secondary-foreground/20 mt-8 pt-8 text-center text-sm">
-          <p>&copy; {new Date().getFullYear()} Solely Marketplace. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Sole-ly Marketplace. All rights reserved.</p>
         </div>
       </div>
     </footer>
