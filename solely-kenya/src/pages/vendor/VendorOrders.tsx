@@ -948,12 +948,12 @@ const VendorOrders = () => {
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="flex flex-col-reverse gap-3 mt-4 sm:flex-row sm:justify-end">
-            <AlertDialogCancel disabled={saving} className="w-full sm:w-auto mt-0">Keep Order</AlertDialogCancel>
+          <div className="flex flex-col-reverse gap-3 mt-6 w-full md:flex-row md:justify-end">
+            <AlertDialogCancel disabled={saving} className="w-full mt-0 md:w-auto">Keep Order</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => orderToDecline && handleDecline(orderToDecline)}
               disabled={saving || !declineReason}
-              className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90 md:w-auto"
             >
               {saving ? "Processing..." : "Confirm & Refund"}
             </AlertDialogAction>
