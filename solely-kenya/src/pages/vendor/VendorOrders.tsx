@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { LocationViewMap } from "@/components/LocationViewMap";
+import { DeliveryTrackingControl } from "@/components/DeliveryTrackingControl";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -842,6 +843,16 @@ const VendorOrders = () => {
                             onChange={(event) => handleFieldChange(order.id, "notes", event.target.value)}
                           />
                         </div>
+
+                        {/* Live Delivery Tracking Toggle */}
+                        {order.order_shipping_details?.delivery_type !== "pickup" && (personalDelivery[order.id] ?? false) && (
+                          <div className="mt-4">
+                            <DeliveryTrackingControl
+                              orderId={order.id}
+                              isCurrentlyTracking={order.order_shipping_details?.delivery_tracking_enabled || false}
+                            />
+                          </div>
+                        )}
 
                         <div className="mt-4">
                           <Button

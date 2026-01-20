@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { OrderReviewDialog } from "@/components/OrderReviewDialog";
 import { OrderConfirmationModal } from "@/components/OrderConfirmationModal";
 import { OrderReceipt } from "@/components/OrderReceipt";
+import { LiveDeliveryTracker } from "@/components/LiveDeliveryTracker";
 import { Phone, MessageCircle, PhoneCall, CheckCircle, Download } from "lucide-react";
 import {
   DropdownMenu,
@@ -571,6 +572,15 @@ const Orders = () => {
                         )}
                       </div>
                     )}
+
+                    {/* Live Delivery Tracking - Only show when order is shipped and tracking is active */}
+                    {order.status === "shipped" && !isPickup && (
+                      <LiveDeliveryTracker
+                        orderId={order.id}
+                        recipientName={order.order_shipping_details?.recipient_name || undefined}
+                      />
+                    )}
+
                     <div className="flex flex-wrap gap-3">
                       {(order.status === "arrived" || order.status === "shipped") && !order.buyer_confirmed && (
                         // For pickup, ensure vendor has actually confirmed (marked as ready)
