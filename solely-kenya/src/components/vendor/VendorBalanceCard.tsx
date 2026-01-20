@@ -216,18 +216,18 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
                             </div>
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter className="!flex-col gap-3 sm:!flex-row sm:gap-2">
+                    <div className="flex flex-col-reverse gap-2 mt-4 sm:flex-row sm:justify-end">
+                        <AlertDialogCancel disabled={withdraw.isPending}>
+                            Cancel
+                        </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={() => withdraw.mutate()}
                             disabled={withdraw.isPending}
-                            className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 !order-first sm:!order-last"
+                            className="bg-emerald-500 hover:bg-emerald-600"
                         >
                             {withdraw.isPending ? 'Processing...' : 'Withdraw Now'}
                         </AlertDialogAction>
-                        <AlertDialogCancel disabled={withdraw.isPending} className="w-full sm:w-auto !mt-0">
-                            Cancel
-                        </AlertDialogCancel>
-                    </AlertDialogFooter>
+                    </div>
                 </AlertDialogContent>
             </AlertDialog>
         </>
