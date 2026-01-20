@@ -500,7 +500,7 @@ export const emailTemplates = {
     <body>
       <div class="container">
         <div class="header">
-          <h1 style="margin: 0;">🚚 Your Order Has Shipped!</h1>
+          <h1 style="margin: 0;">🚚 Your Order Is On The Way!</h1>
         </div>
         <div class="content">
           <p>Hi ${data.customerName},</p>
@@ -516,7 +516,7 @@ export const emailTemplates = {
             <p><strong>Order #${data.orderId}</strong></p>
             <p><strong>Items:</strong> ${data.items}</p>
             ${data.deliveryNotes ? `<p><strong>Delivery Notes:</strong> ${data.deliveryNotes}</p>` : ''}
-            <p><span class="status-badge">🚚 In Transit</span></p>
+            <p><span class="status-badge">🚚 Being Delivered</span></p>
           </div>
           
           <a href="${data.orderTrackingUrl}" class="cta-button">Track Your Order</a>
@@ -898,4 +898,5 @@ export const emailTemplates = {
     </html>
   `,
 };
+
 

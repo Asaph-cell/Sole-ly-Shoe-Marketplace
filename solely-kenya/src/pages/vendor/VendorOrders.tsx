@@ -614,30 +614,29 @@ const VendorOrders = () => {
                         </p>
                       )}
                     </div>
-                    <div className="flex items-end gap-3">
-                      <div className="space-x-2">
-                        {hoursUntilAutoCancel > 0 && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-destructive hover:bg-destructive/10"
-                            onClick={() => {
-                              setDeclineReason("");
-                              setOrderToDecline(order);
-                            }}
-                            disabled={saving || order.status !== "pending_vendor_confirmation"}
-                          >
-                            Can't Fulfill
-                          </Button>
-                        )}
+                    <div className="flex flex-col gap-3 w-full mt-4">
+                      <Button
+                        size="lg"
+                        className="w-full h-12"
+                        onClick={() => handleAccept(order)}
+                        disabled={saving || order.status !== "pending_vendor_confirmation" || hoursUntilAutoCancel <= 0}
+                      >
+                        {saving ? "Accepting..." : hoursUntilAutoCancel <= 0 ? "Expired" : order.status === "accepted" ? "Already Accepted" : "Accept Order"}
+                      </Button>
+                      {hoursUntilAutoCancel > 0 && (
                         <Button
-                          size="sm"
-                          onClick={() => handleAccept(order)}
-                          disabled={saving || order.status !== "pending_vendor_confirmation" || hoursUntilAutoCancel <= 0}
+                          size="lg"
+                          variant="ghost"
+                          className="w-full h-12 text-destructive hover:bg-destructive/10"
+                          onClick={() => {
+                            setDeclineReason("");
+                            setOrderToDecline(order);
+                          }}
+                          disabled={saving || order.status !== "pending_vendor_confirmation"}
                         >
-                          {saving ? "Accepting..." : hoursUntilAutoCancel <= 0 ? "Expired" : order.status === "accepted" ? "Already Accepted" : "Accept Order"}
+                          Can't Fulfill
                         </Button>
-                      </div>
+                      )}
                     </div>
                   </div>
                 )

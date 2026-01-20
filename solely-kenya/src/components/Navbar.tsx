@@ -61,7 +61,7 @@ const Navbar = () => {
             <img
               src={logo}
               alt="Solely Marketplace"
-              className="h-10 sm:h-12 w-auto transition-transform group-hover:scale-105"
+              className="h-12 sm:h-14 w-auto transition-transform group-hover:scale-105"
             />
             <span className="text-[9px] sm:text-[10px] text-muted-foreground tracking-wide uppercase -mt-3 pl-1">the shoe marketplace</span>
           </Link>
@@ -111,3 +111,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
