@@ -130,6 +130,12 @@ Deno.serve(async (req: Request) => {
         if (vendorEmail) {
             const dashboardUrl = `${supabaseUrl.replace('.supabase.co', '')}/vendor/orders`;
 
+            // Build Google Maps link if GPS coordinates exist
+            const hasGPS = order.order_shipping_details?.gps_latitude && order.order_shipping_details?.gps_longitude;
+            const googleMapsLink = hasGPS
+                ? `https://www.google.com/maps/search/?api=1&query=${order.order_shipping_details.gps_latitude},${order.order_shipping_details.gps_longitude}`
+                : null;
+
             const emailResult = await sendEmail({
                 to: vendorEmail,
                 subject: `🛒 New Order #${orderId.slice(0, 8)} - Action Required`,
@@ -141,6 +147,7 @@ Deno.serve(async (req: Request) => {
                     deliveryLocation: deliveryType,
                     customerName: customerName,
                     dashboardUrl: "https://solelyshoes.co.ke/vendor/orders",
+                    googleMapsLink: googleMapsLink,
                 }),
             });
 

@@ -99,6 +99,7 @@ export const emailTemplates = {
     deliveryLocation: string;
     customerName: string;
     dashboardUrl: string;
+    googleMapsLink?: string | null;
   }) => `
     <!DOCTYPE html>
     <html>
@@ -110,8 +111,10 @@ export const emailTemplates = {
         .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
         .order-details { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; }
         .cta-button { display: inline-block; background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 15px; }
+        .maps-button { display: inline-block; background: #10b981; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 10px; font-weight: bold; }
         .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }
         .warning { background: #fef3c7; border: 1px solid #f59e0b; padding: 12px; border-radius: 6px; margin-top: 15px; }
+        .gps-box { background: #d1fae5; border: 2px solid #10b981; padding: 12px; border-radius: 6px; margin-top: 15px; text-align: center; }
       </style>
     </head>
     <body>
@@ -130,6 +133,16 @@ export const emailTemplates = {
             <p><strong>Delivery to:</strong> ${data.deliveryLocation}</p>
             <p><strong>Customer:</strong> ${data.customerName}</p>
           </div>
+          
+          ${data.googleMapsLink ? `
+          <div class="gps-box">
+            <p style="margin: 0 0 10px 0; font-size: 14px; color: #065f46;"><strong>📍 GPS Location Available</strong></p>
+            <p style="margin: 0 0 10px 0; font-size: 13px; color: #047857;">The customer pinned their exact delivery location:</p>
+            <a href="${data.googleMapsLink}" class="maps-button" style="color: white !important; text-decoration: none;">
+              🗺️ Open in Google Maps
+            </a>
+          </div>
+          ` : ''}
           
           <a href="${data.dashboardUrl}" class="cta-button">View Order & Respond</a>
           

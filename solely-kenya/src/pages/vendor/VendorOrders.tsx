@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { LocationViewMap } from "@/components/LocationViewMap";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -715,6 +716,18 @@ const VendorOrders = () => {
                                   <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-950/20 rounded border border-blue-200 dark:border-blue-800">
                                     <p className="text-xs font-medium text-blue-900 dark:text-blue-100 mb-1">Customer Delivery Notes:</p>
                                     <p className="text-xs text-blue-800 dark:text-blue-200">{order.order_shipping_details.delivery_notes}</p>
+                                  </div>
+                                )}
+                                {/* GPS Map Location */}
+                                {order.order_shipping_details.gps_latitude && order.order_shipping_details.gps_longitude && (
+                                  <div className="mt-3">
+                                    <LocationViewMap
+                                      latitude={order.order_shipping_details.gps_latitude}
+                                      longitude={order.order_shipping_details.gps_longitude}
+                                      address={order.order_shipping_details.address_line1 || undefined}
+                                      recipientName={order.order_shipping_details.recipient_name}
+                                      compact={true}
+                                    />
                                   </div>
                                 )}
                                 <p className="text-xs text-muted-foreground mt-2">
