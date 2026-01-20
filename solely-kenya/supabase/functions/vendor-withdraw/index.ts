@@ -121,12 +121,13 @@ serve(async (req: Request) => {
         }
 
         if (!response.ok) {
-            // Check for specific error types
-            const errorMsg = JSON.stringify(result);
-            if (errorMsg.includes('insufficient balance')) {
-                throw new Error('Insufficient balance in wallet. Funds may still be clearing.');
-            }
-            throw new Error(`Withdrawal failed: ${errorMsg}`);
+            // Log full details for debugging
+            console.error(`[Vendor Withdraw] IntaSend API failed. Status: ${response.status}, Response: ${responseText}`);
+            console.error(`[Vendor Withdraw] Request was: wallet_id=${profile.intasend_wallet_id}, amount=${withdrawAmount}, phone=${normalizedPhone}`);
+
+            // Return the actual error from IntaSend
+            const errorDetail = result.errors?.[0]?.detail || result.message || result.error || responseText.substring(0, 200);
+            throw new Error(`IntaSend error: ${errorDetail}`);
         }
 
         console.log(`[Vendor Withdraw] Withdrawal initiated successfully`);
