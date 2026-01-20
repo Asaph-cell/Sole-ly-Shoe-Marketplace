@@ -704,11 +704,14 @@ const AdminDashboard = () => {
                     This will permanently remove the product. This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => productToDelete && deleteProduct(productToDelete)}>
+                <AlertDialogFooter className="flex-col gap-3 sm:flex-row">
+                  <AlertDialogAction
+                    onClick={() => productToDelete && deleteProduct(productToDelete)}
+                    className="w-full sm:w-auto order-first sm:order-last"
+                  >
                     Delete
                   </AlertDialogAction>
+                  <AlertDialogCancel className="w-full sm:w-auto">Cancel</AlertDialogCancel>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
