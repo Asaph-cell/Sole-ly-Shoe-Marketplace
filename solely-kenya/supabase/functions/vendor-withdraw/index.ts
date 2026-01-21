@@ -130,7 +130,7 @@ serve(async (req: Request) => {
         // 
         // To be safe, we'll send 88% of wallet balance to ensure fee is covered
         const SAFETY_FACTOR = 0.88; // Conservative to avoid fee issues
-        const amountToSend = requestedAmount; // 🚨 TEST MODE - CHANGE BACK TO: Math.floor(actualWalletBalance * SAFETY_FACTOR * 100) / 100;
+        const amountToSend = Math.floor(actualWalletBalance * SAFETY_FACTOR * 100) / 100;
 
         if (amountToSend <= 0) {
             throw new Error('Balance too low for withdrawal after accounting for transaction fees');
