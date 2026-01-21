@@ -207,7 +207,7 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
                                         ⚠️ Transaction Fee Notice
                                     </p>
                                     <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
-                                        Transaction costs are passed to the payment provider and deducted from your final received amount. You will receive the balance minus standard M-Pesa charges.
+                                        Transaction fees are deducted by the payment provider from your wallet balance. You will receive the balance minus standard M-Pesa charges.
                                     </p>
                                 </div>
                                 <p className="text-sm text-muted-foreground">

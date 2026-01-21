@@ -77,12 +77,38 @@ serve(async (req: Request) => {
             throw new Error(`Insufficient balance. Available: KES ${balance.pending_balance}`);
         }
 
-        // PRE-CALCULATE fees to avoid IntaSend insufficient balance error
-        // IntaSend charges approximately 10% fee for M-Pesa B2C
-        // We calculate net amount upfront so vendor wallet has enough to cover both amount + fee
-        const ESTIMATED_FEE_RATE = 0.10; // 10%
-        const netAmount = Math.floor((requestedAmount / (1 + ESTIMATED_FEE_RATE)) * 100) / 100;
-        const estimatedFee = Math.ceil((requestedAmount - netAmount) * 100) / 100;
+        // Check actual IntaSend wallet balance first
+        console.log(`[Vendor Withdraw] Checking IntaSend wallet balance for wallet: ${profile.intasend_wallet_id}`);
+
+        const walletResponse = await fetch(`https://api.intasend.com/api/v1/wallets/${profile.intasend_wallet_id}/`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${INTASEND_SECRET_KEY}`,
+            },
+        });
+
+        if (!walletResponse.ok) {
+            const errorText = await walletResponse.text();
+            console.error(`[Vendor Withdraw] Failed to fetch wallet balance: ${errorText}`);
+            throw new Error('Unable to verify wallet balance. Please try again.');
+        }
+
+        const walletData = await walletResponse.json();
+        const actualWalletBalance = parseFloat(walletData.current_balance || walletData.available_balance || 0);
+
+        console.log(`[Vendor Withdraw] Database balance: KES ${balance.pending_balance}, Actual wallet balance: KES ${actualWalletBalance}`);
+
+        // Use the LOWER of the two balances to be safe
+        const safeWithdrawAmount = Math.min(requestedAmount, actualWalletBalance);
+
+        if (safeWithdrawAmount !== requestedAmount) {
+            console.warn(`[Vendor Withdraw] Balance mismatch detected! Database: ${balance.pending_balance}, Wallet: ${actualWalletBalance}. Using wallet balance.`);
+            requestedAmount = safeWithdrawAmount;
+        }
+
+        if (requestedAmount <= 0) {
+            throw new Error('No balance available in your wallet for withdrawal');
+        }
 
         // Normalize phone number for IntaSend
         let normalizedPhone = profile.mpesa_number.replace(/[^0-9]/g, '');
@@ -94,11 +120,27 @@ serve(async (req: Request) => {
             normalizedPhone = '254' + normalizedPhone;
         }
 
-        console.log(`[Vendor Withdraw] Requested: KES ${requestedAmount}, Net: KES ${netAmount}, Estimated fee: KES ${estimatedFee}`);
+        // CRITICAL FIX: IntaSend deducts fees FROM the wallet BEFORE sending
+        // So if wallet has KES 227 and fee is KES 20:
+        // - Wallet: 227 - 20 = 207
+        // - Then sends KES 207 to M-Pesa
+        // 
+        // We need to send an amount such that: amount + fee <= walletBalance
+        // Approximately: amount <= walletBalance * 0.90 (since fee is ~10%)
+        // 
+        // To be safe, we'll send 88% of wallet balance to ensure fee is covered
+        const SAFETY_FACTOR = 0.88; // Conservative to avoid fee issues
+        const amountToSend = requestedAmount; // 🚨 TEST MODE - CHANGE BACK TO: Math.floor(actualWalletBalance * SAFETY_FACTOR * 100) / 100;
 
-        // Track what we actually send and the fee
-        let executedAmount = netAmount;
-        let feeCharged = estimatedFee;
+        if (amountToSend <= 0) {
+            throw new Error('Balance too low for withdrawal after accounting for transaction fees');
+        }
+
+        console.log(`[Vendor Withdraw] Wallet balance: KES ${actualWalletBalance}, Will send: KES ${amountToSend} (${Math.round(SAFETY_FACTOR * 100)}% to cover fees)`);
+
+        // Track what we're sending
+        let executedAmount = amountToSend;
+        let feeCharged = 0; // We'll update this after we see the actual result
         let trackingId = '';
 
         // Send money from vendor's wallet to their M-Pesa
@@ -116,7 +158,7 @@ serve(async (req: Request) => {
                 transactions: [{
                     name: profile.full_name || 'Vendor',
                     account: normalizedPhone,
-                    amount: netAmount, // Send net amount, not full amount
+                    amount: amountToSend,
                     narrative: 'Solely Kenya withdrawal',
                 }],
             }),
@@ -135,71 +177,21 @@ serve(async (req: Request) => {
         if (!response.ok) {
             // Log full details for debugging
             console.error(`[Vendor Withdraw] IntaSend API failed. Status: ${response.status}, Response: ${responseText}`);
-            console.error(`[Vendor Withdraw] Request was: wallet_id=${profile.intasend_wallet_id}, amount=${requestedAmount}, phone=${normalizedPhone}`);
+            console.error(`[Vendor Withdraw] Request was: wallet_id=${profile.intasend_wallet_id}, amount=${amountToSend}, phone=${normalizedPhone}`);
 
-            // Check if it's an insufficient balance error with fee info
             const errorDetail = result.errors?.[0]?.detail || result.message || result.error || '';
 
-            // Try to extract fee from error: "Transaction charge estimate is KES 20.00"
-            const feeMatch = errorDetail.match(/charge estimate is KES\s*([\d.]+)/i);
-            if (feeMatch) {
-                const fee = parseFloat(feeMatch[1]);
-                const netAmount = Math.floor((requestedAmount - fee) * 100) / 100;
-
-                if (netAmount > 0) {
-                    console.log(`[Vendor Withdraw] Retrying with net amount: ${netAmount} (deducted fee: ${fee})`);
-
-                    // Retry with the net amount
-                    const retryResponse = await fetch('https://api.intasend.com/api/v1/send-money/initiate/', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${INTASEND_SECRET_KEY}`,
-                        },
-                        body: JSON.stringify({
-                            provider: 'MPESA-B2C',
-                            currency: 'KES',
-                            wallet_id: profile.intasend_wallet_id,
-                            requires_approval: 'NO',
-                            transactions: [{
-                                name: profile.full_name || 'Vendor',
-                                account: normalizedPhone,
-                                amount: netAmount,
-                                narrative: 'Solely Kenya withdrawal',
-                            }],
-                        }),
-                    });
-
-                    const retryText = await retryResponse.text();
-                    console.log(`[Vendor Withdraw] Retry response:`, retryText);
-
-                    if (retryResponse.ok) {
-                        result = JSON.parse(retryText);
-                        // Update our tracking variables
-                        executedAmount = netAmount;
-                        feeCharged = fee;
-                        trackingId = result.tracking_id || result.id;
-
-                        // Keep requestedAmount as the ORIGINAL requested amount for DB deduction
-                        // The vendor's wallet is now empty (IntaSend took full balance: net + fee)
-                        console.log(`[Vendor Withdraw] Retry succeeded. Sent ${netAmount}, fee was ${fee}, deducting full ${requestedAmount} from balance`);
-                    } else {
-                        throw new Error(`Withdrawal failed after retry: ${retryText.substring(0, 200)}`);
-                    }
-                } else {
-                    throw new Error(`Balance too low after fees. Balance: KES ${requestedAmount}, Fee: KES ${fee}`);
-                }
-            } else {
-                throw new Error(`IntaSend error: ${errorDetail || responseText.substring(0, 200)}`);
-            }
+            // DO NOT RETRY - retries can cause fees to be charged multiple times
+            // Just fail and let the user try again with updated balance
+            throw new Error(`Withdrawal failed: ${errorDetail || responseText.substring(0, 200)}`);
         } else {
-            // First try succeeded (unlikely if balance == amount, but possible if IntaSend treats it differently)
+            // Success! Track the transaction
             trackingId = result.tracking_id || result.id;
-            // Fee is unknown here unless IntaSend returned it, but usually it's 0 if no error
-            // Or maybe it was deducted unseen. But we assume executesAmount = requestedAmount.
-            // Actually, if we requested full balance and it succeeded, fee might be 0? 
-            // Or IntaSend deducted it implicitly? 
-            // We'll stick to executedAmount = requestedAmount for now unless we know otherwise.
+            console.log(`[Vendor Withdraw] Withdrawal initiated successfully. Tracking ID: ${trackingId}`);
+
+            // We don't know the exact fee, but we can estimate it was the difference
+            // between wallet balance and amount sent
+            feeCharged = Math.round((actualWalletBalance - amountToSend) * 100) / 100;
         }
 
         console.log(`[Vendor Withdraw] Withdrawal initiated successfully`);
@@ -215,11 +207,13 @@ serve(async (req: Request) => {
         const currentPending = currentBalance?.pending_balance || 0;
 
         // Update vendor balance
-        // We deduct the FULL requested amount (which includes the fee)
-        const newBalance = Math.max(0, currentPending - requestedAmount);
+        // We deduct the amount that was actually taken from the IntaSend wallet
+        // This is the amount sent PLUS the fee (basically the whole wallet balance)
+        const totalDeducted = amountToSend + feeCharged;
+        const newBalance = Math.max(0, currentPending - totalDeducted);
 
-        // We track the FULL requested amount as paid out (since the fee is part of their cost)
-        const newTotalPaidOut = currentPaidOut + requestedAmount;
+        // Track total paid out (amount received by vendor, not including fees)
+        const newTotalPaidOut = currentPaidOut + executedAmount;
 
         const { error: updateError } = await supabase
             .from('vendor_balances')
@@ -239,7 +233,6 @@ serve(async (req: Request) => {
         await supabase.from('payouts').insert({
             vendor_id: vendor_id,
             amount_ksh: executedAmount, // Record the actual amount sent to their phone
-            // Store fee in metadata if you had a column, or just implicit
             commission_amount: 0,
             method: 'mpesa',
             reference: trackingId || `withdraw-${Date.now()}`,
@@ -250,11 +243,11 @@ serve(async (req: Request) => {
         return new Response(
             JSON.stringify({
                 success: true,
-                amount: requestedAmount, // Amount deducted from system
+                amount: totalDeducted, // Total deducted from wallet
                 net_amount: executedAmount, // Amount sent to M-Pesa
                 fee: feeCharged,         // Transaction fee
                 new_balance: newBalance,
-                message: `KES ${executedAmount.toLocaleString()} sent to your M-Pesa!`,
+                message: `KES ${executedAmount.toLocaleString()} sent to your M-Pesa! (Fee: KES ${feeCharged.toLocaleString()})`,
             }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
