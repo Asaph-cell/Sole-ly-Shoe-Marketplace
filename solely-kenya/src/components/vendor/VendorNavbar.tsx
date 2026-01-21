@@ -109,7 +109,7 @@ export const VendorNavbar = () => {
             )}
 
             {/* Mobile Menu Button */}
-            <VendorSidebar />
+            <VendorSidebar variant="mobile" />
           </div>
         </div>
       </header>

@@ -107,7 +107,7 @@ const SidebarContent = ({
   );
 };
 
-export const VendorSidebar = () => {
+export const VendorSidebar = ({ variant = "sidebar" }: { variant?: "sidebar" | "mobile" }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
   const [alertCounts, setAlertCounts] = useState<AlertCounts>({
@@ -182,35 +182,39 @@ export const VendorSidebar = () => {
   return (
     <>
       {/* Mobile Menu for Navbar */}
-      <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetTrigger asChild>
-          <Button
-            size="icon"
-            variant="outline"
-            className="lg:hidden h-9 w-9 sm:h-10 sm:w-10 shrink-0 border-primary/20 relative"
-          >
-            <Menu className="h-5 w-5 text-primary" />
-            {(alertCounts.pendingOrders > 0 || alertCounts.openDisputes > 0) && (
-              <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />
-            )}
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="right" className="w-[280px] p-0">
-          <SheetHeader className="p-4 border-b">
-            <SheetTitle>Vendor Menu</SheetTitle>
-          </SheetHeader>
-          <SidebarContent
-            onItemClick={() => setIsOpen(false)}
-            alertCounts={alertCounts}
-            onLogout={signOut}
-          />
-        </SheetContent>
-      </Sheet>
+      {variant === "mobile" && (
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetTrigger asChild>
+            <Button
+              size="icon"
+              variant="outline"
+              className="lg:hidden h-9 w-9 sm:h-10 sm:w-10 shrink-0 border-primary/20 relative"
+            >
+              <Menu className="h-5 w-5 text-primary" />
+              {(alertCounts.pendingOrders > 0 || alertCounts.openDisputes > 0) && (
+                <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />
+              )}
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-[280px] p-0">
+            <SheetHeader className="p-4 border-b">
+              <SheetTitle>Vendor Menu</SheetTitle>
+            </SheetHeader>
+            <SidebarContent
+              onItemClick={() => setIsOpen(false)}
+              alertCounts={alertCounts}
+              onLogout={signOut}
+            />
+          </SheetContent>
+        </Sheet>
+      )}
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:block w-64 border-r border-border min-h-screen bg-card flex-shrink-0">
-        <SidebarContent alertCounts={alertCounts} onLogout={signOut} />
-      </aside>
+      {variant === "sidebar" && (
+        <aside className="hidden lg:block w-64 border-r border-border min-h-screen bg-card flex-shrink-0">
+          <SidebarContent alertCounts={alertCounts} onLogout={signOut} />
+        </aside>
+      )}
     </>
   );
 };
