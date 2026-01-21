@@ -120,27 +120,36 @@ serve(async (req: Request) => {
             normalizedPhone = '254' + normalizedPhone;
         }
 
-        // CRITICAL FIX: IntaSend deducts fees FROM the wallet BEFORE sending
+        // CRITICAL FIX: Send FULL wallet balance
+        // IntaSend automatically deducts their B2C M-Pesa fee from the wallet BEFORE sending
         // So if wallet has KES 227 and fee is KES 20:
-        // - Wallet: 227 - 20 = 207
+        // - IntaSend deducts: 227 - 20 = 207
         // - Then sends KES 207 to M-Pesa
         // 
-        // We need to send an amount such that: amount + fee <= walletBalance
-        // Approximately: amount <= walletBalance * 0.90 (since fee is ~10%)
-        // 
-        // To be safe, we'll send 88% of wallet balance to ensure fee is covered
-        const SAFETY_FACTOR = 0.88; // Conservative to avoid fee issues
-        const amountToSend = Math.floor(actualWalletBalance * SAFETY_FACTOR * 100) / 100;
+        // We send the FULL balance and IntaSend handles the fee automatically
+        const amountToSend = actualWalletBalance;
+
+        // IntaSend B2C M-Pesa Fee Structure (from official API)
+        // Up to KES 100: KES 11
+        // KES 101-500: KES 13
+        // KES 501-1,000: KES 15
+        // KES 1,001-2,500: KES 20
+        // Over KES 2,500: KES 25 (approximate)
+        const estimatedFee = amountToSend <= 100 ? 11 :
+            amountToSend <= 500 ? 13 :
+                amountToSend <= 1000 ? 15 :
+                    amountToSend <= 2500 ? 20 : 25;
 
         if (amountToSend <= 0) {
-            throw new Error('Balance too low for withdrawal after accounting for transaction fees');
+            throw new Error('Balance too low for withdrawal');
         }
 
-        console.log(`[Vendor Withdraw] Wallet balance: KES ${actualWalletBalance}, Will send: KES ${amountToSend} (${Math.round(SAFETY_FACTOR * 100)}% to cover fees)`);
+        console.log(`[Vendor Withdraw] Wallet balance: KES ${actualWalletBalance}, Sending: KES ${amountToSend}, Estimated fee: KES ${estimatedFee}`);
+        console.log(`[Vendor Withdraw] Vendor should receive approximately: KES ${amountToSend - estimatedFee}`);
 
         // Track what we're sending
         let executedAmount = amountToSend;
-        let feeCharged = 0; // We'll update this after we see the actual result
+        let feeCharged = estimatedFee; // Use estimated fee initially
         let trackingId = '';
 
         // Send money from vendor's wallet to their M-Pesa
@@ -189,9 +198,9 @@ serve(async (req: Request) => {
             trackingId = result.tracking_id || result.id;
             console.log(`[Vendor Withdraw] Withdrawal initiated successfully. Tracking ID: ${trackingId}`);
 
-            // We don't know the exact fee, but we can estimate it was the difference
-            // between wallet balance and amount sent
-            feeCharged = Math.round((actualWalletBalance - amountToSend) * 100) / 100;
+            // Keep the estimated fee - the actual fee will be deducted by IntaSend
+            // feeCharged already set to estimatedFee above
+            console.log(`[Vendor Withdraw] Using estimated fee of KES ${feeCharged} for tracking`);
         }
 
         console.log(`[Vendor Withdraw] Withdrawal initiated successfully`);
@@ -207,9 +216,9 @@ serve(async (req: Request) => {
         const currentPending = currentBalance?.pending_balance || 0;
 
         // Update vendor balance
-        // We deduct the amount that was actually taken from the IntaSend wallet
-        // This is the amount sent PLUS the fee (basically the whole wallet balance)
-        const totalDeducted = amountToSend + feeCharged;
+        // We deduct the full wallet balance that was sent
+        // IntaSend deducts their fee automatically, but we deduct the full amount from our records
+        const totalDeducted = amountToSend; // Full balance sent
         const newBalance = Math.max(0, currentPending - totalDeducted);
 
         // Track total paid out (amount received by vendor, not including fees)

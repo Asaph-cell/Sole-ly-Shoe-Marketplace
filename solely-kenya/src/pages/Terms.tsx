@@ -226,26 +226,13 @@ const Terms = () => {
                                     <CreditCard className="h-5 w-5 text-green-600" />
                                     2. Commission and Payments
                                 </h3>
-                                <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-4">
-                                    <h4 className="font-semibold text-foreground mb-2">💰 Fee Structure</h4>
-                                    <ul className="space-y-2 text-sm text-muted-foreground">
-                                        <li><strong>Platform Commission:</strong> 10% on the product price of each completed sale</li>
-                                        <li><strong>Withdrawal Fees:</strong> Standard M-Pesa transaction fees apply when you withdraw earnings (approximately 10-12% of withdrawal amount, charged by the payment processor)</li>
-                                    </ul>
-                                </div>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li>Sole-ly charges a <strong>10% commission</strong> on the product price of each completed sale</li>
                                     <li>Payments are held in escrow until the buyer confirms delivery or the auto-release period expires</li>
                                     <li><strong>On-Demand Withdrawals:</strong> You can withdraw your earnings to M-Pesa at any time directly from your vendor dashboard</li>
-                                    <li><strong>Transaction Fees:</strong> Standard M-Pesa payment processing fees (approximately 10-12% of the withdrawal amount) are deducted when you withdraw funds. These fees are charged by the payment processor (IntaSend/M-Pesa), not by Sole-ly</li>
                                     <li><strong>Payout Method:</strong> All payouts are sent via M-Pesa to your registered phone number</li>
-                                    <li><strong>No Hidden Costs:</strong> There are no additional fees beyond the 10% commission and standard withdrawal fees</li>
                                 </ul>
-                                <div className="mt-4 bg-amber-50 border border-amber-200 p-4 rounded-lg">
-                                    <p className="text-sm text-amber-800">
-                                        <strong>Example:</strong> If you sell shoes for KES 5,000, you earn KES 4,500 after the 10% platform commission. When you withdraw KES 4,500, withdrawal fees of approximately KES 450-540 are deducted, and you receive approximately KES 3,960-4,050 in your M-Pesa account.
-                                    </p>
-                                </div>
+
                             </section>
 
                             <section>

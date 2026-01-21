@@ -369,7 +369,7 @@ export const OrderConfirmationModal = ({
                                 <p className="text-sm text-muted-foreground mb-3">
                                     Rate at least one product
                                 </p>
-                                <div className="space-y-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {loadingItems ? (
                                         <p className="text-sm text-muted-foreground">Loading products...</p>
                                     ) : (
@@ -425,6 +425,7 @@ export const OrderConfirmationModal = ({
                                 value={feedback}
                                 onChange={(e) => setFeedback(e.target.value)}
                                 rows={2}
+                                className="max-w-full"
                             />
                         </div>
 

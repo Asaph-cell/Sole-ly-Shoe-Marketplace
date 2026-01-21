@@ -194,27 +194,12 @@ const VendorDashboard = () => {
       <VendorNavbar />
       <div className="flex">
         <VendorSidebar />
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
           <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Dashboard Overview</h1>
 
 
           {/* Push Notification Prompt - shows if vendor hasn't enabled notifications */}
           <PushNotificationPrompt variant="banner" />
-
-          {/* Fee Disclosure Banner */}
-          <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <DollarSign className="h-5 w-5 text-blue-600 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="font-semibold text-blue-900 mb-1">Fee Structure</h3>
-                <div className="text-sm text-blue-800 space-y-1">
-                  <p>• <strong>10% Platform Commission</strong> on each completed sale</p>
-                  <p>• <strong>~10-12% Withdrawal Fees</strong> charged by payment processor (IntaSend/M-Pesa) when withdrawing</p>
-                  <p className="text-xs text-blue-700 mt-2 italic">Example: KES 5,000 sale → earn KES 4,500 after commission → receive ~KES 3,960-4,050 in M-Pesa after withdrawal fees</p>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {dataLoading ? (
             <div className="text-center py-12 text-muted-foreground">

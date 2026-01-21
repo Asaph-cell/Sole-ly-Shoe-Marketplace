@@ -614,10 +614,9 @@ const VendorOrders = () => {
                         </p>
                       )}
                     </div>
-                    <div className="flex flex-row gap-3 w-full mt-4">
+                    <div className="flex flex-col sm:flex-row gap-3 w-full mt-4">
                       <Button
-                        size="lg"
-                        className="flex-1 h-12"
+                        className="w-full sm:flex-1 h-11 text-sm sm:text-base"
                         onClick={() => handleAccept(order)}
                         disabled={saving || order.status !== "pending_vendor_confirmation" || hoursUntilAutoCancel <= 0}
                       >
@@ -625,9 +624,8 @@ const VendorOrders = () => {
                       </Button>
                       {hoursUntilAutoCancel > 0 && (
                         <Button
-                          size="lg"
                           variant="ghost"
-                          className="flex-1 h-12 text-destructive hover:bg-destructive/10"
+                          className="w-full sm:flex-1 h-11 text-sm sm:text-base text-destructive hover:bg-destructive/10"
                           onClick={() => {
                             setDeclineReason("");
                             setOrderToDecline(order);
@@ -687,55 +685,66 @@ const VendorOrders = () => {
                         <p className="font-semibold mb-3">
                           {order.order_shipping_details?.delivery_type === "pickup" ? "Customer Pickup Information" : "Customer Delivery Location"}
                         </p>
-                        {order.order_shipping_details && (
-                          <>
-                            <p className="font-medium mb-1">Recipient: {order.order_shipping_details.recipient_name}</p>
-                            <p className="mb-1">Phone: {order.order_shipping_details.phone}</p>
-                            {order.order_shipping_details.email && (
-                              <p className="mb-2 text-muted-foreground">Email: {order.order_shipping_details.email}</p>
-                            )}
-                            {order.order_shipping_details.delivery_type === "pickup" ? (
-                              <div className="mt-3 p-2 bg-green-50 dark:bg-green-950/20 rounded border border-green-200 dark:border-green-800">
-                                <p className="font-medium mb-1 text-green-900 dark:text-green-100">Pickup Order</p>
-                                <p className="text-xs text-green-800 dark:text-green-200">
-                                  Customer will collect from your location. No delivery charges apply.
-                                </p>
-                              </div>
-                            ) : (
-                              <>
-                                <div className="mt-3 p-2 bg-background rounded border">
-                                  <p className="font-medium mb-1">Delivery Address:</p>
-                                  <p>{order.order_shipping_details.address_line1}</p>
-                                  {order.order_shipping_details.address_line2 && <p>{order.order_shipping_details.address_line2}</p>}
-                                  <p>{order.order_shipping_details.city}{order.order_shipping_details.county ? `, ${order.order_shipping_details.county}` : ""}</p>
-                                  {order.order_shipping_details.postal_code && (
-                                    <p className="text-muted-foreground">Postal: {order.order_shipping_details.postal_code}</p>
-                                  )}
+                        {order.status === "completed" ? (
+                          <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded border border-green-200 dark:border-green-800">
+                            <p className="text-sm text-green-800 dark:text-green-200">
+                              ✅ <strong>Order Completed</strong> - Customer details hidden for privacy
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Delivery was successfully completed. Customer information is no longer accessible.
+                            </p>
+                          </div>
+                        ) : (
+                          order.order_shipping_details && (
+                            <>
+                              <p className="font-medium mb-1">Recipient: {order.order_shipping_details.recipient_name}</p>
+                              <p className="mb-1">Phone: {order.order_shipping_details.phone}</p>
+                              {order.order_shipping_details.email && (
+                                <p className="mb-2 text-muted-foreground">Email: {order.order_shipping_details.email}</p>
+                              )}
+                              {order.order_shipping_details.delivery_type === "pickup" ? (
+                                <div className="mt-3 p-2 bg-green-50 dark:bg-green-950/20 rounded border border-green-200 dark:border-green-800">
+                                  <p className="font-medium mb-1 text-green-900 dark:text-green-100">Pickup Order</p>
+                                  <p className="text-xs text-green-800 dark:text-green-200">
+                                    Customer will collect from your location. No delivery charges apply.
+                                  </p>
                                 </div>
-                                {order.order_shipping_details.delivery_notes && (
-                                  <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-950/20 rounded border border-blue-200 dark:border-blue-800">
-                                    <p className="text-xs font-medium text-blue-900 dark:text-blue-100 mb-1">Customer Delivery Notes:</p>
-                                    <p className="text-xs text-blue-800 dark:text-blue-200">{order.order_shipping_details.delivery_notes}</p>
+                              ) : (
+                                <>
+                                  <div className="mt-3 p-2 bg-background rounded border">
+                                    <p className="font-medium mb-1">Delivery Address:</p>
+                                    <p>{order.order_shipping_details.address_line1}</p>
+                                    {order.order_shipping_details.address_line2 && <p>{order.order_shipping_details.address_line2}</p>}
+                                    <p>{order.order_shipping_details.city}{order.order_shipping_details.county ? `, ${order.order_shipping_details.county}` : ""}</p>
+                                    {order.order_shipping_details.postal_code && (
+                                      <p className="text-muted-foreground">Postal: {order.order_shipping_details.postal_code}</p>
+                                    )}
                                   </div>
-                                )}
-                                {/* GPS Map Location */}
-                                {order.order_shipping_details.gps_latitude && order.order_shipping_details.gps_longitude && (
-                                  <div className="mt-3">
-                                    <LocationViewMap
-                                      latitude={order.order_shipping_details.gps_latitude}
-                                      longitude={order.order_shipping_details.gps_longitude}
-                                      address={order.order_shipping_details.address_line1 || undefined}
-                                      recipientName={order.order_shipping_details.recipient_name}
-                                      compact={true}
-                                    />
-                                  </div>
-                                )}
-                                <p className="text-xs text-muted-foreground mt-2">
-                                  💰 <strong>Delivery Fee Included:</strong> The buyer has paid KES {order.shipping_fee_ksh.toLocaleString()} for delivery (included in your total payout). You are responsible for arranging and paying for delivery to the customer using this amount. Solely does not handle delivery logistics.
-                                </p>
-                              </>
-                            )}
-                          </>
+                                  {order.order_shipping_details.delivery_notes && (
+                                    <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-950/20 rounded border border-blue-200 dark:border-blue-800">
+                                      <p className="text-xs font-medium text-blue-900 dark:text-blue-100 mb-1">Customer Delivery Notes:</p>
+                                      <p className="text-xs text-blue-800 dark:text-blue-200">{order.order_shipping_details.delivery_notes}</p>
+                                    </div>
+                                  )}
+                                  {/* GPS Map Location */}
+                                  {order.order_shipping_details.gps_latitude && order.order_shipping_details.gps_longitude && (
+                                    <div className="mt-3">
+                                      <LocationViewMap
+                                        latitude={order.order_shipping_details.gps_latitude}
+                                        longitude={order.order_shipping_details.gps_longitude}
+                                        address={order.order_shipping_details.address_line1 || undefined}
+                                        recipientName={order.order_shipping_details.recipient_name}
+                                        compact={true}
+                                      />
+                                    </div>
+                                  )}
+                                  <p className="text-xs text-muted-foreground mt-2">
+                                    💰 <strong>Delivery Fee Included:</strong> The buyer has paid KES {order.shipping_fee_ksh.toLocaleString()} for delivery (included in your total payout). You are responsible for arranging and paying for delivery to the customer using this amount. Solely does not handle delivery logistics.
+                                  </p>
+                                </>
+                              )}
+                            </>
+                          )
                         )}
                       </div>
                       <div className="bg-muted rounded-lg p-4 space-y-2">
@@ -948,14 +957,14 @@ const VendorOrders = () => {
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="flex flex-col-reverse gap-3 mt-6 w-full md:flex-row md:justify-end">
-            <AlertDialogCancel disabled={saving} className="w-full mt-0 md:w-auto">Keep Order</AlertDialogCancel>
+          <div className="flex flex-col-reverse gap-2 sm:gap-3 mt-6 w-full md:flex-row md:justify-end">
+            <AlertDialogCancel disabled={saving} className="w-full mt-0 md:w-auto text-sm px-4 py-2">Keep Order</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => orderToDecline && handleDecline(orderToDecline)}
               disabled={saving || !declineReason}
-              className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90 md:w-auto"
+              className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90 md:w-auto text-sm px-4 py-2"
             >
-              {saving ? "Processing..." : "Confirm & Refund"}
+              {saving ? "Processing..." : "Can't Fulfill"}
             </AlertDialogAction>
           </div>
         </AlertDialogContent>

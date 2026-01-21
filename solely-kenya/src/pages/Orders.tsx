@@ -425,7 +425,7 @@ const Orders = () => {
                         }
                       </span>
                       <Button size="sm" onClick={() => handleConfirmDelivery(order)}>
-                        {isPickup ? "Confirm Pickup" : "Confirm delivery"}
+                        {isPickup ? "I Have Collected My Shoes" : "I Have Received My Delivery"}
                       </Button>
                     </div>
                     {isPickup && (
@@ -586,13 +586,13 @@ const Orders = () => {
                         // For pickup, ensure vendor has actually confirmed (marked as ready)
                         (!isPickup || order.vendor_confirmed) && (
                           <Button size="sm" onClick={() => handleConfirmDelivery(order)}>
-                            {isPickup ? "Confirm Pickup" : "Confirm delivery"}
+                            {isPickup ? "I Have Collected My Shoes" : "I Have Received My Delivery"}
                           </Button>
                         )
                       )}
                       {order.status === "delivered" && !order.buyer_confirmed && (
                         <Button size="sm" onClick={() => handleConfirmDelivery(order)}>
-                          {isPickup ? "Confirm Pickup" : "Confirm delivery"}
+                          {isPickup ? "I Have Collected My Shoes" : "I Have Received My Delivery"}
                         </Button>
                       )}
                       {order.status === "completed" && (

@@ -9,6 +9,7 @@ import {
   Star,
   AlertTriangle,
   Menu,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,31 +24,54 @@ interface AlertCounts {
 }
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/vendor/dashboard", alertKey: null },
-  { icon: Package, label: "My Products", path: "/vendor/products", alertKey: null },
-  { icon: PlusCircle, label: "Add Product", path: "/vendor/add-product", alertKey: null },
-  { icon: ShoppingBag, label: "Add Accessory", path: "/vendor/add-accessory", alertKey: null },
-  { icon: ShoppingBag, label: "Orders", path: "/vendor/orders", alertKey: "pendingOrders" as const },
-  { icon: Star, label: "Ratings", path: "/vendor/ratings", alertKey: null },
-  { icon: AlertTriangle, label: "Disputes", path: "/vendor/disputes", alertKey: "openDisputes" as const },
-  { icon: Settings, label: "Settings", path: "/vendor/settings", alertKey: null },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/vendor/dashboard", alertKey: null, action: null },
+  { icon: Package, label: "My Products", path: "/vendor/products", alertKey: null, action: null },
+  { icon: PlusCircle, label: "Add Product", path: "/vendor/add-product", alertKey: null, action: null },
+  { icon: ShoppingBag, label: "Add Accessory", path: "/vendor/add-accessory", alertKey: null, action: null },
+  { icon: ShoppingBag, label: "Orders", path: "/vendor/orders", alertKey: "pendingOrders" as const, action: null },
+  { icon: Star, label: "Ratings", path: "/vendor/ratings", alertKey: null, action: null },
+  { icon: AlertTriangle, label: "Disputes", path: "/vendor/disputes", alertKey: "openDisputes" as const, action: null },
+  { icon: Settings, label: "Account Settings", path: "/vendor/settings", alertKey: null, action: null },
+  { icon: LogOut, label: "Logout", path: "", alertKey: null, action: "logout" as const },
 ];
 
 const SidebarContent = ({
   onItemClick,
-  alertCounts
+  alertCounts,
+  onLogout
 }: {
   onItemClick?: () => void;
   alertCounts: AlertCounts;
+  onLogout: () => void;
 }) => {
   const location = useLocation();
 
   return (
     <nav className="p-4 space-y-2">
-      {menuItems.map((item) => {
+      {menuItems.map((item, index) => {
         const Icon = item.icon;
-        const isActive = location.pathname === item.path;
+        const isActive = item.path && location.pathname === item.path;
         const alertCount = item.alertKey ? alertCounts[item.alertKey] : 0;
+
+        // Handle logout action
+        if (item.action === "logout") {
+          return (
+            <button
+              key={`action-${index}`}
+              onClick={() => {
+                onLogout();
+                onItemClick?.();
+              }}
+              className={cn(
+                "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[48px] relative",
+                "hover:bg-muted text-muted-foreground"
+              )}
+            >
+              <Icon className="h-5 w-5 flex-shrink-0" />
+              <span className="flex-1 text-left">{item.label}</span>
+            </button>
+          );
+        }
 
         return (
           <Link
@@ -153,33 +177,39 @@ export const VendorSidebar = () => {
     };
   }, [user]);
 
+  const { signOut } = useAuth();
+
   return (
     <>
-      {/* Mobile Menu Button */}
-      <div className="lg:hidden fixed bottom-4 left-4 z-50">
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild>
-            <Button size="lg" className="rounded-full shadow-lg h-14 w-14 p-0 relative">
-              <Menu className="h-6 w-6" />
-              {(alertCounts.pendingOrders > 0 || alertCounts.openDisputes > 0) && (
-                <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center font-bold animate-pulse">
-                  !
-                </span>
-              )}
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[280px] p-0">
-            <SheetHeader className="p-4 border-b">
-              <SheetTitle>Vendor Menu</SheetTitle>
-            </SheetHeader>
-            <SidebarContent onItemClick={() => setIsOpen(false)} alertCounts={alertCounts} />
-          </SheetContent>
-        </Sheet>
-      </div>
+      {/* Mobile Menu for Navbar */}
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetTrigger asChild>
+          <Button
+            size="icon"
+            variant="outline"
+            className="lg:hidden h-9 w-9 sm:h-10 sm:w-10 shrink-0 border-primary/20 relative"
+          >
+            <Menu className="h-5 w-5 text-primary" />
+            {(alertCounts.pendingOrders > 0 || alertCounts.openDisputes > 0) && (
+              <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />
+            )}
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="right" className="w-[280px] p-0">
+          <SheetHeader className="p-4 border-b">
+            <SheetTitle>Vendor Menu</SheetTitle>
+          </SheetHeader>
+          <SidebarContent
+            onItemClick={() => setIsOpen(false)}
+            alertCounts={alertCounts}
+            onLogout={signOut}
+          />
+        </SheetContent>
+      </Sheet>
 
       {/* Desktop Sidebar */}
       <aside className="hidden lg:block w-64 border-r border-border min-h-screen bg-card flex-shrink-0">
-        <SidebarContent alertCounts={alertCounts} />
+        <SidebarContent alertCounts={alertCounts} onLogout={signOut} />
       </aside>
     </>
   );

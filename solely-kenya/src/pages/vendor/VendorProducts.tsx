@@ -166,15 +166,15 @@ const VendorProducts = () => {
       <VendorNavbar />
       <div className="flex">
         <VendorSidebar />
-        <main className="flex-1 p-8">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold">My Products</h1>
-            <div className="flex gap-2">
-              <Button onClick={() => navigate("/vendor/add-product")}>
+        <main className="flex-1 p-3 sm:p-6 lg:p-8">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-4">My Products</h1>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-2">
+              <Button className="w-full sm:w-auto" onClick={() => navigate("/vendor/add-product")}>
                 <Package className="h-4 w-4 mr-2" />
                 Add Product
               </Button>
-              <Button variant="outline" onClick={() => navigate("/vendor/add-accessory")}>
+              <Button variant="outline" className="w-full sm:w-auto" onClick={() => navigate("/vendor/add-accessory")}>
                 <ShoppingBag className="h-4 w-4 mr-2" />
                 Add Accessory
               </Button>
@@ -182,7 +182,7 @@ const VendorProducts = () => {
           </div>
 
           <Tabs defaultValue="shoes" className="w-full">
-            <TabsList className="mb-6">
+            <TabsList className="mb-4 sm:mb-6">
               <TabsTrigger value="shoes" className="flex items-center gap-2">
                 <Package className="h-4 w-4" />
                 Shoes ({shoes.length})
@@ -194,11 +194,15 @@ const VendorProducts = () => {
             </TabsList>
 
             <TabsContent value="shoes">
-              <ProductTable items={shoes} />
+              <div className="overflow-x-auto -mx-3 sm:mx-0">
+                <ProductTable items={shoes} />
+              </div>
             </TabsContent>
 
             <TabsContent value="accessories">
-              <ProductTable items={accessories} isAccessory />
+              <div className="overflow-x-auto -mx-3 sm:mx-0">
+                <ProductTable items={accessories} isAccessory />
+              </div>
             </TabsContent>
           </Tabs>
         </main>
