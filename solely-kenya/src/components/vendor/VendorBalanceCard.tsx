@@ -191,7 +191,7 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
 
             {/* Withdrawal Confirmation Dialog */}
             <AlertDialog open={showWithdrawDialog} onOpenChange={setShowWithdrawDialog}>
-                <AlertDialogContent>
+                <AlertDialogContent className="max-h-[90vh] overflow-y-auto">
                     <AlertDialogHeader>
                         <AlertDialogTitle>Confirm Withdrawal</AlertDialogTitle>
                         <AlertDialogDescription asChild>
@@ -216,11 +216,11 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
                             </div>
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <div className="flex flex-col-reverse gap-3 mt-6 w-full md:flex-row md:justify-end">
+                    <AlertDialogFooter className="flex-row gap-2">
                         {/* Cancel Button */}
                         <AlertDialogCancel
                             disabled={withdraw.isPending}
-                            className="w-full md:w-auto mt-0"
+                            className="flex-1 text-sm px-4 py-2 mt-0"
                         >
                             Cancel
                         </AlertDialogCancel>
@@ -229,11 +229,11 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
                         <AlertDialogAction
                             onClick={() => withdraw.mutate()}
                             disabled={withdraw.isPending}
-                            className="w-full md:w-auto bg-emerald-500 hover:bg-emerald-600"
+                            className="flex-1 text-sm px-4 py-2 bg-emerald-500 hover:bg-emerald-600"
                         >
                             {withdraw.isPending ? 'Processing...' : 'Withdraw Now'}
                         </AlertDialogAction>
-                    </div>
+                    </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
         </>
