@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Mail, LogOut, LayoutDashboard, Menu, ShoppingBag, ShoppingCart } from "lucide-react";
+import { Mail, LogOut, LayoutDashboard, Menu, ShoppingBag, ShoppingCart, Download } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { usePWAInstall } from "@/hooks/usePWAInstall";
 
 interface NavLink {
   name: string;
@@ -21,6 +22,14 @@ interface MobileNavProps {
 export const MobileNav = ({ navLinks, user, isVendor, isVendorPage, onLogout, cartCount = 0 }: MobileNavProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const supportEmail = "contact@solelyshoes.co.ke";
+  const { canInstall, promptInstall } = usePWAInstall();
+
+  const handleInstallClick = async () => {
+    const installed = await promptInstall();
+    if (installed) {
+      setIsOpen(false);
+    }
+  };
 
   // Close menu when navigating
   const handleLinkClick = () => {
@@ -65,6 +74,16 @@ export const MobileNav = ({ navLinks, user, isVendor, isVendorPage, onLogout, ca
                 )}
               </Link>
             </Button>
+            {canInstall && (
+              <Button
+                size="sm"
+                className="flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-amber-500 hover:from-primary/90 hover:to-amber-600"
+                onClick={handleInstallClick}
+              >
+                <Download className="h-4 w-4" />
+                Install App
+              </Button>
+            )}
             <Button variant="outline" size="sm" asChild>
               <a
                 href={`mailto:${supportEmail}`}

@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   Menu,
   LogOut,
+  Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { usePWAInstall } from "@/hooks/usePWAInstall";
 
 interface AlertCounts {
   pendingOrders: number;
@@ -38,16 +40,33 @@ const menuItems = [
 const SidebarContent = ({
   onItemClick,
   alertCounts,
-  onLogout
+  onLogout,
+  canInstall,
+  onInstall,
 }: {
   onItemClick?: () => void;
   alertCounts: AlertCounts;
   onLogout: () => void;
+  canInstall?: boolean;
+  onInstall?: () => void;
 }) => {
   const location = useLocation();
 
   return (
     <nav className="p-4 space-y-2">
+      {/* Install App Button */}
+      {canInstall && onInstall && (
+        <button
+          onClick={() => {
+            onInstall();
+            onItemClick?.();
+          }}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[48px] bg-gradient-to-r from-primary to-amber-500 text-white hover:from-primary/90 hover:to-amber-600 mb-2"
+        >
+          <Download className="h-5 w-5 flex-shrink-0" />
+          <span className="flex-1 text-left font-medium">Install App</span>
+        </button>
+      )}
       {menuItems.map((item, index) => {
         const Icon = item.icon;
         const isActive = item.path && location.pathname === item.path;
@@ -178,6 +197,11 @@ export const VendorSidebar = ({ variant = "sidebar" }: { variant?: "sidebar" | "
   }, [user]);
 
   const { signOut } = useAuth();
+  const { canInstall, promptInstall } = usePWAInstall();
+
+  const handleInstall = async () => {
+    await promptInstall();
+  };
 
   return (
     <>
@@ -204,6 +228,8 @@ export const VendorSidebar = ({ variant = "sidebar" }: { variant?: "sidebar" | "
               onItemClick={() => setIsOpen(false)}
               alertCounts={alertCounts}
               onLogout={signOut}
+              canInstall={canInstall}
+              onInstall={handleInstall}
             />
           </SheetContent>
         </Sheet>
@@ -212,7 +238,12 @@ export const VendorSidebar = ({ variant = "sidebar" }: { variant?: "sidebar" | "
       {/* Desktop Sidebar */}
       {variant === "sidebar" && (
         <aside className="hidden lg:block w-64 border-r border-border min-h-screen bg-card flex-shrink-0">
-          <SidebarContent alertCounts={alertCounts} onLogout={signOut} />
+          <SidebarContent
+            alertCounts={alertCounts}
+            onLogout={signOut}
+            canInstall={canInstall}
+            onInstall={handleInstall}
+          />
         </aside>
       )}
     </>

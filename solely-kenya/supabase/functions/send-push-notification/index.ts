@@ -11,6 +11,7 @@
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import webpush from "npm:web-push@3.6.7";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -26,105 +27,6 @@ interface PushPayload {
     url?: string;
     tag?: string;
     orderId?: string;
-}
-
-// Web Push requires specific crypto operations
-async function sendWebPush(
-    subscription: { endpoint: string; p256dh: string; auth: string },
-    payload: object,
-    vapidKeys: { publicKey: string; privateKey: string; subject: string }
-): Promise<{ success: boolean; error?: string }> {
-    try {
-        // For Deno, we'll use a simpler approach with fetch
-        // The actual Web Push implementation requires cryptographic operations
-        // that are complex in Deno. For production, consider using a service like
-        // Firebase Cloud Messaging or a dedicated push service.
-
-        // This is a simplified implementation that works for most browsers
-        const encoder = new TextEncoder();
-        const payloadData = encoder.encode(JSON.stringify(payload));
-
-        // Create JWT for VAPID authentication
-        const jwt = await createVapidJwt(
-            subscription.endpoint,
-            vapidKeys.subject,
-            vapidKeys.publicKey,
-            vapidKeys.privateKey
-        );
-
-        if (!jwt) {
-            // Fallback: try without encryption for testing
-            console.log("JWT creation failed, push notification may not work");
-            return { success: false, error: "VAPID JWT creation failed" };
-        }
-
-        const response = await fetch(subscription.endpoint, {
-            method: "POST",
-            headers: {
-                "Authorization": `vapid t=${jwt}, k=${vapidKeys.publicKey}`,
-                "Content-Type": "application/octet-stream",
-                "Content-Encoding": "aes128gcm",
-                "TTL": "86400", // 24 hours
-                "Urgency": "high",
-            },
-            body: payloadData,
-        });
-
-        if (response.status === 201 || response.status === 200) {
-            return { success: true };
-        } else if (response.status === 410) {
-            // Subscription expired or unsubscribed
-            return { success: false, error: "subscription_expired" };
-        } else {
-            const errorText = await response.text();
-            console.error("Push failed:", response.status, errorText);
-            return { success: false, error: `HTTP ${response.status}: ${errorText}` };
-        }
-    } catch (error) {
-        console.error("Push send error:", error);
-        return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
-    }
-}
-
-// Create VAPID JWT token
-async function createVapidJwt(
-    endpoint: string,
-    subject: string,
-    publicKey: string,
-    privateKey: string
-): Promise<string | null> {
-    try {
-        const url = new URL(endpoint);
-        const audience = `${url.protocol}//${url.host}`;
-
-        const header = {
-            typ: "JWT",
-            alg: "ES256"
-        };
-
-        const now = Math.floor(Date.now() / 1000);
-        const payload = {
-            aud: audience,
-            exp: now + 12 * 60 * 60, // 12 hours
-            sub: subject
-        };
-
-        const headerB64 = btoa(JSON.stringify(header)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-        const payloadB64 = btoa(JSON.stringify(payload)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-
-        // For full implementation, we'd need to sign with ES256
-        // This is a placeholder - in production, use a proper crypto library
-        const unsignedToken = `${headerB64}.${payloadB64}`;
-
-        // Simple base64 encoding of private key as signature placeholder
-        // NOTE: This is NOT secure for production - use proper ECDSA signing
-        const signatureB64 = btoa(privateKey.substring(0, 32)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-
-        return `${unsignedToken}.${signatureB64}`;
-    } catch (error) {
-        console.error("JWT creation error:", error);
-        return null;
-    }
 }
 
 Deno.serve(async (req: Request) => {
@@ -147,6 +49,9 @@ Deno.serve(async (req: Request) => {
                 { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
         }
+
+        // Configure web-push with VAPID keys
+        webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
 
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
         const payload: PushPayload = await req.json();
@@ -181,7 +86,7 @@ Deno.serve(async (req: Request) => {
         }
 
         // Prepare notification payload
-        const notificationPayload = {
+        const notificationPayload = JSON.stringify({
             title: payload.title,
             body: payload.body,
             icon: payload.icon || "/pwa-192x192.png",
@@ -189,24 +94,37 @@ Deno.serve(async (req: Request) => {
             url: payload.url || "/vendor/orders",
             tag: payload.tag || `order-${payload.orderId || Date.now()}`,
             orderId: payload.orderId,
-        };
+        });
 
         // Send to all subscriptions
         const results = await Promise.all(
             subscriptions.map(async (sub) => {
-                const result = await sendWebPush(
-                    { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
-                    notificationPayload,
-                    { publicKey: vapidPublicKey, privateKey: vapidPrivateKey, subject: vapidSubject }
-                );
+                const pushSubscription = {
+                    endpoint: sub.endpoint,
+                    keys: {
+                        p256dh: sub.p256dh,
+                        auth: sub.auth,
+                    },
+                };
 
-                // If subscription expired, remove it
-                if (!result.success && result.error === "subscription_expired") {
-                    await supabase.from("push_subscriptions").delete().eq("id", sub.id);
-                    console.log("Removed expired subscription:", sub.id);
+                try {
+                    await webpush.sendNotification(pushSubscription, notificationPayload, {
+                        TTL: 86400, // 24 hours
+                        urgency: "high",
+                    });
+                    console.log("Push sent successfully to:", sub.endpoint.slice(0, 50));
+                    return { success: true, id: sub.id };
+                } catch (error: any) {
+                    console.error("Push failed for subscription:", sub.id, error.message);
+
+                    // If subscription expired or invalid, remove it
+                    if (error.statusCode === 410 || error.statusCode === 404) {
+                        await supabase.from("push_subscriptions").delete().eq("id", sub.id);
+                        console.log("Removed expired subscription:", sub.id);
+                    }
+
+                    return { success: false, id: sub.id, error: error.message };
                 }
-
-                return result;
             })
         );
 
