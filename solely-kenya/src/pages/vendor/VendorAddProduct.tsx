@@ -31,6 +31,7 @@ const VendorAddProduct = () => {
     category: "",
     key_features: "",
     sizes: "",
+    colors: "",
     condition: "new",
     condition_notes: "",
   });
@@ -104,6 +105,7 @@ const VendorAddProduct = () => {
 
     try {
       const sizesArray = formData.sizes.split(",").map((s) => s.trim()).filter(Boolean);
+      const colorsArray = formData.colors.split(",").map((c) => c.trim()).filter(Boolean);
       const keyFeaturesArray = formData.key_features.split(",").map((s) => s.trim()).filter(Boolean);
 
       // Upload images
@@ -120,6 +122,7 @@ const VendorAddProduct = () => {
         key_features: keyFeaturesArray,
         status: "active",
         sizes: sizesArray,
+        colors: colorsArray,
         images: imageUrls,
         video_url: videoUrl,
         condition: formData.condition,
@@ -301,6 +304,19 @@ const VendorAddProduct = () => {
                       Click "Size Guide" above to view the conversion chart.
                     </AlertDescription>
                   </Alert>
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="colors">Available Colors (comma-separated)</Label>
+                  <Input
+                    id="colors"
+                    placeholder="Black, White, Red, Blue, Brown"
+                    value={formData.colors}
+                    onChange={(e) => setFormData({ ...formData, colors: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Enter all available colors for this product. Buyers will select their preferred color when ordering.
+                  </p>
                 </div>
 
                 <div>

@@ -33,6 +33,7 @@ const VendorEditProduct = () => {
     category: "",
     key_features: "",
     sizes: "",
+    colors: "",
     condition: "new",
     condition_notes: "",
   });
@@ -75,6 +76,7 @@ const VendorEditProduct = () => {
           category: data.category || "",
           key_features: data.key_features?.join(", ") || "",
           sizes: data.sizes?.join(", ") || "",
+          colors: data.colors?.join(", ") || "",
           condition: data.condition || "new",
           condition_notes: data.condition_notes || "",
         });
@@ -154,6 +156,7 @@ const VendorEditProduct = () => {
 
     try {
       const sizesArray = formData.sizes.split(",").map((s) => s.trim()).filter(Boolean);
+      const colorsArray = formData.colors.split(",").map((c) => c.trim()).filter(Boolean);
       const keyFeaturesArray = formData.key_features.split(",").map((s) => s.trim()).filter(Boolean);
 
       const newImageUrls = await uploadImages();
@@ -170,6 +173,7 @@ const VendorEditProduct = () => {
           category: formData.category,
           key_features: keyFeaturesArray,
           sizes: sizesArray,
+          colors: colorsArray,
           images: allImages,
           video_url: videoUrl,
           condition: formData.condition,
@@ -352,6 +356,19 @@ const VendorEditProduct = () => {
                       Using correct sizes ensures customers can find their perfect fit.
                     </AlertDescription>
                   </Alert>
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="colors">Available Colors (comma-separated)</Label>
+                  <Input
+                    id="colors"
+                    placeholder="Black, White, Red, Blue, Brown"
+                    value={formData.colors}
+                    onChange={(e) => setFormData({ ...formData, colors: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Enter all available colors for this product. Buyers will select their preferred color when ordering.
+                  </p>
                 </div>
 
                 <div>

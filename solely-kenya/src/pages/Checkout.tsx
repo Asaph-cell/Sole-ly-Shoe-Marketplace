@@ -252,11 +252,13 @@ const Checkout = () => {
             images: product.images,
             price_ksh: unitPrice,
             size: cartItem.size || null, // Allow null size for accessories
+            color: cartItem.color || null, // Store selected color
           },
           quantity: cartItem.quantity,
           unit_price_ksh: unitPrice,
           line_total_ksh: lineTotal,
-          size: cartItem.size || null, // Allow null size for accessories
+          size: cartItem.size || null,
+          color: cartItem.color || null, // Add color column to order_items
         };
       });
 

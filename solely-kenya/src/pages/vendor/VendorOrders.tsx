@@ -572,7 +572,7 @@ const VendorOrders = () => {
                     <div className="flex items-center justify-between">
                       <span className="font-medium">
                         Order #{order.id.slice(0, 8)} • {order.order_items?.map((item: any) =>
-                          `${item.quantity}× ${item.product_name}${item.size ? ` (Size ${item.size})` : ''}`
+                          `${item.quantity}× ${item.product_name}${item.size ? ` (Size ${item.size})` : ''}${item.color ? ` (${item.color})` : ''}`
                         ).join(", ")}
                       </span>
                       {hoursSinceOrder >= 24 && (
@@ -675,7 +675,11 @@ const VendorOrders = () => {
                     <div className="space-y-2 text-sm">
                       {order.order_items?.map((item) => (
                         <div key={item.id} className="flex justify-between">
-                          <span>{item.quantity} × {item.product_name}</span>
+                          <span>
+                            {item.quantity} × {item.product_name}
+                            {item.size && <span className="text-muted-foreground ml-1"> (Size {item.size})</span>}
+                            {item.color && <span className="text-muted-foreground ml-1"> ({item.color})</span>}
+                          </span>
                           <span>KES {(item.quantity * item.unit_price_ksh).toLocaleString()}</span>
                         </div>
                       ))}

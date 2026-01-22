@@ -10,6 +10,8 @@ export type CartItem = {
   quantity: number;
   size?: string; // Selected shoe size (EU format)
   availableSizes?: string[]; // Sizes available for this product
+  color?: string; // Selected product color
+  availableColors?: string[]; // Colors available for this product
 };
 
 interface CartContextValue {
@@ -20,9 +22,12 @@ interface CartContextValue {
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   updateSize: (productId: string, size: string) => void;
+  updateColor: (productId: string, color: string) => void;
   clearCart: () => void;
-  hasAllSizes: () => boolean; // Check if all items have sizes selected
+  hasAllSizes: () => boolean; // Check if all items have sizes selected (if required)
+  hasAllColors: () => boolean; // Check if all items have colors selected (if required)
   hasAllValidSizes: () => boolean; // Check if all selected sizes are available
+
   getInvalidSizeItems: () => CartItem[]; // Get items with sizes not in available list
 }
 
@@ -94,8 +99,32 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  const updateColor: CartContextValue["updateColor"] = (productId, color) => {
+    setItems((current) =>
+      current.map((item) =>
+        item.productId === productId ? { ...item, color } : item
+      )
+    );
+  };
+
   const hasAllSizes = (): boolean => {
-    return items.length > 0 && items.every((item) => item.size && item.size.trim() !== "");
+    return items.length > 0 && items.every((item) => {
+      // If product has sizes available, require a size selection
+      if (item.availableSizes && item.availableSizes.length > 0) {
+        return item.size && item.size.trim() !== "";
+      }
+      return true; // No sizes available means selection not required
+    });
+  };
+
+  const hasAllColors = (): boolean => {
+    return items.length > 0 && items.every((item) => {
+      // If product has colors available, require a color selection
+      if (item.availableColors && item.availableColors.length > 0) {
+        return item.color && item.color.trim() !== "";
+      }
+      return true; // No colors available means selection not required
+    });
   };
 
   // Check if all selected sizes are valid (exist in availableSizes)
@@ -137,8 +166,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     updateSize,
     clearCart,
     hasAllSizes,
+    hasAllColors,
     hasAllValidSizes,
     getInvalidSizeItems,
+    updateColor,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

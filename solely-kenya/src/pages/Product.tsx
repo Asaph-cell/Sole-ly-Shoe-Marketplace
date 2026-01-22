@@ -34,6 +34,7 @@ const Product = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedSize, setSelectedSize] = useState("");
+  const [selectedColor, setSelectedColor] = useState("");
   const [selectedImage, setSelectedImage] = useState(0);
   const [product, setProduct] = useState<any>(null);
   const [vendorProfile, setVendorProfile] = useState<any>(null);
@@ -122,6 +123,17 @@ const Product = () => {
   // Only require size if it's NOT an accessory and sizes exist
   const requireSizeSelection = product?.category !== 'accessories' && product?.sizes && product.sizes.length > 0 && product.sizes[0] !== "";
 
+  // Only require color if colors exist
+  const requireColorSelection = product?.colors && product.colors.length > 0 && product.colors[0] !== "";
+
+  const ensureColorSelected = () => {
+    if (requireColorSelection && !selectedColor) {
+      toast.error("Please select a color");
+      return false;
+    }
+    return true;
+  };
+
   const ensureSizeSelected = () => {
     if (requireSizeSelection && !selectedSize) {
       toast.error("Please select a size first");
@@ -142,6 +154,7 @@ const Product = () => {
       return false;
     }
     if (!ensureSizeSelected()) return false;
+    if (!ensureColorSelected()) return false;
 
     addItem(
       {
@@ -152,6 +165,8 @@ const Product = () => {
         imageUrl: product.images?.[0] || null,
         size: selectedSize, // Pass the selected size from product page
         availableSizes: product.sizes || [], // Pass available sizes for validation
+        color: selectedColor, // Pass selected color
+        availableColors: product.colors || [], // Pass available colors
       },
       1
     );
@@ -447,6 +462,30 @@ const Product = () => {
                 </Select>
                 {!selectedSize && (
                   <p className="text-xs text-muted-foreground">Please select a size to continue</p>
+                )}
+              </div>
+            )}
+
+            {/* Color Selection */}
+            {requireColorSelection && (
+              <div className="space-y-3 pt-3 border-t border-border">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-semibold">Select Color</label>
+                </div>
+                <Select value={selectedColor} onValueChange={setSelectedColor}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose a color" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {product.colors.map((color: string) => (
+                      <SelectItem key={color} value={color}>
+                        {color}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {!selectedColor && (
+                  <p className="text-xs text-muted-foreground">Please select a color to continue</p>
                 )}
               </div>
             )}

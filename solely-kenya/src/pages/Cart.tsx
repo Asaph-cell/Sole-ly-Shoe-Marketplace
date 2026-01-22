@@ -12,7 +12,7 @@ import { ShoeSizeSelector } from "@/components/ShoeSizeSelector";
 import { AlertTriangle, ExternalLink } from "lucide-react";
 
 const Cart = () => {
-  const { items, subtotal, totalQuantity, updateQuantity, updateSize, removeItem, clearCart, hasAllSizes, hasAllValidSizes, getInvalidSizeItems } = useCart();
+  const { items, subtotal, totalQuantity, updateQuantity, updateSize, removeItem, clearCart, hasAllSizes, hasAllColors, hasAllValidSizes, getInvalidSizeItems } = useCart();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
@@ -35,6 +35,16 @@ const Cart = () => {
 
     if (missingSizes) {
       toast.error("Please select a shoe size for all items before checkout");
+      return;
+    }
+
+    // Check if all items have colors selected (if required)
+    const missingColors = items.some(
+      (item) => item.availableColors && item.availableColors.length > 0 && !item.color
+    );
+
+    if (missingColors) {
+      toast.error("Please select a color for all items before checkout");
       return;
     }
 
@@ -130,6 +140,17 @@ const Cart = () => {
                             <span className="font-medium">Available sizes: </span>
                             {item.availableSizes.join(", ")}
                           </div>
+                        )}
+
+                        {/* Show selected color if applicable */}
+                        {item.color && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            <span className="font-medium">Color: </span>
+                            {item.color}
+                          </div>
+                        )}
+                        {!item.color && item.availableColors && item.availableColors.length > 0 && (
+                          <p className="text-xs text-destructive mt-1">⚠️ Color required before checkout</p>
                         )}
 
                         <ShoeSizeSelector
