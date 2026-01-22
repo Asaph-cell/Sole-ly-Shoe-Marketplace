@@ -131,8 +131,6 @@ All colors MUST be HSL.
     /* Prevent horizontal overflow */
     overflow-x: hidden;
     max-width: 100vw;
-    /* Prevent pull-to-refresh on mobile (optional) */
-    overscroll-behavior-y: contain;
   }
 
   /* Responsive media */
