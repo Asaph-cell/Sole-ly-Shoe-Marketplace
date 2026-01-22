@@ -196,19 +196,23 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
                         <AlertDialogTitle>Confirm Withdrawal</AlertDialogTitle>
                         <AlertDialogDescription asChild>
                             <div className="space-y-4">
-                                <div className="bg-muted rounded-lg p-4 text-center">
-                                    <p className="text-sm text-muted-foreground">Withdrawal Amount</p>
-                                    <p className="text-3xl font-bold text-foreground mt-1">
-                                        KES {pendingBalance.toLocaleString()}
-                                    </p>
-                                </div>
-                                <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md">
-                                    <p className="text-sm text-amber-800 dark:text-amber-200 font-medium mb-1">
-                                        ⚠️ Transaction Fee Notice
-                                    </p>
-                                    <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
-                                        Transaction fees are deducted by the payment provider from your wallet balance. You will receive the balance minus standard M-Pesa charges.
-                                    </p>
+                                <div className="bg-muted rounded-lg p-4">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-sm text-muted-foreground">Wallet Balance</span>
+                                        <span className="font-medium text-foreground">KES {pendingBalance.toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-sm text-muted-foreground">Transaction Fee</span>
+                                        <span className="font-medium text-red-500">- KES 20</span>
+                                    </div>
+                                    <div className="border-t pt-2 mt-2">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm font-semibold text-muted-foreground">You'll Receive</span>
+                                            <span className="text-xl font-bold text-emerald-600">
+                                                KES {Math.max(0, pendingBalance - 20).toLocaleString()}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <p className="text-sm text-muted-foreground">
                                     Funds will be sent to your registered M-Pesa number instantly.

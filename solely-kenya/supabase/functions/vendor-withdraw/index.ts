@@ -129,27 +129,19 @@ serve(async (req: Request) => {
         // We send the FULL balance and IntaSend handles the fee automatically
         const amountToSend = actualWalletBalance;
 
-        // IntaSend B2C M-Pesa Fee Structure (from official API)
-        // Up to KES 100: KES 11
-        // KES 101-500: KES 13
-        // KES 501-1,000: KES 15
-        // KES 1,001-2,500: KES 20
-        // Over KES 2,500: KES 25 (approximate)
-        const estimatedFee = amountToSend <= 100 ? 11 :
-            amountToSend <= 500 ? 13 :
-                amountToSend <= 1000 ? 15 :
-                    amountToSend <= 2500 ? 20 : 25;
+        // IntaSend B2C M-Pesa Fee - flat KES 20
+        const transactionFee = 20;
 
-        if (amountToSend <= 0) {
+        if (amountToSend <= transactionFee) {
             throw new Error('Balance too low for withdrawal');
         }
 
-        console.log(`[Vendor Withdraw] Wallet balance: KES ${actualWalletBalance}, Sending: KES ${amountToSend}, Estimated fee: KES ${estimatedFee}`);
-        console.log(`[Vendor Withdraw] Vendor should receive approximately: KES ${amountToSend - estimatedFee}`);
+        console.log(`[Vendor Withdraw] Wallet balance: KES ${actualWalletBalance}, Sending: KES ${amountToSend}, Fee: KES ${transactionFee}`);
+        console.log(`[Vendor Withdraw] Vendor should receive: KES ${amountToSend - transactionFee}`);
 
         // Track what we're sending
         let executedAmount = amountToSend;
-        let feeCharged = estimatedFee; // Use estimated fee initially
+        let feeCharged = transactionFee;
         let trackingId = '';
 
         // Send money from vendor's wallet to their M-Pesa
