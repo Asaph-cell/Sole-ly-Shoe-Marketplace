@@ -7,6 +7,7 @@ import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { SneakerLoader } from "./components/ui/SneakerLoader";
 import { ScrollToTop } from "./components/ScrollToTop";
+import { SmartInstallBanner } from "./components/SmartInstallBanner";
 
 const queryClient = new QueryClient();
 
@@ -144,6 +145,7 @@ const AppLayout = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <ScrollToTop />
+      <SmartInstallBanner />
       <React.Suspense fallback={<SneakerLoader message="Loading..." />}>
         {!isVendorOrAdminPage && <Navbar />}
         <main className="flex-grow">

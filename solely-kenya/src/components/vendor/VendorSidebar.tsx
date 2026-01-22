@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
+import { setAppBadge } from "@/lib/badge";
 
 interface AlertCounts {
   pendingOrders: number;
@@ -156,6 +157,10 @@ export const VendorSidebar = ({ variant = "sidebar" }: { variant?: "sidebar" | "
         pendingOrders: pendingOrdersCount || 0,
         openDisputes: openDisputesCount || 0,
       });
+
+      // Update PWA app badge with total alerts
+      const totalAlerts = (pendingOrdersCount || 0) + (openDisputesCount || 0);
+      setAppBadge(totalAlerts);
     };
 
     fetchAlertCounts();
