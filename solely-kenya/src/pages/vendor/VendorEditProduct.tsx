@@ -159,6 +159,16 @@ const VendorEditProduct = () => {
       const colorsArray = formData.colors.split(",").map((c) => c.trim()).filter(Boolean);
       const keyFeaturesArray = formData.key_features.split(",").map((s) => s.trim()).filter(Boolean);
 
+      // Validation: Shoes must have sizes and colors
+      if (formData.category !== "accessories") {
+        if (sizesArray.length === 0) {
+          throw new Error("Please add at least one size for shoes");
+        }
+        if (colorsArray.length === 0) {
+          throw new Error("Please add at least one color for shoes");
+        }
+      }
+
       const newImageUrls = await uploadImages();
       const allImages = [...existingImages, ...newImageUrls];
 
