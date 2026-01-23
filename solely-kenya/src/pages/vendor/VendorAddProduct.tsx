@@ -118,6 +118,11 @@ const VendorAddProduct = () => {
         }
       }
 
+      // Validation: At least one image is required
+      if (imageFiles.length === 0) {
+        throw new Error("Please upload at least one image of the product");
+      }
+
       // Upload images
       const imageUrls = await uploadImages();
 

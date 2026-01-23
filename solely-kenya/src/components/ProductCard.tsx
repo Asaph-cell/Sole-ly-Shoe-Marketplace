@@ -143,9 +143,9 @@ const ProductCard = ({
 
             {/* Video Badge - Top Right area */}
             <div className="absolute top-3 right-3 flex flex-col gap-1">
-              {isNew && (
+              {/* {isNew && (
                 <Badge className="bg-accent text-accent-foreground">New Arrival</Badge>
-              )}
+              )} */}
               {videoUrl && (
                 <Badge variant="secondary" className="bg-purple-500 text-white">
                   📹 Video
