@@ -127,10 +127,7 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply text-foreground;
-    /* Gradient: darker golden at bottom to white at top */
-    background: linear-gradient(to top, hsl(45 65% 78%) 0%, hsl(45 40% 92%) 40%, hsl(0 0% 100%) 100%);
-    background-attachment: fixed;
+    @apply bg-background text-foreground;
     /* Prevent horizontal overflow */
     overflow-x: hidden;
     max-width: 100vw;
