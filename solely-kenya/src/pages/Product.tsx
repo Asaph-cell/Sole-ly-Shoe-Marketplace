@@ -38,6 +38,7 @@ const Product = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [product, setProduct] = useState<any>(null);
   const [vendorProfile, setVendorProfile] = useState<any>(null);
+  const [reviewStats, setReviewStats] = useState({ count: 0, average: 0 }); // Added review stats state
   const [loading, setLoading] = useState(true);
   const [priceAlertActive, setPriceAlertActive] = useState(false);
   const [alertLoading, setAlertLoading] = useState(false);
@@ -84,6 +85,20 @@ const Product = () => {
         .single();
 
       setVendorProfile(profileData);
+
+      // Fetch reviews stats
+      const { data: reviewsData } = await supabase
+        .from("reviews")
+        .select("rating")
+        .eq("product_id", id);
+
+      if (reviewsData) {
+        const count = reviewsData.length;
+        const average = count > 0
+          ? reviewsData.reduce((acc, curr) => acc + curr.rating, 0) / count
+          : 0;
+        setReviewStats({ count, average });
+      }
 
       // Increment product views
       await supabase
@@ -229,7 +244,9 @@ const Product = () => {
             images: product.images || [],
             brand: product.brand,
             sku: product.id,
-            description: product.description
+            description: product.description,
+            reviewCount: reviewStats.count,
+            ratingValue: reviewStats.average
           }}
           breadcrumbs={[
             { name: "Home", url: "/" },

@@ -10,6 +10,8 @@ interface ProductSchema {
     brand?: string;
     sku: string;
     description?: string;
+    reviewCount?: number;
+    ratingValue?: number;
 }
 
 interface BreadcrumbItem {
@@ -91,6 +93,10 @@ export const SEO = ({
         }
     };
 
+    // Calculate price validity (1 year from now)
+    const priceValidUntil = new Date();
+    priceValidUntil.setFullYear(priceValidUntil.getFullYear() + 1);
+
     // Product schema
     const productSchema = product ? {
         "@context": "https://schema.org",
@@ -103,14 +109,37 @@ export const SEO = ({
             "name": product.brand
         } : undefined,
         "sku": product.sku,
+        "aggregateRating": product.reviewCount && product.reviewCount > 0 ? {
+            "@type": "AggregateRating",
+            "ratingValue": product.ratingValue,
+            "reviewCount": product.reviewCount
+        } : undefined,
         "offers": {
             "@type": "Offer",
             "price": product.price,
             "priceCurrency": product.currency || "KES",
+            "priceValidUntil": priceValidUntil.toISOString().split('T')[0],
             "availability": product.availability === 'InStock'
                 ? "https://schema.org/InStock"
                 : "https://schema.org/OutOfStock",
             "itemCondition": conditionToSchema[product.condition] || conditionToSchema.new,
+            "shippingDetails": {
+                "@type": "OfferShippingDetails",
+                "shippingDestination": {
+                    "@type": "DefinedRegion",
+                    "addressCountry": "KE"
+                },
+                "shippingRate": {
+                    "@type": "MonetaryAmount",
+                    "value": 0,
+                    "currency": "KES"
+                }
+            },
+            "hasMerchantReturnPolicy": {
+                "@type": "MerchantReturnPolicy",
+                "returnPolicyCategory": "https://schema.org/MerchantReturnNotPermitted",
+                "description": "Returns only accepted if the buyer has an issue with the product (e.g. defects)."
+            },
             "seller": {
                 "@type": "Organization",
                 "name": SITE_NAME
