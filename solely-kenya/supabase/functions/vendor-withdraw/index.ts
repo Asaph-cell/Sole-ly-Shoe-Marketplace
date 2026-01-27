@@ -1,7 +1,7 @@
 /**
  * Vendor Withdraw
  * Instant withdrawal from vendor's IntaSend wallet to their M-Pesa
- * No minimum amount - vendors can withdraw any balance they have
+ * Strict Withdraw All - No Partial Withdrawals
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -28,13 +28,13 @@ serve(async (req: Request) => {
             throw new Error('INTASEND_SECRET_KEY is not configured');
         }
 
-        const { vendor_id, amount } = await req.json();
+        const { vendor_id } = await req.json();
 
         if (!vendor_id) {
             throw new Error('vendor_id is required');
         }
 
-        console.log(`[Vendor Withdraw] Processing withdrawal for vendor: ${vendor_id}, amount: ${amount || 'full balance'}`);
+        console.log(`[Vendor Withdraw] Processing withdrawal for vendor: ${vendor_id}`);
 
         // Get vendor profile for M-Pesa number
         const { data: profile, error: profileError } = await supabase
@@ -66,48 +66,30 @@ serve(async (req: Request) => {
             throw new Error('Could not fetch balance');
         }
 
-        // Determine withdrawal amount (full balance if not specified)
-        let requestedAmount = amount ? Number(amount) : balance.pending_balance;
+        // STRICT WITHDRAW ALL MODE
+        // Users must withdraw their ENTIRE balance.
+        const totalBalance = balance.pending_balance;
 
-        if (requestedAmount <= 0) {
+        if (totalBalance <= 0) {
             throw new Error('No balance available for withdrawal');
         }
 
-        if (requestedAmount > balance.pending_balance) {
-            throw new Error(`Insufficient balance. Available: KES ${balance.pending_balance}`);
-        }
+        // IntaSend Fees Logic (Disbursement)
+        // 0 - 100: KES 10
+        // 101 - 1000: KES 20
+        // 1001 - 150000: KES 100
 
-        // Check actual IntaSend wallet balance first
-        console.log(`[Vendor Withdraw] Checking IntaSend wallet balance for wallet: ${profile.intasend_wallet_id}`);
+        let transactionFee = 0;
+        if (totalBalance <= 100) transactionFee = 10;
+        else if (totalBalance <= 1000) transactionFee = 20;
+        else transactionFee = 100;
 
-        const walletResponse = await fetch(`https://api.intasend.com/api/v1/wallets/${profile.intasend_wallet_id}/`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${INTASEND_SECRET_KEY}`,
-            },
-        });
+        // Calculate actual amount to send
+        const amountToSend = totalBalance - transactionFee;
 
-        if (!walletResponse.ok) {
-            const errorText = await walletResponse.text();
-            console.error(`[Vendor Withdraw] Failed to fetch wallet balance: ${errorText}`);
-            throw new Error('Unable to verify wallet balance. Please try again.');
-        }
-
-        const walletData = await walletResponse.json();
-        const actualWalletBalance = parseFloat(walletData.current_balance || walletData.available_balance || 0);
-
-        console.log(`[Vendor Withdraw] Database balance: KES ${balance.pending_balance}, Actual wallet balance: KES ${actualWalletBalance}`);
-
-        // Use the LOWER of the two balances to be safe
-        const safeWithdrawAmount = Math.min(requestedAmount, actualWalletBalance);
-
-        if (safeWithdrawAmount !== requestedAmount) {
-            console.warn(`[Vendor Withdraw] Balance mismatch detected! Database: ${balance.pending_balance}, Wallet: ${actualWalletBalance}. Using wallet balance.`);
-            requestedAmount = safeWithdrawAmount;
-        }
-
-        if (requestedAmount <= 0) {
-            throw new Error('No balance available in your wallet for withdrawal');
+        // Safety Check
+        if (amountToSend <= 0) {
+            throw new Error(`Insufficient balance to cover the KES ${transactionFee} transaction fee.`);
         }
 
         // Normalize phone number for IntaSend
@@ -120,35 +102,7 @@ serve(async (req: Request) => {
             normalizedPhone = '254' + normalizedPhone;
         }
 
-        // IntaSend B2C M-Pesa Fee Logic (Dynamic)
-        // If Amount <= 100, Fee is 10.
-        // If Amount > 100, Fee is 20.
-
-        let transactionFee = 20;
-        let amountToSend = 0;
-
-        // Check if we can stay in the low fee tier (sending <= 100)
-        // If (Balance - 10) <= 100, then we can maximize withdrawal by paying only 10.
-        if (actualWalletBalance - 10 <= 100) {
-            transactionFee = 10;
-            amountToSend = actualWalletBalance - 10;
-        } else {
-            // Otherwise we are in the high tier
-            transactionFee = 20;
-            amountToSend = actualWalletBalance - 20;
-        }
-
-        if (amountToSend <= 0) {
-            throw new Error(`Insufficient balance to cover withdrawal + KES ${transactionFee} fee.`);
-        }
-
-        console.log(`[Vendor Withdraw] Wallet balance: KES ${actualWalletBalance}, Sending: KES ${amountToSend}, Fee Reserve: KES ${transactionFee}`);
-        console.log(`[Vendor Withdraw] Vendor should receive: KES ${amountToSend}`);
-
-        // Track what we're sending
-        let executedAmount = amountToSend;
-        let feeCharged = transactionFee;
-        let trackingId = '';
+        console.log(`[Vendor Withdraw] Balance: KES ${totalBalance}, Fee: KES ${transactionFee}, Sending: KES ${amountToSend}`);
 
         // Send money from vendor's wallet to their M-Pesa
         const response = await fetch('https://api.intasend.com/api/v1/send-money/initiate/', {
@@ -165,7 +119,7 @@ serve(async (req: Request) => {
                 transactions: [{
                     name: profile.full_name || 'Vendor',
                     account: normalizedPhone,
-                    amount: amountToSend.toFixed(2), // Ensure 2 decimal places
+                    amount: amountToSend.toFixed(2),
                     narrative: 'Solely Kenya withdrawal',
                 }],
             }),
@@ -182,26 +136,12 @@ serve(async (req: Request) => {
         }
 
         if (!response.ok) {
-            // Log full details for debugging
-            console.error(`[Vendor Withdraw] IntaSend API failed. Status: ${response.status}, Response: ${responseText}`);
-            console.error(`[Vendor Withdraw] Request was: wallet_id=${profile.intasend_wallet_id}, amount=${amountToSend}, phone=${normalizedPhone}`);
-
+            console.error(`[Vendor Withdraw] IntaSend API failed. Status: ${response.status}`);
             const errorDetail = result.errors?.[0]?.detail || result.message || result.error || '';
-
-            // DO NOT RETRY - retries can cause fees to be charged multiple times
-            // Just fail and let the user try again with updated balance
             throw new Error(`Withdrawal failed: ${errorDetail || responseText.substring(0, 200)}`);
         } else {
-            // Success! Track the transaction
-            trackingId = result.tracking_id || result.id;
-            console.log(`[Vendor Withdraw] Withdrawal initiated successfully. Tracking ID: ${trackingId}`);
-
-            // Keep the estimated fee - the actual fee will be deducted by IntaSend
-            // feeCharged already set to estimatedFee above
-            console.log(`[Vendor Withdraw] Using estimated fee of KES ${feeCharged} for tracking`);
+            console.log(`[Vendor Withdraw] Withdrawal initiated successfully. Tracking ID: ${result.tracking_id || result.id}`);
         }
-
-        console.log(`[Vendor Withdraw] Withdrawal initiated successfully`);
 
         // Get current balance values for proper update
         const { data: currentBalance } = await supabase
@@ -213,15 +153,16 @@ serve(async (req: Request) => {
         const currentPaidOut = currentBalance?.total_paid_out || 0;
         const currentPending = currentBalance?.pending_balance || 0;
 
-        // Update vendor balance
-        // We must deduct the TOTAL amount (What was sent + The Fee)
-        // IntaSend charged (Amount + Fee) to the wallet. We must mirror that.
-        const totalDeducted = amountToSend + feeCharged;
+        // Determine new Balance.
+        // We deducted (amountToSend + transactionFee) which should equal totalBalance.
+        // So new balance should be 0. 
+        // But to be safe against race conditions, we deduct from 'currentPending'.
+
+        const totalDeducted = amountToSend + transactionFee;
         const newBalance = Math.max(0, currentPending - totalDeducted);
+        const newTotalPaidOut = currentPaidOut + amountToSend;
 
-        // Track total paid out (amount received by vendor, not including fees)
-        const newTotalPaidOut = currentPaidOut + executedAmount;
-
+        // Update vendor balance
         const { error: updateError } = await supabase
             .from('vendor_balances')
             .update({
@@ -239,10 +180,10 @@ serve(async (req: Request) => {
         // Record the payout
         await supabase.from('payouts').insert({
             vendor_id: vendor_id,
-            amount_ksh: executedAmount, // Record the actual amount sent to their phone
+            amount_ksh: amountToSend,
             commission_amount: 0,
             method: 'mpesa',
-            reference: trackingId || `withdraw-${Date.now()}`,
+            reference: result.tracking_id || result.id || `withdraw-${Date.now()}`,
             status: 'paid',
             trigger_type: 'manual',
         });
@@ -250,11 +191,11 @@ serve(async (req: Request) => {
         return new Response(
             JSON.stringify({
                 success: true,
-                amount: totalDeducted, // Total deducted from wallet
-                net_amount: executedAmount, // Amount sent to M-Pesa
-                fee: feeCharged,         // Transaction fee
+                amount: totalDeducted, // Total removed from wallet
+                net_amount: amountToSend, // Actual cash received
+                fee: transactionFee,
                 new_balance: newBalance,
-                message: `KES ${executedAmount.toLocaleString()} sent to your M-Pesa! (Fee: KES ${feeCharged.toLocaleString()})`,
+                message: `KES ${amountToSend.toLocaleString()} sent to your M-Pesa. Fee: KES ${transactionFee}`,
             }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
@@ -269,4 +210,3 @@ serve(async (req: Request) => {
         );
     }
 });
-

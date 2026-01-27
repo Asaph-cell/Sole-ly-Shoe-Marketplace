@@ -117,8 +117,14 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
     const canWithdraw = pendingBalance > 0;
 
     // Dynamic Fee Calculation matching Backend Logic
-    // If (Balance - 10) <= 100, then Fee is 10. Else 20.
-    const estimatedFee = (pendingBalance - 10 <= 100) ? 10 : 20;
+    // 0 - 100: KES 10
+    // 101 - 1000: KES 20
+    // 1001+: KES 100
+    let estimatedFee = 0;
+    if (pendingBalance <= 100) estimatedFee = 10;
+    else if (pendingBalance <= 1000) estimatedFee = 20;
+    else estimatedFee = 100;
+
     const estimatedReceive = Math.max(0, pendingBalance - estimatedFee);
 
     return (
@@ -219,6 +225,15 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Helpful Tip for High Fees */}
+                                {estimatedFee >= 100 && pendingBalance < 5000 && (
+                                    <div className="bg-blue-50 border border-blue-100 rounded-md p-3 text-sm text-blue-700">
+                                        <p className="mb-1">Note: A standard transaction fee of KES 100 applies to this amount.</p>
+                                        <p className="font-medium">💡 Tip: You get better value on withdrawals over KES 5,000.</p>
+                                    </div>
+                                )}
+
                                 <p className="text-sm text-muted-foreground">
                                     Funds will be sent to your registered M-Pesa number instantly.
                                 </p>

@@ -12,7 +12,7 @@ const corsHeaders = {
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const MINIMUM_AUTO_PAYOUT = 250;
+const MINIMUM_AUTO_PAYOUT = 10000;
 const PAYOUT_FEE = 100;
 
 serve(async (req: Request) => {
@@ -88,7 +88,7 @@ serve(async (req: Request) => {
                     normalizedPhone = '254' + normalizedPhone;
                 }
 
-                const netPayout = balance; // Platform pays the KES 100 fee
+                const netPayout = balance - PAYOUT_FEE; // Deduct the KES 100 fee form the balance
 
                 // 3. Call IntaSend API
                 console.log(`[Auto-Payout Checker] Initiating IntaSend transfer to ${normalizedPhone}`);
