@@ -1,5 +1,5 @@
 -- ================================================================
--- SOLELY KENYA - CRON JOBS SETUP
+-- Sole-ly - CRON JOBS SETUP
 -- ================================================================
 -- This SQL script schedules automated order management cron jobs
 -- Run this in your Supabase SQL Editor after deploying Edge Functions

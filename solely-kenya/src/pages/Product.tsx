@@ -247,7 +247,7 @@ const Product = () => {
       {product && (
         <SEO
           title={product.name}
-          description={product.description || `Buy ${product.name} at Solely Kenya. ${product.brand ? `Brand: ${product.brand}.` : ''} Price: KES ${product.price_ksh.toLocaleString()}.`}
+          description={product.description || `Buy ${product.name} at Sole-ly. ${product.brand ? `Brand: ${product.brand}.` : ''} Price: KES ${product.price_ksh.toLocaleString()}.`}
           image={product.images?.[0]}
           type="product"
           canonical={`https://solelyshoes.co.ke/product/${product.id}`}
@@ -476,7 +476,7 @@ const Product = () => {
                       <div className="flex gap-3 mb-3">
                         <WhatsappShareButton
                           url={window.location.href}
-                          title={`Check out ${product.name} on Solely Kenya! KES ${product.price_ksh.toLocaleString()}`}
+                          title={`Check out ${product.name} on Sole-ly! KES ${product.price_ksh.toLocaleString()}`}
                         >
                           <WhatsappIcon size={40} round />
                         </WhatsappShareButton>
@@ -488,7 +488,7 @@ const Product = () => {
                         </FacebookShareButton>
                         <TwitterShareButton
                           url={window.location.href}
-                          title={`Check out ${product.name} on Solely Kenya!`}
+                          title={`Check out ${product.name} on Sole-ly!`}
                           hashtags={["SolelyShoes", "Sneakers"]}
                         >
                           <XIcon size={40} round />
@@ -500,8 +500,8 @@ const Product = () => {
                             if (navigator.share) {
                               try {
                                 await navigator.share({
-                                  title: `Check out ${product.name} on Solely Kenya!`,
-                                  text: `I found this ${product.name} on Solely Kenya. Check it out! #SolelyShoes`,
+                                  title: `Check out ${product.name} on Sole-ly!`,
+                                  text: `I found this ${product.name} on Sole-ly. Check it out! #SolelyShoes`,
                                   url: window.location.href,
                                 });
                                 setShowShareMenu(false);
