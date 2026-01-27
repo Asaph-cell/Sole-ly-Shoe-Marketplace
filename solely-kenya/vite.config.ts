@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "apple-touch-icon.png", "robots.txt"],
+      includeAssets: ["favicon.png", "apple-touch-icon.png", "robots.txt"],
       manifest: {
         name: "Sole-ly Shoes - Kenya's Shoe Marketplace",
         short_name: "Sole-ly",
