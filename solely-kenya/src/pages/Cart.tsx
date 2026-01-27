@@ -97,7 +97,7 @@ const Cart = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             <div className="lg:col-span-2 space-y-3 sm:space-y-4">
               {items.map((item) => (
-                <Card key={item.productId}>
+                <Card key={`${item.productId}-${item.size}-${item.color}`}>
                   <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row gap-4">
                     <div className="w-24 h-24 rounded-lg border overflow-hidden flex-shrink-0">
                       <img
@@ -125,11 +125,11 @@ const Cart = () => {
                             min={1}
                             max={10}
                             value={item.quantity}
-                            onChange={(event) => updateQuantity(item.productId, Number(event.target.value))}
+                            onChange={(event) => updateQuantity(item.productId, Number(event.target.value), item.size, item.color)}
                             className="w-20"
                           />
                         </div>
-                        <Button variant="ghost" size="sm" onClick={() => removeItem(item.productId)}>
+                        <Button variant="ghost" size="sm" onClick={() => removeItem(item.productId, item.size, item.color)}>
                           Remove
                         </Button>
                       </div>
@@ -155,7 +155,7 @@ const Cart = () => {
 
                         <ShoeSizeSelector
                           selectedSize={item.size}
-                          onSizeChange={(size) => updateSize(item.productId, size)}
+                          onSizeChange={(size) => updateSize(item.productId, size, item.size, item.color)}
                         />
 
                         {!item.size && item.availableSizes && item.availableSizes.length > 0 && (

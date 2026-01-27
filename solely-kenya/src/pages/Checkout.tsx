@@ -638,7 +638,7 @@ const Checkout = () => {
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             {items.map((item) => (
-              <div key={item.productId} className="flex justify-between">
+              <div key={`${item.productId}-${item.size}-${item.color}`} className="flex justify-between">
                 <span>{item.quantity} × {item.name}</span>
                 <span>KES {(item.quantity * item.priceKsh).toLocaleString()}</span>
               </div>

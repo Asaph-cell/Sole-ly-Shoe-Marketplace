@@ -19,10 +19,10 @@ interface CartContextValue {
   totalQuantity: number;
   subtotal: number;
   addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
-  updateSize: (productId: string, size: string) => void;
-  updateColor: (productId: string, color: string) => void;
+  removeItem: (productId: string, size?: string, color?: string) => void;
+  updateQuantity: (productId: string, quantity: number, size?: string, color?: string) => void;
+  updateSize: (productId: string, newSize: string, oldSize?: string, color?: string) => void;
+  updateColor: (productId: string, newColor: string, size?: string, oldColor?: string) => void;
   clearCart: () => void;
   hasAllSizes: () => boolean; // Check if all items have sizes selected (if required)
   hasAllColors: () => boolean; // Check if all items have colors selected (if required)
@@ -57,89 +57,159 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
+  /* 
+    Helper to generate unique ID for cart items. 
+    If you add "Product A" twice with same size/color, it merges.
+    If you add "Product A" with different size/color, it's separate.
+  */
+  const getCartItemId = (item: Partial<CartItem>) => {
+    return `${item.productId}-${item.size || 'nosize'}-${item.color || 'nocolor'}`;
+  };
+
   const addItem: CartContextValue["addItem"] = (item, quantity = 1) => {
     setItems((current) => {
+      // Vendor lock check
       if (current.length > 0 && current[0].vendorId !== item.vendorId) {
         toast.error("You can only checkout items from one vendor at a time. Complete your current cart first.");
         return current;
       }
-      const existing = current.find((c) => c.productId === item.productId);
-      if (existing) {
-        return current.map((c) =>
-          c.productId === item.productId
-            ? { ...c, quantity: Math.min(c.quantity + quantity, 10) }
-            : c
-        );
+
+      // Check for existing item with SAME variants
+      const existingIndex = current.findIndex(
+        (c) => c.productId === item.productId && c.size === item.size && c.color === item.color
+      );
+
+      if (existingIndex > -1) {
+        const newItems = [...current];
+        const existingItem = newItems[existingIndex];
+        // Calculate new quantity, capped at 10
+        newItems[existingIndex] = {
+          ...existingItem,
+          quantity: Math.min(existingItem.quantity + quantity, 10)
+        };
+        return newItems;
       }
+
+      // Add new item
       return [...current, { ...item, quantity: Math.max(1, Math.min(quantity, 10)) }];
     });
   };
 
-  const removeItem: CartContextValue["removeItem"] = (productId) => {
-    setItems((current) => current.filter((item) => item.productId !== productId));
+  /* 
+    NOTICE: removeItem, updateQuantity, etc. previously dependent ONLY on productId.
+    They must now depend on the specific item variant (size/color).
+    HOWEVER, the context interface defined `removeItem: (productId: string) => void`.
+    To fix this properly without breaking the interface, we normally change the interface.
+    But for now, I will modify the implementation to find the item, 
+    but wait... the UI calls these functions. 
+    If I change the signature, I must update the UI.
+
+    CURRENT INTERFACE:
+    removeItem: (productId: string) => void;
+    updateQuantity: (productId: string, quantity: number) => void; 
+    
+    This interface is fundamentally broken for variants. 
+    I MUST update the type definition on lines 22-25 first.
+    
+    Let's check line 22-25 in the original file. 
+    Ah, I can't see lines 22-25 in this replace block, but I know they exist from the view_file.
+    
+    I will handle the logic update here assuming I will Fix the interface in a separate or larger edit if needed.
+    Actually, to be safe and clean, I should simply update the logic to potentially remove ALL variants of that product? 
+    No, that's bad UX. "Remove item" usually comes from a specific row in the cart.
+    
+    Strategy: 
+    1. Update the Context Interface to accept `cartItemId` or additional params.
+    2. But since I can't change all usages in one go easily (Cart.tsx, Product.tsx), 
+       I will cheat slightly for now: 
+       If `removeItem` receives a `productId`, it's ambiguous.
+       
+       ACTUALLY, the best way is to standardise that `removeItem` takes `item: CartItem` or we create a synthetic ID.
+       
+       Let's look at `Cart.tsx` later. For now, I'll implement the logic using a `cartItemId` notion internal to the item list,
+       and I'll have to modify the Interface lines in a second pass if I can't fit it here.
+       
+       Wait, this tool allows replacing a block. I can replace the interface definition too if it's in range?
+       Lines 1-187 cover the whole file. 
+       YES. I should update the interface.
+
+       Refactoring Plan:
+       1. Change `removeItem` and `updateQuantity` to take `productId`, `size`, `color`? 
+          Or simpler: specific unique key?
+          Let's stick to passing `item` or `size` and `color` as optional distinguishing params.
+          
+          Actually, let's keep it simple. `items` in cart page will map to rows. Each row has unique size/color.
+          The `CartItem` itself doesn't have a unique ID property.
+          
+          I will add `removeItem(productId, size, color)` signature.
+  */
+
+  const removeItem: CartContextValue["removeItem"] = (productId, size, color) => {
+    setItems((current) => current.filter((item) =>
+      !(item.productId === productId && item.size === size && item.color === color)
+    ));
   };
 
-  const updateQuantity: CartContextValue["updateQuantity"] = (productId, quantity) => {
+  const updateQuantity: CartContextValue["updateQuantity"] = (productId, quantity, size, color) => {
     setItems((current) =>
-      current
-        .map((item) =>
-          item.productId === productId
-            ? { ...item, quantity: Math.max(1, Math.min(quantity, 10)) }
-            : item
-        )
-        .filter((item) => item.quantity > 0)
+      current.map((item) => {
+        if (item.productId === productId && item.size === size && item.color === color) {
+          return { ...item, quantity: Math.max(1, Math.min(quantity, 10)) };
+        }
+        return item;
+      }).filter((item) => item.quantity > 0)
     );
   };
 
-  const updateSize: CartContextValue["updateSize"] = (productId, size) => {
+  const updateSize: CartContextValue["updateSize"] = (productId, newSize, oldSize, color) => {
     setItems((current) =>
-      current.map((item) =>
-        item.productId === productId ? { ...item, size } : item
-      )
+      current.map((item) => {
+        // Find specific item to update
+        if (item.productId === productId && item.size === oldSize && item.color === color) {
+          return { ...item, size: newSize };
+        }
+        return item;
+      })
     );
   };
 
-  const updateColor: CartContextValue["updateColor"] = (productId, color) => {
+  const updateColor: CartContextValue["updateColor"] = (productId, newColor, size, oldColor) => {
     setItems((current) =>
-      current.map((item) =>
-        item.productId === productId ? { ...item, color } : item
-      )
+      current.map((item) => {
+        if (item.productId === productId && item.size === size && item.color === oldColor) {
+          return { ...item, color: newColor };
+        }
+        return item;
+      })
     );
   };
 
   const hasAllSizes = (): boolean => {
     return items.length > 0 && items.every((item) => {
-      // If product has sizes available, require a size selection
       if (item.availableSizes && item.availableSizes.length > 0) {
         return item.size && item.size.trim() !== "";
       }
-      return true; // No sizes available means selection not required
+      return true;
     });
   };
 
   const hasAllColors = (): boolean => {
     return items.length > 0 && items.every((item) => {
-      // If product has colors available, require a color selection
       if (item.availableColors && item.availableColors.length > 0) {
         return item.color && item.color.trim() !== "";
       }
-      return true; // No colors available means selection not required
+      return true;
     });
   };
 
-  // Check if all selected sizes are valid (exist in availableSizes)
   const hasAllValidSizes = (): boolean => {
     return items.every((item) => {
-      // If no availableSizes, consider valid (product may not have size restrictions)
       if (!item.availableSizes || item.availableSizes.length === 0) return true;
-      // If no size selected yet, not valid
       if (!item.size) return false;
-      // Check if selected size is in available sizes
       return item.availableSizes.includes(item.size);
     });
   };
 
-  // Get items where selected size is not in available sizes
   const getInvalidSizeItems = (): CartItem[] => {
     return items.filter((item) => {
       if (!item.availableSizes || item.availableSizes.length === 0) return false;
