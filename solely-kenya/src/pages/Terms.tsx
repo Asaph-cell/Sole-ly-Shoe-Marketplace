@@ -229,7 +229,8 @@ const Terms = () => {
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li>Sole-ly charges a <strong>10% commission</strong> on the product price of each completed sale</li>
                                     <li>Payments are held in escrow until the buyer confirms delivery or the auto-release period expires</li>
-                                    <li><strong>On-Demand Withdrawals:</strong> You can withdraw your earnings to M-Pesa at any time directly from your vendor dashboard</li>
+                                    <li><strong>Withdrawals:</strong> You can withdraw your earnings to M-Pesa at any time. Standard M-Pesa transaction fees apply and are deducted from the withdrawal amount</li>
+                                    <li><strong>Auto-Payout:</strong> If your balance exceeds KES 10,000, the system may automatically process a payout to your registered M-Pesa number</li>
                                     <li><strong>Payout Method:</strong> All payouts are sent via M-Pesa to your registered phone number</li>
                                 </ul>
 
