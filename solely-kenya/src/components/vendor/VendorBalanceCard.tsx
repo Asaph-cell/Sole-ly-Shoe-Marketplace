@@ -116,6 +116,11 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
     const totalPaidOut = balance?.total_paid_out || 0;
     const canWithdraw = pendingBalance > 0;
 
+    // Dynamic Fee Calculation matching Backend Logic
+    // If (Balance - 10) <= 100, then Fee is 10. Else 20.
+    const estimatedFee = (pendingBalance - 10 <= 100) ? 10 : 20;
+    const estimatedReceive = Math.max(0, pendingBalance - estimatedFee);
+
     return (
         <>
             <Card className="border-0 bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-xl overflow-hidden">
@@ -203,13 +208,13 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
                                     </div>
                                     <div className="flex justify-between items-center mb-2">
                                         <span className="text-sm text-muted-foreground">Transaction Fee</span>
-                                        <span className="font-medium text-red-500">- KES 20</span>
+                                        <span className="font-medium text-red-500">- KES {estimatedFee}</span>
                                     </div>
                                     <div className="border-t pt-2 mt-2">
                                         <div className="flex justify-between items-center">
                                             <span className="text-sm font-semibold text-muted-foreground">You'll Receive</span>
                                             <span className="text-xl font-bold text-emerald-600">
-                                                KES {Math.max(0, pendingBalance - 20).toLocaleString()}
+                                                KES {estimatedReceive.toLocaleString()}
                                             </span>
                                         </div>
                                     </div>
