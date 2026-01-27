@@ -6,14 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Filter, X } from "lucide-react";
+import { Filter, X, Search } from "lucide-react";
 import { CATEGORIES, getCategoryName } from "@/lib/categories";
 import { ACCESSORY_TYPES, getAccessoryTypeName } from "@/lib/accessoryTypes";
 import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { SEO } from "@/components/SEO";
+import { Input } from "@/components/ui/input";
 
 const Shop = () => {
   const [searchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState("");
   const [products, setProducts] = useState<any[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +58,7 @@ const Shop = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [products, priceRange, selectedBrand, selectedCategory, selectedSize, selectedCondition, selectedAccessoryType, sortBy]);
+  }, [products, searchQuery, priceRange, selectedBrand, selectedCategory, selectedSize, selectedCondition, selectedAccessoryType, sortBy]);
 
   const fetchProducts = async () => {
     try {
@@ -108,6 +110,17 @@ const Shop = () => {
   const applyFilters = () => {
     let filtered = [...products];
 
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(
+        (p) =>
+          p.name?.toLowerCase().includes(query) ||
+          p.brand?.toLowerCase().includes(query) ||
+          p.description?.toLowerCase().includes(query)
+      );
+    }
+
     // Price filter
     filtered = filtered.filter(
       (p) => p.price_ksh >= priceRange[0] && p.price_ksh <= priceRange[1]
@@ -157,6 +170,7 @@ const Shop = () => {
   };
 
   const resetFilters = () => {
+    setSearchQuery("");
     setPriceRange([0, 20000]);
     setSelectedBrand("all");
     setSelectedCategory("all");
@@ -497,19 +511,32 @@ const Shop = () => {
 
           {/* Products Grid */}
           <main className="lg:col-span-3">
-            {/* Sort Options */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
-              <p className="text-sm sm:text-base text-foreground font-medium">Showing {filteredProducts.length} of {products.length} results</p>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-full sm:w-[200px] h-11">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Newest First</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
-                </SelectContent>
-              </Select>
+            {/* Search and Sort Options */}
+            <div className="flex flex-col gap-4 mb-6">
+              {/* Search Bar */}
+              <div className="relative w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name, brand, or description..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 h-11 w-full"
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+                <p className="text-sm sm:text-base text-foreground font-medium">Showing {filteredProducts.length} of {products.length} results</p>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-full sm:w-[200px] h-11">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest First</SelectItem>
+                    <SelectItem value="price-low">Price: Low to High</SelectItem>
+                    <SelectItem value="price-high">Price: High to Low</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Products */}
