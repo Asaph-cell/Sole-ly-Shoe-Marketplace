@@ -120,24 +120,30 @@ serve(async (req: Request) => {
             normalizedPhone = '254' + normalizedPhone;
         }
 
-        // CRITICAL FIX: Send FULL wallet balance
-        // IntaSend automatically deducts their B2C M-Pesa fee from the wallet BEFORE sending
-        // So if wallet has KES 227 and fee is KES 20:
-        // - IntaSend deducts: 227 - 20 = 207
-        // - Then sends KES 207 to M-Pesa
-        // 
-        // We send the FULL balance and IntaSend handles the fee automatically
-        const amountToSend = actualWalletBalance;
+        // IntaSend B2C M-Pesa Fee Logic (Dynamic)
+        // If Amount <= 100, Fee is 10.
+        // If Amount > 100, Fee is 20.
 
-        // IntaSend B2C M-Pesa Fee - flat KES 20
-        const transactionFee = 20;
+        let transactionFee = 20;
+        let amountToSend = 0;
 
-        if (amountToSend <= transactionFee) {
-            throw new Error('Balance too low for withdrawal');
+        // Check if we can stay in the low fee tier (sending <= 100)
+        // If (Balance - 10) <= 100, then we can maximize withdrawal by paying only 10.
+        if (actualWalletBalance - 10 <= 100) {
+            transactionFee = 10;
+            amountToSend = actualWalletBalance - 10;
+        } else {
+            // Otherwise we are in the high tier
+            transactionFee = 20;
+            amountToSend = actualWalletBalance - 20;
         }
 
-        console.log(`[Vendor Withdraw] Wallet balance: KES ${actualWalletBalance}, Sending: KES ${amountToSend}, Fee: KES ${transactionFee}`);
-        console.log(`[Vendor Withdraw] Vendor should receive: KES ${amountToSend - transactionFee}`);
+        if (amountToSend <= 0) {
+            throw new Error(`Insufficient balance to cover withdrawal + KES ${transactionFee} fee.`);
+        }
+
+        console.log(`[Vendor Withdraw] Wallet balance: KES ${actualWalletBalance}, Sending: KES ${amountToSend}, Fee Reserve: KES ${transactionFee}`);
+        console.log(`[Vendor Withdraw] Vendor should receive: KES ${amountToSend}`);
 
         // Track what we're sending
         let executedAmount = amountToSend;
@@ -159,7 +165,7 @@ serve(async (req: Request) => {
                 transactions: [{
                     name: profile.full_name || 'Vendor',
                     account: normalizedPhone,
-                    amount: amountToSend,
+                    amount: amountToSend.toFixed(2), // Ensure 2 decimal places
                     narrative: 'Solely Kenya withdrawal',
                 }],
             }),
