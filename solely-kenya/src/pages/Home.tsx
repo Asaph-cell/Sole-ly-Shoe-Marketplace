@@ -14,6 +14,13 @@ import { MoreHorizontal } from "lucide-react";
 import { PendingOrdersBanner } from "@/components/vendor/PendingOrdersBanner";
 import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { SEO } from "@/components/SEO";
+// Swiper
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, Autoplay, FreeMode } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import 'swiper/css/free-mode';
 
 
 const Home = () => {
@@ -365,31 +372,47 @@ const Home = () => {
               <Link to="/shop">View All</Link>
             </Button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+          <div className="relative group">
             {loading ? (
-              <div className="col-span-full">
+              <div className="flex justify-center p-8">
                 <SneakerLoader message="Loading new arrivals..." size="sm" fullScreen={false} />
               </div>
             ) : featuredProducts.length === 0 ? (
-              <div className="col-span-full text-center py-8 text-muted-foreground">
+              <div className="text-center py-8 text-muted-foreground">
                 No products available yet.
               </div>
             ) : (
-              featuredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  id={product.id}
-                  name={product.name}
-                  price={product.price_ksh}
-                  image={product.images?.[0] || "/placeholder.svg"}
-                  brand={product.brand}
-                  averageRating={product.averageRating}
-                  reviewCount={product.reviewCount}
-                  createdAt={product.created_at}
-                  condition={product.condition}
-                  videoUrl={product.video_url}
-                />
-              ))
+              <Swiper
+                modules={[Navigation, Autoplay, FreeMode]}
+                spaceBetween={24}
+                slidesPerView={2}
+                navigation
+                autoplay={{ delay: 5000, disableOnInteraction: false }}
+                freeMode={true}
+                breakpoints={{
+                  640: { slidesPerView: 2, spaceBetween: 20 },
+                  768: { slidesPerView: 3, spaceBetween: 24 },
+                  1024: { slidesPerView: 4, spaceBetween: 24 },
+                }}
+                className="pb-8 !px-1 select-none"
+              >
+                {featuredProducts.map((product) => (
+                  <SwiperSlide key={product.id} className="h-auto py-2">
+                    <ProductCard
+                      id={product.id}
+                      name={product.name}
+                      price={product.price_ksh}
+                      image={product.images?.[0] || "/placeholder.svg"}
+                      brand={product.brand}
+                      averageRating={product.averageRating}
+                      reviewCount={product.reviewCount}
+                      createdAt={product.created_at}
+                      condition={product.condition}
+                      videoUrl={product.video_url}
+                    />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
             )}
           </div>
         </div>

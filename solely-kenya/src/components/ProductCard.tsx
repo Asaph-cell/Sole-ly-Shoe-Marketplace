@@ -5,6 +5,8 @@ import { Card, CardContent, CardFooter } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Star, Play } from "lucide-react";
 import { motion } from "framer-motion";
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import 'react-lazy-load-image-component/src/effects/blur.css';
 
 interface ProductCardProps {
   id: number;
@@ -99,13 +101,14 @@ const ProductCard = ({
               className="aspect-square overflow-hidden bg-white relative"
               onClick={handleMobileTap}
             >
-              {/* Image (always visible as base layer) */}
-              <img
+              {/* Image (always visible as base layer) - with blur lazy load */}
+              <LazyLoadImage
                 src={image}
                 alt={name}
+                effect="blur"
                 className={`w-full h-full object-cover transition-opacity duration-300 ${(isHovering || isPlaying) && videoUrl ? "opacity-0" : "opacity-100"
                   }`}
-                loading="lazy"
+                wrapperClassName="w-full h-full"
               />
 
               {/* Video (lazy loaded, shown on hover/tap) */}

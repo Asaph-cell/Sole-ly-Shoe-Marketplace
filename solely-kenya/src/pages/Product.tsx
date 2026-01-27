@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Star, Shield, ArrowLeft, Bell, BellOff, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Star, Shield, ArrowLeft, Bell, BellOff, X, ChevronLeft, ChevronRight, Share2, Instagram } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -13,6 +13,23 @@ import { useAuth } from "@/hooks/useAuth";
 import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { SEO } from "@/components/SEO";
 import { ShoeSizeChart } from "@/components/ShoeSizeChart";
+import { PhotoProvider, PhotoView } from 'react-photo-view';
+import 'react-photo-view/dist/react-photo-view.css';
+import {
+  WhatsappShareButton,
+  FacebookShareButton,
+  TwitterShareButton,
+  WhatsappIcon,
+  FacebookIcon,
+  XIcon,
+} from 'react-share';
+// Swiper
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { FreeMode, Navigation, Thumbs } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/free-mode';
+import 'swiper/css/navigation';
+import 'swiper/css/thumbs';
 
 // Condition labels for display - with footwear and accessory-specific descriptions
 const conditionLabels: Record<string, { label: string; color: string; footwearDesc: string; accessoryDesc: string }> = {
@@ -43,8 +60,7 @@ const Product = () => {
   const [priceAlertActive, setPriceAlertActive] = useState(false);
   const [alertLoading, setAlertLoading] = useState(false);
   const [videoAspect, setVideoAspect] = useState<"portrait" | "landscape" | "square">("square");
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [showShareMenu, setShowShareMenu] = useState(false);
   const { addItem, items } = useCart();
 
   // Scroll to top when page loads
@@ -267,75 +283,92 @@ const Product = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
           <div className="space-y-4">
-            {/* Mobile Gallery - Card-based design with horizontal carousel */}
+            {/* Mobile Gallery - with PhotoView for zoom and swipe */}
             <div className="md:hidden">
-              {/* Main Image Card */}
-              <div
-                className="aspect-square overflow-hidden rounded-4xl shadow-sm bg-muted relative cursor-pointer"
-                onClick={() => {
-                  setLightboxIndex(selectedImage === -1 ? 0 : selectedImage);
-                  setLightboxOpen(true);
-                }}
-              >
-                {selectedImage === -1 && product.video_url ? (
-                  <video
-                    src={product.video_url}
-                    className="w-full h-full object-cover"
-                    muted
-                    loop
-                    playsInline
-                    autoPlay
-                    controls={false}
-                  />
-                ) : (
-                  <img
-                    src={product.images?.[selectedImage === -1 ? 0 : selectedImage] || "/placeholder.svg"}
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                  />
-                )}
-              </div>
-
-              {/* Horizontal Thumbnail Carousel */}
-              <div className="flex justify-center overflow-x-auto gap-3 mt-4 pb-2 scrollbar-hide snap-x snap-mandatory">
-                {/* Video thumbnail */}
-                {product.video_url && (
-                  <button
-                    onClick={() => setSelectedImage(-1)}
-                    className={`aspect-square w-20 shrink-0 overflow-hidden rounded-2xl shadow-sm transition-all snap-start ${selectedImage === -1 ? "ring-2 ring-primary ring-offset-2" : ""
-                      }`}
-                  >
-                    <div className="relative w-full h-full">
-                      <img
-                        src={product.images?.[0] || "/placeholder.svg"}
-                        alt="Video preview"
-                        className="w-full h-full object-cover opacity-80"
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                        <div className="bg-purple-500 rounded-full p-1">
-                          <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z" />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                )}
-                {/* Image thumbnails */}
-                {product.images?.map((image: string, index: number) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedImage(index)}
-                    className={`aspect-square w-20 shrink-0 overflow-hidden rounded-2xl shadow-sm transition-all snap-start ${selectedImage === index ? "ring-2 ring-primary ring-offset-2" : ""
-                      }`}
-                  >
-                    <img
-                      src={image}
-                      alt={`Product view ${index + 1}`}
+              <PhotoProvider>
+                {/* Main Image Card - Clickable to open lightbox */}
+                <div className="aspect-square overflow-hidden rounded-4xl shadow-sm bg-muted relative">
+                  {selectedImage === -1 && product.video_url ? (
+                    <video
+                      src={product.video_url}
                       className="w-full h-full object-cover"
+                      muted
+                      loop
+                      playsInline
+                      autoPlay
+                      controls
                     />
-                  </button>
+                  ) : (
+                    <PhotoView src={product.images?.[selectedImage === -1 ? 0 : selectedImage] || "/placeholder.svg"}>
+                      <img
+                        src={product.images?.[selectedImage === -1 ? 0 : selectedImage] || "/placeholder.svg"}
+                        alt={product.name}
+                        className="w-full h-full object-cover cursor-pointer"
+                      />
+                    </PhotoView>
+                  )}
+                </div>
+
+                {/* Hidden PhotoViews for all other images to enable swiping */}
+                {product.images?.slice(1).map((image: string, index: number) => (
+                  <PhotoView key={index} src={image}>
+                    <span style={{ display: 'none' }} />
+                  </PhotoView>
                 ))}
+              </PhotoProvider>
+
+              {/* Swiper Thumbnail Carousel */}
+              <div className="mt-4">
+                <Swiper
+                  spaceBetween={12}
+                  slidesPerView="auto"
+                  freeMode={true}
+                  watchSlidesProgress={true}
+                  modules={[FreeMode, Navigation, Thumbs]}
+                  className="w-full !px-1"
+                >
+                  {/* Video thumbnail */}
+                  {product.video_url && (
+                    <SwiperSlide className="!w-20 !h-20">
+                      <button
+                        onClick={() => setSelectedImage(-1)}
+                        className={`w-full h-full overflow-hidden rounded-2xl shadow-sm transition-all ${selectedImage === -1 ? "ring-2 ring-primary ring-offset-2" : ""
+                          }`}
+                      >
+                        <div className="relative w-full h-full">
+                          <img
+                            src={product.images?.[0] || "/placeholder.svg"}
+                            alt="Video preview"
+                            className="w-full h-full object-cover opacity-80"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                            <div className="bg-purple-500 rounded-full p-1">
+                              <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z" />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    </SwiperSlide>
+                  )}
+                  {/* Image thumbnails */}
+                  {product.images?.map((image: string, index: number) => (
+                    <SwiperSlide key={index} className="!w-20 !h-20">
+                      <button
+                        onClick={() => setSelectedImage(index)}
+                        className={`w-full h-full overflow-hidden rounded-2xl shadow-sm transition-all ${selectedImage === index ? "ring-2 ring-primary ring-offset-2" : ""
+                          }`}
+                      >
+                        <img
+                          src={image}
+                          alt={`Product view ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
               </div>
             </div>
 
@@ -423,7 +456,76 @@ const Product = () => {
           <div className="space-y-6">
             <div>
               {product.brand && <Badge className="mb-2">{product.brand}</Badge>}
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">{product.name}</h1>
+              <div className="flex items-start justify-between gap-2">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">{product.name}</h1>
+                {/* Share Button */}
+                <div className="relative">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0 rounded-full"
+                    onClick={() => setShowShareMenu(!showShareMenu)}
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </Button>
+
+                  {/* Share Menu Popup */}
+                  {showShareMenu && (
+                    <div className="absolute right-0 top-12 z-50 bg-card border border-border rounded-xl shadow-lg p-4 min-w-[200px]">
+                      <p className="text-sm font-medium mb-3">Share this product</p>
+                      <div className="flex gap-3 mb-3">
+                        <WhatsappShareButton
+                          url={window.location.href}
+                          title={`Check out ${product.name} on Solely Kenya! KES ${product.price_ksh.toLocaleString()}`}
+                        >
+                          <WhatsappIcon size={40} round />
+                        </WhatsappShareButton>
+                        <FacebookShareButton
+                          url={window.location.href}
+                          hashtag="#SolelyShoes"
+                        >
+                          <FacebookIcon size={40} round />
+                        </FacebookShareButton>
+                        <TwitterShareButton
+                          url={window.location.href}
+                          title={`Check out ${product.name} on Solely Kenya!`}
+                          hashtags={["SolelyShoes", "Sneakers"]}
+                        >
+                          <XIcon size={40} round />
+                        </TwitterShareButton>
+                        <button
+                          className="w-[40px] h-[40px] rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center text-white shrink-0 hover:opacity-90 transition-opacity"
+                          onClick={() => {
+                            navigator.clipboard.writeText(window.location.href);
+                            toast.success("Link copied! Open Instagram to paste in story/DM");
+                            window.open("https://instagram.com", "_blank");
+                            setShowShareMenu(false);
+                          }}
+                          title="Share on Instagram (Copy Link)"
+                        >
+                          <Instagram size={20} />
+                        </button>
+                      </div>
+                      <button
+                        className="w-full text-sm text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors"
+                        onClick={() => {
+                          navigator.clipboard.writeText(window.location.href);
+                          toast.success("Link copied to clipboard!");
+                          setShowShareMenu(false);
+                        }}
+                      >
+                        📋 Copy Link
+                      </button>
+                      <button
+                        className="w-full text-sm text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
+                        onClick={() => setShowShareMenu(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
               <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-4 sm:mb-6">KES {product.price_ksh.toLocaleString()}</p>
               {product.stock > 0 ? (
                 <Badge variant="default">In Stock ({product.stock} available)</Badge>
@@ -648,52 +750,6 @@ const Product = () => {
           </Button>
         </div>
       </div>
-
-      {/* Fullscreen Lightbox Modal */}
-      {lightboxOpen && (
-        <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
-          {/* Close button */}
-          <button
-            onClick={() => setLightboxOpen(false)}
-            className="absolute top-4 right-4 z-10 bg-white/20 hover:bg-white/40 rounded-full p-2"
-          >
-            <X className="h-6 w-6 text-white" />
-          </button>
-
-          {/* Image counter */}
-          <div className="absolute top-4 left-4 bg-black/50 text-white text-sm px-3 py-1 rounded-full">
-            {lightboxIndex + 1} / {product.images?.length || 1}
-          </div>
-
-          {/* Previous button */}
-          {product.images?.length > 1 && (
-            <button
-              onClick={() => setLightboxIndex(prev => prev > 0 ? prev - 1 : (product.images?.length || 1) - 1)}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 rounded-full p-2 z-10"
-            >
-              <ChevronLeft className="h-8 w-8 text-white" />
-            </button>
-          )}
-
-          {/* Next button */}
-          {product.images?.length > 1 && (
-            <button
-              onClick={() => setLightboxIndex(prev => prev < (product.images?.length || 1) - 1 ? prev + 1 : 0)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 rounded-full p-2 z-10"
-            >
-              <ChevronRight className="h-8 w-8 text-white" />
-            </button>
-          )}
-
-          {/* Zoomable image */}
-          <img
-            src={product.images?.[lightboxIndex] || "/placeholder.svg"}
-            alt={`${product.name} - ${lightboxIndex + 1}`}
-            className="max-w-full max-h-full object-contain"
-            style={{ touchAction: 'pinch-zoom' }}
-          />
-        </div>
-      )}
     </div>
   );
 };
