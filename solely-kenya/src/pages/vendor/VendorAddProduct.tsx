@@ -108,19 +108,26 @@ const VendorAddProduct = () => {
       const colorsArray = formData.colors.split(",").map((c) => c.trim()).filter(Boolean);
       const keyFeaturesArray = formData.key_features.split(",").map((s) => s.trim()).filter(Boolean);
 
-      // Validation: Shoes must have sizes and colors
+      // Strict Validation for Mandatory Fields
+      if (!formData.name.trim()) throw new Error("Product name is required");
+      if (!formData.description.trim()) throw new Error("Description is required");
+      if (!formData.price_ksh || parseInt(formData.price_ksh) <= 0) throw new Error("Valid price is required");
+      if (!formData.stock || parseInt(formData.stock) < 0) throw new Error("Valid stock number is required");
+      if (!formData.category) throw new Error("Category is required");
+
+      // Validation: Shoes (everything except accessories) MUST have sizes and colors
       if (formData.category !== "accessories") {
         if (sizesArray.length === 0) {
-          throw new Error("Please add at least one size for shoes");
+          throw new Error("Please add at least one size for this shoe");
         }
         if (colorsArray.length === 0) {
-          throw new Error("Please add at least one color for shoes");
+          throw new Error("Please add at least one color for this shoe");
         }
       }
 
       // Validation: At least one image is required
       if (imageFiles.length === 0) {
-        throw new Error("Please upload at least one image of the product");
+        throw new Error("Please upload at least one image of the shoe");
       }
 
       // Upload images
@@ -146,7 +153,7 @@ const VendorAddProduct = () => {
 
       if (error) throw error;
 
-      toast.success("Product is now live on the marketplace!");
+      toast.success("Shoe listed successfully! It is now live on the marketplace.");
       navigate("/vendor/products");
     } catch (error: any) {
       toast.error(error.message);
@@ -165,16 +172,16 @@ const VendorAddProduct = () => {
       <div className="flex">
         <VendorSidebar />
         <main className="flex-1 p-8">
-          <h1 className="text-3xl font-bold mb-8">Add New Product</h1>
+          <h1 className="text-3xl font-bold mb-8">Add New Shoe</h1>
 
           <Card className="max-w-2xl">
             <CardHeader>
-              <CardTitle>Product Details</CardTitle>
+              <CardTitle>Shoe Details</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <Label htmlFor="name">Product Name</Label>
+                  <Label htmlFor="name">Shoe Name *</Label>
                   <Input
                     id="name"
                     value={formData.name}
@@ -184,18 +191,19 @@ const VendorAddProduct = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">Description *</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={4}
+                    required
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="price">Price (Ksh)</Label>
+                    <Label htmlFor="price">Price (Ksh) *</Label>
                     <Input
                       id="price"
                       type="number"
@@ -206,7 +214,7 @@ const VendorAddProduct = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="stock">Stock</Label>
+                    <Label htmlFor="stock">Stock *</Label>
                     <Input
                       id="stock"
                       type="number"
@@ -227,7 +235,7 @@ const VendorAddProduct = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="category">Category / Type of Shoe</Label>
+                  <Label htmlFor="category">Category / Type *</Label>
                   <Select
                     value={formData.category}
                     onValueChange={(value) => setFormData({ ...formData, category: value })}
@@ -236,7 +244,7 @@ const VendorAddProduct = () => {
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {CATEGORIES.map((cat) => (
+                      {CATEGORIES.filter(c => c.key !== "accessories").map((cat) => (
                         <SelectItem key={cat.key} value={cat.key}>
                           {cat.name}
                         </SelectItem>
@@ -346,7 +354,7 @@ const VendorAddProduct = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="images">Product Images (Max 4)</Label>
+                  <Label htmlFor="images">Shoe Images (Max 4)</Label>
                   <Input
                     id="images"
                     type="file"
@@ -392,12 +400,12 @@ const VendorAddProduct = () => {
 
                 <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
                   <p className="text-sm text-green-800">
-                    ✅ Your product will go <strong>live immediately</strong> after submission! Make sure your details and images are accurate to attract more buyers.
+                    ✅ Your shoe will go <strong>live immediately</strong> after submission! Make sure your details and images are accurate to attract more buyers.
                   </p>
                 </div>
 
                 <Button type="submit" className="w-full" disabled={submitting || uploading}>
-                  {uploading ? "Uploading Images..." : submitting ? "Adding Product..." : "Add Product"}
+                  {uploading ? "Uploading Images..." : submitting ? "Adding Shoe..." : "Add Shoe"}
                 </Button>
               </form>
             </CardContent>

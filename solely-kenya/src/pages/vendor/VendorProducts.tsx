@@ -172,7 +172,7 @@ const VendorProducts = () => {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-2">
               <Button className="w-full sm:w-auto" onClick={() => navigate("/vendor/add-product")}>
                 <Package className="h-4 w-4 mr-2" />
-                Add Product
+                Add Shoe
               </Button>
               <Button variant="outline" className="w-full sm:w-auto" onClick={() => navigate("/vendor/add-accessory")}>
                 <ShoppingBag className="h-4 w-4 mr-2" />

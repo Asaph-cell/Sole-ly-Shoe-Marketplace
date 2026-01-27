@@ -29,7 +29,7 @@ interface AlertCounts {
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/vendor/dashboard", alertKey: null, action: null },
   { icon: Package, label: "My Products", path: "/vendor/products", alertKey: null, action: null },
-  { icon: PlusCircle, label: "Add Product", path: "/vendor/add-product", alertKey: null, action: null },
+  { icon: PlusCircle, label: "Add Shoe", path: "/vendor/add-product", alertKey: null, action: null },
   { icon: ShoppingBag, label: "Add Accessory", path: "/vendor/add-accessory", alertKey: null, action: null },
   { icon: ShoppingBag, label: "Orders", path: "/vendor/orders", alertKey: "pendingOrders" as const, action: null },
   { icon: Star, label: "Ratings", path: "/vendor/ratings", alertKey: null, action: null },

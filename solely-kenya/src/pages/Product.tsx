@@ -495,13 +495,30 @@ const Product = () => {
                         </TwitterShareButton>
                         <button
                           className="w-[40px] h-[40px] rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center text-white shrink-0 hover:opacity-90 transition-opacity"
-                          onClick={() => {
+                          onClick={async () => {
+                            // Try native share first (Mobile experience)
+                            if (navigator.share) {
+                              try {
+                                await navigator.share({
+                                  title: `Check out ${product.name} on Solely Kenya!`,
+                                  text: `I found this ${product.name} on Solely Kenya. Check it out! #SolelyShoes`,
+                                  url: window.location.href,
+                                });
+                                setShowShareMenu(false);
+                                return;
+                              } catch (err) {
+                                console.log("Native share cancelled or failed", err);
+                                // If user cancelled, just return. If failed, fallback.
+                              }
+                            }
+
+                            // Desktop Fallback: Copy link & Open Instagram
                             navigator.clipboard.writeText(window.location.href);
-                            toast.success("Link copied! Open Instagram to paste in story/DM");
+                            toast.success("Link copied! Paste it in your Instagram Story/DM");
                             window.open("https://instagram.com", "_blank");
                             setShowShareMenu(false);
                           }}
-                          title="Share on Instagram (Copy Link)"
+                          title="Share on Instagram"
                         >
                           <Instagram size={20} />
                         </button>
