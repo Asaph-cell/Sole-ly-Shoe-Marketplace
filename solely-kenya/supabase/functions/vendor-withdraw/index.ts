@@ -214,9 +214,9 @@ serve(async (req: Request) => {
         const currentPending = currentBalance?.pending_balance || 0;
 
         // Update vendor balance
-        // We deduct the full wallet balance that was sent
-        // IntaSend deducts their fee automatically, but we deduct the full amount from our records
-        const totalDeducted = amountToSend; // Full balance sent
+        // We must deduct the TOTAL amount (What was sent + The Fee)
+        // IntaSend charged (Amount + Fee) to the wallet. We must mirror that.
+        const totalDeducted = amountToSend + feeCharged;
         const newBalance = Math.max(0, currentPending - totalDeducted);
 
         // Track total paid out (amount received by vendor, not including fees)
