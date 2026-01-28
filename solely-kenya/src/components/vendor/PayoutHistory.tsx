@@ -26,6 +26,7 @@ export function PayoutHistory({ vendorId }: { vendorId: string }) {
                 .from('payouts')
                 .select('*')
                 .eq('vendor_id', vendorId)
+                .is('order_id', null)
                 .order('requested_at', { ascending: false })
                 .limit(20);
 
