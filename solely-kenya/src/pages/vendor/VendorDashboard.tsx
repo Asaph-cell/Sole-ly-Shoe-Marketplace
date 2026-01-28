@@ -131,7 +131,17 @@ const VendorDashboard = () => {
       .reduce((sum: number, p: any) => sum + (p.amount_ksh || 0), 0);
 
     // Available balance = earnings from completed orders minus already paid out
-    const availableBalance = totalEarnings - paidOut;
+    // const availableBalance = totalEarnings - paidOut;
+
+    // FETCH REAL AUTHORITATIVE BALANCE FROM DB
+    // This ensures dashboard matches the actual wallet balance
+    const { data: balanceData } = await supabase
+      .from("vendor_balances")
+      .select("pending_balance")
+      .eq("vendor_id", user?.id)
+      .single();
+
+    const authoritativePending = balanceData?.pending_balance || 0;
 
     setStats({
       totalProducts: products?.length || 0,
@@ -140,7 +150,7 @@ const VendorDashboard = () => {
       ordersReceived: ordersCount,
       totalEarned: totalEarnings,  // Total earnings from completed orders
       paidOut: paidOut,           // Money sent to M-Pesa
-      pendingBalance: availableBalance,  // Waiting to be paid out
+      pendingBalance: authoritativePending,  // ACTUAL WALLET BALANCE
       pendingOrders: pendingOrdersCount
     });
   };
