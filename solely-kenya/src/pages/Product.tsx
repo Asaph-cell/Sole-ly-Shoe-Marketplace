@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Star, Shield, ArrowLeft, Bell, BellOff, X, ChevronLeft, ChevronRight, Share2, Instagram } from "lucide-react";
+import { Star, Shield, ArrowLeft, Bell, BellOff, X, ChevronLeft, ChevronRight, Share2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -493,35 +493,7 @@ const Product = () => {
                         >
                           <XIcon size={40} round />
                         </TwitterShareButton>
-                        <button
-                          className="w-[40px] h-[40px] rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center text-white shrink-0 hover:opacity-90 transition-opacity"
-                          onClick={async () => {
-                            // Try native share first (Mobile experience)
-                            if (navigator.share) {
-                              try {
-                                await navigator.share({
-                                  title: `Check out ${product.name} on Sole-ly!`,
-                                  text: `I found this ${product.name} on Sole-ly. Check it out! #SolelyShoes`,
-                                  url: window.location.href,
-                                });
-                                setShowShareMenu(false);
-                                return;
-                              } catch (err) {
-                                console.log("Native share cancelled or failed", err);
-                                // If user cancelled, just return. If failed, fallback.
-                              }
-                            }
 
-                            // Desktop Fallback: Copy link & Open Instagram
-                            navigator.clipboard.writeText(window.location.href);
-                            toast.success("Link copied! Paste it in your Instagram Story/DM");
-                            window.open("https://instagram.com", "_blank");
-                            setShowShareMenu(false);
-                          }}
-                          title="Share on Instagram"
-                        >
-                          <Instagram size={20} />
-                        </button>
                       </div>
                       <button
                         className="w-full text-sm text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors"
