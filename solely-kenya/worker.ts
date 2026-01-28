@@ -38,7 +38,7 @@ async function handleProductRequest(request: Request, env: Env, productId: strin
 
     // 2. Fetch data from Supabase
     const SUPABASE_URL = env.VITE_SUPABASE_URL || "https://cqcklvdblhcdowisjnsf.supabase.co";
-    const SUPABASE_ANON_KEY = env.VITE_SUPABASE_PUBLISHABLE_KEY || ""; // Fallback handled later
+    const SUPABASE_ANON_KEY = env.VITE_SUPABASE_PUBLISHABLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxY2tsdmRibGhjZG93aXNqbnNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3Njc0MDMsImV4cCI6MjA3NzM0MzQwM30.XEDVTzEQIG2LyEVkVV88vNIJTqVHX6aHXut6BVSP6-g";
 
     if (!SUPABASE_ANON_KEY) {
         return response;
