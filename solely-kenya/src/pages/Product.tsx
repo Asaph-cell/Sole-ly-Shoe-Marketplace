@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Star, Shield, ArrowLeft, Bell, BellOff, X, ChevronLeft, ChevronRight, Share2 } from "lucide-react";
+import { Star, Shield, ArrowLeft, Bell, BellOff, X, ChevronLeft, ChevronRight, Share2, Copy } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -471,18 +471,21 @@ const Product = () => {
 
                   {/* Share Menu Popup */}
                   {showShareMenu && (
-                    <div className="absolute right-0 top-12 z-50 bg-card border border-border rounded-xl shadow-lg p-4 min-w-[200px]">
-                      <p className="text-sm font-medium mb-3">Share this product</p>
-                      <div className="flex gap-3 mb-3">
+                    <div className="absolute right-0 top-12 z-50 bg-card border border-border rounded-xl shadow-lg p-4 min-w-[240px] animate-in fade-in zoom-in-95 duration-200">
+                      <p className="text-sm font-medium mb-4 text-center">Share this product</p>
+
+                      <div className="flex items-center justify-center gap-4 mb-4">
                         <WhatsappShareButton
                           url={window.location.href}
                           title={`Check out ${product.name} on Sole-ly! KES ${product.price_ksh.toLocaleString()}`}
+                          className="hover:scale-110 transition-transform"
                         >
                           <WhatsappIcon size={40} round />
                         </WhatsappShareButton>
                         <FacebookShareButton
                           url={window.location.href}
                           hashtag="#SolelyShoes"
+                          className="hover:scale-110 transition-transform"
                         >
                           <FacebookIcon size={40} round />
                         </FacebookShareButton>
@@ -490,27 +493,37 @@ const Product = () => {
                           url={window.location.href}
                           title={`Check out ${product.name} on Sole-ly!`}
                           hashtags={["SolelyShoes", "Sneakers"]}
+                          className="hover:scale-110 transition-transform"
                         >
                           <XIcon size={40} round />
                         </TwitterShareButton>
 
                       </div>
-                      <button
-                        className="w-full text-sm text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors"
-                        onClick={() => {
-                          navigator.clipboard.writeText(window.location.href);
-                          toast.success("Link copied to clipboard!");
-                          setShowShareMenu(false);
-                        }}
-                      >
-                        📋 Copy Link
-                      </button>
-                      <button
-                        className="w-full text-sm text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
-                        onClick={() => setShowShareMenu(false)}
-                      >
-                        Cancel
-                      </button>
+
+                      <div className="space-y-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full justify-start h-auto py-2"
+                          onClick={() => {
+                            navigator.clipboard.writeText(window.location.href);
+                            toast.success("Link copied to clipboard!");
+                            setShowShareMenu(false);
+                          }}
+                        >
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copy Link
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full justify-start h-auto py-2 text-muted-foreground hover:text-foreground"
+                          onClick={() => setShowShareMenu(false)}
+                        >
+                          <X className="h-4 w-4 mr-2" />
+                          Cancel
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </div>
