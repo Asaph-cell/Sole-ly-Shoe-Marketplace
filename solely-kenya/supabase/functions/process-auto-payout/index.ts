@@ -38,12 +38,16 @@ serve(async (req: Request) => {
         // Get vendor details
         const { data: vendor, error: vendorError } = await supabase
             .from('profiles')
-            .select('mpesa_number, full_name, email')
+            .select('mpesa_number, full_name, email, intasend_wallet_id')
             .eq('id', vendor_id)
             .single();
 
         if (vendorError || !vendor?.mpesa_number) {
             throw new Error('Vendor has no M-Pesa number');
+        }
+
+        if (!vendor.intasend_wallet_id) {
+            throw new Error('Vendor has no IntaSend wallet. Cannot process WaaS payout.');
         }
 
         // Normalize phone number to 2547... format (required by IntaSend)
@@ -71,12 +75,13 @@ serve(async (req: Request) => {
             body: JSON.stringify({
                 provider: 'MPESA-B2C',
                 currency: 'KES',
+                wallet_id: vendor.intasend_wallet_id,
                 requires_approval: 'NO',
                 transactions: [{
                     name: vendor.full_name || 'Vendor',
                     account: normalizedPhone,
                     amount: netPayout,
-                    narrative: 'Solely Kenya payout',
+                    narrative: 'Sole-ly payout',
                 }],
             }),
         });

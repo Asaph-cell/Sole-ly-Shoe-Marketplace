@@ -44,7 +44,7 @@ serve(async (req) => {
         amount_ksh,
         commission_amount,
         method,
-        profiles!payouts_vendor_id_fkey(mpesa_number, full_name, email)
+        profiles!payouts_vendor_id_fkey(mpesa_number, full_name, email, intasend_wallet_id)
       `)
       .eq('status', 'pending')
       .limit(50); // Process in batches
@@ -82,6 +82,10 @@ serve(async (req) => {
           throw new Error('Vendor has no M-Pesa number configured');
         }
 
+        if (!vendorProfile?.intasend_wallet_id) {
+          throw new Error('Vendor has no IntaSend wallet configured');
+        }
+
         // Format phone number for IntaSend (should be like 254712345678)
         let phoneNumber = vendorProfile.mpesa_number.replace(/\D/g, '');
         if (phoneNumber.startsWith('0')) {
@@ -91,14 +95,18 @@ serve(async (req) => {
         }
 
         // Call IntaSend API for M-Pesa payout
-        const intasendResponse = await fetch('https://api.intasend.com/api/v1/send-money/mpesa/', {
+        // Using send-money/initiate endpoint for wallet withdrawals instead of send-money/mpesa
+        const intasendResponse = await fetch('https://api.intasend.com/api/v1/send-money/initiate/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${intasendSecretKey}`,
           },
           body: JSON.stringify({
+            provider: 'MPESA-B2C',
             currency: 'KES',
+            wallet_id: vendorProfile.intasend_wallet_id,
+            requires_approval: 'NO',
             transactions: [{
               name: vendorProfile.full_name || 'Vendor',
               account: phoneNumber,
