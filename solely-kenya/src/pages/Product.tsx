@@ -68,11 +68,6 @@ const Product = () => {
     window.scrollTo(0, 0);
   }, [id]);
 
-  const getShareUrl = (productId: string) => {
-    const baseUrl = import.meta.env.VITE_SUPABASE_URL;
-    return `${baseUrl}/functions/v1/share-product?id=${productId}`;
-  };
-
   useEffect(() => {
     if (id) {
       fetchProduct();
@@ -480,19 +475,19 @@ const Product = () => {
                       <p className="text-sm font-medium mb-3">Share this product</p>
                       <div className="flex gap-3 mb-3">
                         <WhatsappShareButton
-                          url={getShareUrl(product.id)}
+                          url={window.location.href}
                           title={`Check out ${product.name} on Sole-ly! KES ${product.price_ksh.toLocaleString()}`}
                         >
                           <WhatsappIcon size={40} round />
                         </WhatsappShareButton>
                         <FacebookShareButton
-                          url={getShareUrl(product.id)}
+                          url={window.location.href}
                           hashtag="#SolelyShoes"
                         >
                           <FacebookIcon size={40} round />
                         </FacebookShareButton>
                         <TwitterShareButton
-                          url={getShareUrl(product.id)}
+                          url={window.location.href}
                           title={`Check out ${product.name} on Sole-ly!`}
                           hashtags={["SolelyShoes", "Sneakers"]}
                         >
@@ -507,7 +502,7 @@ const Product = () => {
                                 await navigator.share({
                                   title: `Check out ${product.name} on Sole-ly!`,
                                   text: `I found this ${product.name} on Sole-ly. Check it out! #SolelyShoes`,
-                                  url: getShareUrl(product.id),
+                                  url: window.location.href,
                                 });
                                 setShowShareMenu(false);
                                 return;
@@ -518,7 +513,7 @@ const Product = () => {
                             }
 
                             // Desktop Fallback: Copy link & Open Instagram
-                            navigator.clipboard.writeText(getShareUrl(product.id));
+                            navigator.clipboard.writeText(window.location.href);
                             toast.success("Link copied! Paste it in your Instagram Story/DM");
                             window.open("https://instagram.com", "_blank");
                             setShowShareMenu(false);
@@ -531,7 +526,7 @@ const Product = () => {
                       <button
                         className="w-full text-sm text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors"
                         onClick={() => {
-                          navigator.clipboard.writeText(getShareUrl(product.id));
+                          navigator.clipboard.writeText(window.location.href);
                           toast.success("Link copied to clipboard!");
                           setShowShareMenu(false);
                         }}
