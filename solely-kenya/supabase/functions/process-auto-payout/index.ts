@@ -12,8 +12,7 @@ const corsHeaders = {
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const MINIMUM_AUTO_PAYOUT = 250;
-const PAYOUT_FEE = 100;
+const MINIMUM_AUTO_PAYOUT = 10000;
 const INTASEND_SECRET_KEY = Deno.env.get('INTASEND_SECRET_KEY');
 const INTASEND_PUBLISHABLE_KEY = Deno.env.get('INTASEND_PUBLISHABLE_KEY');
 
@@ -60,10 +59,26 @@ serve(async (req: Request) => {
             normalizedPhone = '254' + normalizedPhone;
         }
 
-        // Platform pays the payout fee for auto payouts - vendor gets FULL balance
-        const netPayout = balance;
 
-        console.log(`Processing auto-payout: ${netPayout} KES to ${normalizedPhone} for vendor ${vendor_id} (platform pays KES ${PAYOUT_FEE} fee)`);
+        // IntaSend Fees Logic (Matches Manual Withdraw)
+        // 0 - 100: KES 10
+        // 101 - 1000: KES 20
+        // 1001 - 150000: KES 100
+
+        let transactionFee = 0;
+        if (balance <= 100) transactionFee = 10;
+        else if (balance <= 1000) transactionFee = 20;
+        else transactionFee = 100;
+
+        // Calculate actual amount to send (Vendor pays fee)
+        const netPayout = balance - transactionFee;
+
+        // Safety check
+        if (netPayout <= 0) {
+            throw new Error(`Balance ${balance} insufficient to cover fee ${transactionFee}`);
+        }
+
+        console.log(`Processing auto-payout: Balance ${balance} - Fee ${transactionFee} = Sending ${netPayout} KES to ${normalizedPhone} for vendor ${vendor_id} from wallet ${vendor.intasend_wallet_id}`);
 
         // Call IntaSend API for M-Pesa payout
         const intasendResponse = await fetch('https://api.intasend.com/api/v1/send-money/initiate/', {
