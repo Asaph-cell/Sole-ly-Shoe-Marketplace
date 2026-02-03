@@ -479,6 +479,7 @@ export const emailTemplates = {
     trackingNumber: string;
     deliveryNotes: string;
     orderTrackingUrl: string;
+    deliveryOtp?: string;
   }) => `
     <!DOCTYPE html>
     <html>
@@ -491,6 +492,8 @@ export const emailTemplates = {
         .order-details { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; }
         .tracking-box { background: #fef3c7; border: 2px dashed #f59e0b; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: center; }
         .tracking-number { font-size: 24px; font-weight: bold; color: #92400e; letter-spacing: 2px; }
+        .otp-box { background: #dbeafe; border: 3px solid #2563eb; padding: 20px; border-radius: 12px; margin: 20px 0; text-align: center; }
+        .otp-code { font-size: 36px; font-weight: bold; color: #1d4ed8; letter-spacing: 8px; font-family: monospace; }
         .status-badge { display: inline-block; background: #ede9fe; color: #5b21b6; padding: 6px 12px; border-radius: 20px; font-size: 14px; }
         .cta-button { display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 15px; }
         .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }
@@ -505,6 +508,17 @@ export const emailTemplates = {
         <div class="content">
           <p>Hi ${data.customerName},</p>
           <p>Your order from <strong>${data.vendorName}</strong> is on its way!</p>
+          
+          ${data.deliveryOtp ? `
+          <div class="otp-box">
+            <p style="margin: 0 0 10px 0; font-size: 16px; color: #1e40af;"><strong>🔐 Your Delivery Code</strong></p>
+            <p class="otp-code">${data.deliveryOtp}</p>
+            <p style="margin: 10px 0 0 0; font-size: 14px; color: #1e40af;">
+              <strong>Share this code with the vendor when they deliver.</strong><br>
+              This confirms you received your order and releases payment.
+            </p>
+          </div>
+          ` : ''}
           
           <div class="tracking-box">
             <p style="margin: 0; font-size: 14px; color: #6b7280;">Tracking Number</p>
@@ -522,7 +536,7 @@ export const emailTemplates = {
           <a href="${data.orderTrackingUrl}" class="cta-button">Track Your Order</a>
           
           <div class="important-notice">
-            <strong>⚠️ Important:</strong> Once you receive your order, please confirm delivery on Solely to release payment to the vendor. If you don't confirm within 3 days of delivery, it will be auto-released.
+            <strong>⚠️ Important:</strong> When the vendor delivers your order, share your 6-digit delivery code with them. This confirms you received your shoes and releases their payment.
           </div>
         </div>
         <div class="footer">
@@ -543,6 +557,7 @@ export const emailTemplates = {
     vendorAddress: string;
     vendorPhone: string;
     vendorWhatsApp: string;
+    deliveryOtp?: string;
   }) => `
     <!DOCTYPE html>
     <html>
@@ -554,6 +569,8 @@ export const emailTemplates = {
         .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
         .order-details { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; }
         .location-box { background: #fef3c7; border: 2px solid #f59e0b; padding: 15px; border-radius: 8px; margin: 15px 0; }
+        .otp-box { background: #dbeafe; border: 3px solid #2563eb; padding: 20px; border-radius: 12px; margin: 20px 0; text-align: center; }
+        .otp-code { font-size: 36px; font-weight: bold; color: #1d4ed8; letter-spacing: 8px; font-family: monospace; }
         .contact-buttons { display: block; margin-top: 15px; text-align: center; }
         .contact-button { 
           display: inline-block; 
@@ -582,6 +599,17 @@ export const emailTemplates = {
           <p>Hi ${data.customerName},</p>
           <p>Great news! Your order from <strong>${data.vendorName}</strong> is ready for collection.</p>
           
+          ${data.deliveryOtp ? `
+          <div class="otp-box">
+            <p style="margin: 0 0 10px 0; font-size: 16px; color: #1e40af;"><strong>🔐 Your Pickup Code</strong></p>
+            <p class="otp-code">${data.deliveryOtp}</p>
+            <p style="margin: 10px 0 0 0; font-size: 14px; color: #1e40af;">
+              <strong>Show this code to the vendor when you collect your order.</strong><br>
+              This confirms you received your shoes and releases payment.
+            </p>
+          </div>
+          ` : ''}
+          
           <div class="order-details">
             <p><strong>Order #${data.orderId}</strong></p>
             <p><strong>Items:</strong> ${data.items}</p>
@@ -602,8 +630,10 @@ export const emailTemplates = {
               📞 Call Seller
             </a>
           </div>
-        </div>  
-          <p style="margin-top: 20px; font-size: 14px; color: #6b7280;">Remember to confirm delivery on Solely after you collect your order to release payment to the vendor.</p>
+          
+          <p style="margin-top: 20px; font-size: 14px; color: #6b7280;">
+            <strong>Important:</strong> When you collect your order, show your 6-digit code to the vendor. This confirms you received your shoes and releases their payment.
+          </p>
         </div>
         <div class="footer">
           <p>This email was sent by Sole-ly Kenya</p>

@@ -581,6 +581,30 @@ const Orders = () => {
                       />
                     )}
 
+                    {/* Delivery OTP Display - Show to buyer when order is shipped or arrived */}
+                    {(order.status === "shipped" || order.status === "arrived") && (order as any).delivery_otp && (
+                      <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xl">🔐</span>
+                          <p className="font-semibold text-blue-900 dark:text-blue-100">Your Delivery Code</p>
+                        </div>
+                        <div className="bg-white dark:bg-background p-4 rounded-lg text-center">
+                          <p className="text-3xl font-mono font-bold tracking-widest text-blue-900 dark:text-blue-100">
+                            {(order as any).delivery_otp}
+                          </p>
+                        </div>
+                        <p className="text-sm text-blue-700 dark:text-blue-300 mt-3">
+                          <strong>Important:</strong> Share this code with the vendor when they deliver your order.
+                          This confirms you received your shoes and releases payment to the vendor.
+                        </p>
+                        {isPickup && (
+                          <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">
+                            📍 Show this code to the vendor when you collect your order.
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     <div className="flex flex-wrap gap-3">
                       {(order.status === "arrived" || order.status === "shipped") && !order.buyer_confirmed && (
                         // For pickup, ensure vendor has actually confirmed (marked as ready)

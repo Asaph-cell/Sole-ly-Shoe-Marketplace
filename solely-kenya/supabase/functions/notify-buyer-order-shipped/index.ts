@@ -39,6 +39,7 @@ Deno.serve(async (req: Request) => {
                 id,
                 customer_id,
                 vendor_id,
+                delivery_otp,
                 order_items(product_name, quantity),
                 order_shipping_details(recipient_name, email, courier_name, tracking_number, delivery_notes)
             `)
@@ -84,10 +85,10 @@ Deno.serve(async (req: Request) => {
         const trackingNumber = order.order_shipping_details?.tracking_number || "N/A";
         const deliveryNotes = order.order_shipping_details?.delivery_notes || "";
 
-        // Send email
+        // Send email with OTP
         const emailResult = await sendEmail({
             to: customerEmail,
-            subject: `🚚 Order #${orderId.slice(0, 8)} Has Shipped!`,
+            subject: `🚚 Order #${orderId.slice(0, 8)} Has Shipped! ${order.delivery_otp ? '(Delivery Code Inside)' : ''}`,
             html: emailTemplates.buyerOrderShipped({
                 customerName,
                 orderId: orderId.slice(0, 8),
@@ -97,6 +98,7 @@ Deno.serve(async (req: Request) => {
                 trackingNumber,
                 deliveryNotes,
                 orderTrackingUrl: `https://solelyshoes.co.ke/orders/${orderId}`,
+                deliveryOtp: order.delivery_otp || undefined,
             }),
         });
 

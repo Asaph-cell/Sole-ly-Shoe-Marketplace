@@ -39,6 +39,7 @@ Deno.serve(async (req: Request) => {
                 id,
                 customer_id,
                 vendor_id,
+                delivery_otp,
                 order_items(product_name, quantity),
                 order_shipping_details(recipient_name, email)
             `)
@@ -86,10 +87,10 @@ Deno.serve(async (req: Request) => {
             ?.map((item: any) => `${item.quantity}x ${item.product_name}`)
             .join(", ") || "Items";
 
-        // Send email
+        // Send email with OTP
         const emailResult = await sendEmail({
             to: customerEmail,
-            subject: `📦 Order Ready for Pickup - #${orderId.slice(0, 8)}`,
+            subject: `📦 Order Ready for Pickup - #${orderId.slice(0, 8)} ${order.delivery_otp ? '(Pickup Code Inside)' : ''}`,
             html: emailTemplates.buyerPickupReady({
                 customerName,
                 orderId: orderId.slice(0, 8),
@@ -98,6 +99,7 @@ Deno.serve(async (req: Request) => {
                 vendorAddress,
                 vendorPhone: vendor?.whatsapp_number || "",
                 vendorWhatsApp: vendor?.whatsapp_number || "",
+                deliveryOtp: order.delivery_otp || undefined,
             }),
         });
 

@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { LocationViewMap } from "@/components/LocationViewMap";
 import { DeliveryTrackingControl } from "@/components/DeliveryTrackingControl";
@@ -59,6 +60,14 @@ const VendorOrders = () => {
   const [declineReason, setDeclineReason] = useState<string>("");
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const shippingFormRef = useRef<HTMLDivElement>(null);
+
+  // OTP-related state
+  const [otpDialogOrder, setOtpDialogOrder] = useState<OrderRecord | null>(null);
+  const [otpInput, setOtpInput] = useState<string>("");
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [generatedOtp, setGeneratedOtp] = useState<string | null>(null);
+  const [showGeneratedOtp, setShowGeneratedOtp] = useState(false);
+  const [sortBy, setSortBy] = useState<string>("newest");
 
   const loadOrders = async () => {
     if (!user) return;
@@ -202,6 +211,47 @@ const VendorOrders = () => {
   }, [loading, user]);
 
   const pendingOrders = useMemo(() => orders.filter((order) => order.status === "pending_vendor_confirmation"), [orders]);
+
+  // Sort orders based on user selection
+  const sortedOrders = useMemo(() => {
+    const statusPriority: Record<string, number> = {
+      pending_vendor_confirmation: 1,
+      accepted: 2,
+      shipped: 3,
+      arrived: 4,
+      completed: 5,
+      disputed: 6,
+      refunded: 7,
+      cancelled_by_vendor: 8,
+      cancelled_by_customer: 9,
+    };
+
+    return [...orders].sort((a, b) => {
+      switch (sortBy) {
+        case "oldest":
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case "pending":
+          // Pending first, then by date newest
+          if (a.status === "pending_vendor_confirmation" && b.status !== "pending_vendor_confirmation") return -1;
+          if (b.status === "pending_vendor_confirmation" && a.status !== "pending_vendor_confirmation") return 1;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case "shipped":
+          // Shipped/Arrived first (need action)
+          const aIsShipped = ["shipped", "arrived"].includes(a.status);
+          const bIsShipped = ["shipped", "arrived"].includes(b.status);
+          if (aIsShipped && !bIsShipped) return -1;
+          if (bIsShipped && !aIsShipped) return 1;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case "completed":
+          if (a.status === "completed" && b.status !== "completed") return -1;
+          if (b.status === "completed" && a.status !== "completed") return 1;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case "newest":
+        default:
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
+  }, [orders, sortBy]);
 
   const updateOrderStatus = async (orderId: string, patch: Partial<Tables<"orders">>) => {
     const { error } = await supabase.from("orders").update(patch).eq("id", orderId);
@@ -514,8 +564,14 @@ const VendorOrders = () => {
 
       await updateOrderStatus(order.id, updates);
 
-      // Notify buyer about shipment (non-blocking)
-      // Note: verify if notify-buyer-order-arrived exists, if not fallback or create
+      // IMPORTANT: Generate OTP FIRST (before sending notification email)
+      // This way the email will include the OTP code
+      if (updates.status === "shipped" || (isPickup && updates.status === "arrived")) {
+        await handleGenerateOtp(order.id, false);
+      }
+
+      // Notify buyer about shipment (non-blocking) - AFTER OTP is generated
+      // The notification function will fetch the OTP from the database
       if (notificationType) {
         supabase.functions.invoke(notificationType, {
           body: { orderId: order.id },
@@ -543,105 +599,107 @@ const VendorOrders = () => {
     }));
   };
 
+  // Generate OTP when marking as shipped/ready for pickup
+  const handleGenerateOtp = async (orderId: string, isResend: boolean = false) => {
+    try {
+      setSaving(true);
+      const { data, error } = await supabase.functions.invoke('generate-delivery-otp', {
+        body: { orderId, isResend }
+      });
+
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Failed to generate OTP');
+
+      // Show confirmation to vendor (OTP is NOT shown - only buyer sees it)
+      setShowGeneratedOtp(true);
+
+      // If resending, also trigger the email notification
+      if (isResend) {
+        // Fetch order to determine notification type
+        const order = orders.find(o => o.id === orderId);
+        if (order) {
+          const isPickup = (order.order_shipping_details as any)?.delivery_type === "pickup";
+          const notificationType = isPickup ? "notify-buyer-pickup-ready" : "notify-buyer-order-shipped";
+
+          // Send the notification email with the new OTP
+          supabase.functions.invoke(notificationType, {
+            body: { orderId }
+          }).catch(err => console.log(`Resend notification failed (non-critical):`, err));
+        }
+        toast.success("New code sent to buyer! Previous code is now invalid.");
+      } else {
+        toast.success("Delivery code generated and sent to buyer!");
+      }
+
+      await loadOrders();
+    } catch (error) {
+      console.error("Error generating OTP:", error);
+      toast.error("Failed to generate delivery code. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Verify OTP entered by vendor (collected from buyer)
+  const handleVerifyOtp = async () => {
+    if (!otpDialogOrder || !otpInput) return;
+
+    // Validate 6 digits
+    if (!/^\d{6}$/.test(otpInput)) {
+      toast.error("Please enter a valid 6-digit code");
+      return;
+    }
+
+    try {
+      setOtpVerifying(true);
+      const { data, error } = await supabase.functions.invoke('verify-delivery-otp', {
+        body: { orderId: otpDialogOrder.id, otp: otpInput }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast.success(`Delivery confirmed! KES ${data.payoutAmount?.toLocaleString() || ''} released to your account.`);
+        setOtpDialogOrder(null);
+        setOtpInput("");
+        await loadOrders();
+      } else {
+        toast.error(data?.error || "Invalid code. Please check and try again.");
+      }
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      toast.error("Failed to verify code. Please try again.");
+    } finally {
+      setOtpVerifying(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-muted/20">
       <div className="container mx-auto px-4 py-10 space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold">Orders</h1>
             <p className="text-muted-foreground">Manage escrowed orders, shipping, and payouts.</p>
-            <p className="text-sm text-muted-foreground mt-1 italic">
-              Note: Delivery fees (Nairobi: KES 200, Outside: KES 300) are pre-paid at checkout.
-            </p>
           </div>
-          <Button variant="ghost" onClick={loadOrders}>Refresh</Button>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Sort by..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest First</SelectItem>
+                <SelectItem value="oldest">Oldest First</SelectItem>
+                <SelectItem value="pending">Pending First</SelectItem>
+                <SelectItem value="shipped">Shipped First</SelectItem>
+                <SelectItem value="completed">Completed First</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="ghost" onClick={loadOrders}>Refresh</Button>
+          </div>
         </div>
 
-        {pendingOrders.length > 0 && (
-          <Card className="border-primary/40">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg text-primary">Orders awaiting confirmation</CardTitle>
-              <p className="text-sm text-muted-foreground">Review customer location and accept/decline orders. Delivery fee is already included.</p>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm">
-              {pendingOrders.map((order) => {
-                const hoursSinceOrder = differenceInHours(new Date(), new Date(order.created_at));
-                const hoursUntilAutoCancel = Math.max(0, 48 - hoursSinceOrder);
-                return (
-                  <div key={order.id} className="border rounded-lg p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">
-                        Order #{order.id.slice(0, 8)} • {order.order_items?.map((item: any) =>
-                          `${item.quantity}× ${item.product_name}${item.size ? ` (Size ${item.size})` : ''}${item.color ? ` (${item.color})` : ''}`
-                        ).join(", ")}
-                      </span>
-                      {hoursSinceOrder >= 24 && (
-                        <Badge variant="destructive" className="text-xs">
-                          ⏰ {hoursUntilAutoCancel}h left to respond
-                        </Badge>
-                      )}
-                    </div>
-                    {order.order_shipping_details && (
-                      <div className="bg-muted/50 rounded p-3 text-xs">
-                        {order.order_shipping_details.delivery_type === "pickup" ? (
-                          <>
-                            <p className="font-medium mb-1">Pickup Order: {order.order_shipping_details.recipient_name} ({order.order_shipping_details.phone})</p>
-                            <p className="text-muted-foreground">
-                              Customer will collect from your location. No delivery charges apply.
-                            </p>
-                          </>
-                        ) : (
-                          <>
-                            <p className="font-medium mb-1">Ship to: {order.order_shipping_details.recipient_name} ({order.order_shipping_details.phone})</p>
-                            <p className="text-muted-foreground">
-                              {order.order_shipping_details.address_line1}, {order.order_shipping_details.city}
-                              {order.order_shipping_details.delivery_notes && ` • ${order.order_shipping_details.delivery_notes}`}
-                            </p>
-                          </>
-                        )}
-                      </div>
-                    )}
-                    {/* Delivery fee info - fees are now pre-paid at checkout */}
-                    <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded border border-blue-200 dark:border-blue-800">
-                      <p className="text-xs text-blue-900 dark:text-blue-100">
-                        <strong>💰 Delivery Fee:</strong> {order.shipping_fee_ksh > 0
-                          ? `KES ${order.shipping_fee_ksh.toLocaleString()} (pre-paid at checkout)`
-                          : 'No delivery fee (pickup order)'}
-                      </p>
-                      {order.shipping_fee_ksh > 0 && (
-                        <p className="text-xs text-blue-800 dark:text-blue-200 mt-1">
-                          Zone-based pricing: Nairobi = KES 200, Outside = KES 300
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-3 w-full mt-4">
-                      <Button
-                        className="w-full sm:flex-1 h-11 text-sm sm:text-base"
-                        onClick={() => handleAccept(order)}
-                        disabled={saving || order.status !== "pending_vendor_confirmation" || hoursUntilAutoCancel <= 0}
-                      >
-                        {saving ? "Accepting..." : hoursUntilAutoCancel <= 0 ? "Expired" : order.status === "accepted" ? "Already Accepted" : "Accept Order"}
-                      </Button>
-                      {hoursUntilAutoCancel > 0 && (
-                        <Button
-                          variant="ghost"
-                          className="w-full sm:flex-1 h-11 text-sm sm:text-base text-destructive hover:bg-destructive/10"
-                          onClick={() => {
-                            setDeclineReason("");
-                            setOrderToDecline(order);
-                          }}
-                          disabled={saving || order.status !== "pending_vendor_confirmation"}
-                        >
-                          Can't Fulfill
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </CardContent>
-          </Card>
-        )}
+        {/* All orders are now shown in the sorted list below */}
 
         {loadingOrders ? (
           <Card className="p-10 text-center">
@@ -655,7 +713,7 @@ const VendorOrders = () => {
           </Card>
         ) : (
           <div className="space-y-4">
-            {orders.map((order) => {
+            {sortedOrders.map((order) => {
               const badgeVariant = statusColors[order.status] ?? "secondary";
               const isPickup = (order.order_shipping_details as any)?.delivery_type === "pickup";
               return (
@@ -769,6 +827,48 @@ const VendorOrders = () => {
                         </div>
                       </div>
                     </div>
+
+
+                    {order.status === "pending_vendor_confirmation" && (
+                      <div className="space-y-4 border rounded-lg p-4 bg-primary/5">
+                        <div className="flex items-center justify-between">
+                          <p className="font-semibold text-primary">New Order Request</p>
+                          {(() => {
+                            const hoursSinceOrder = differenceInHours(new Date(), new Date(order.created_at));
+                            const hoursUntilAutoCancel = Math.max(0, 48 - hoursSinceOrder);
+                            return hoursSinceOrder >= 24 && (
+                              <Badge variant="destructive" className="text-xs">
+                                ⏰ {hoursUntilAutoCancel}h left to respond
+                              </Badge>
+                            );
+                          })()}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Please review the order details above. The delivery fee is already included in the total.
+                        </p>
+
+                        <div className="flex flex-col sm:flex-row gap-3 w-full mt-2">
+                          <Button
+                            className="w-full sm:flex-1 h-11"
+                            onClick={() => handleAccept(order)}
+                            disabled={saving}
+                          >
+                            {saving ? "Accepting..." : "Accept Order"}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className="w-full sm:flex-1 h-11 text-destructive hover:bg-destructive/10"
+                            onClick={() => {
+                              setDeclineReason("");
+                              setOrderToDecline(order);
+                            }}
+                            disabled={saving}
+                          >
+                            Can't Fulfill
+                          </Button>
+                        </div>
+                      </div>
+                    )}
 
                     {order.status === "accepted" && (
                       <div className="space-y-4 border rounded-lg p-4">
@@ -890,12 +990,52 @@ const VendorOrders = () => {
                       </div>
                     )}
 
+                    {/* Shipped status - waiting for delivery confirmation via OTP */}
+                    {order.status === "shipped" && (
+                      <div className="bg-yellow-50 dark:bg-yellow-950/20 rounded-lg p-4 text-sm border border-yellow-200 dark:border-yellow-800">
+                        <p className="font-semibold mb-2 text-yellow-900 dark:text-yellow-100">
+                          📦 In Transit - Shipped {order.shipped_at ? formatDistanceToNow(new Date(order.shipped_at), { addSuffix: true }) : "recently"}
+                        </p>
+                        {order.order_shipping_details?.courier_name && (
+                          <p>Courier: {order.order_shipping_details.courier_name}</p>
+                        )}
+                        {order.order_shipping_details?.tracking_number && (
+                          <p>Tracking: {order.order_shipping_details.tracking_number}</p>
+                        )}
+                        <div className="mt-4 p-3 bg-white dark:bg-background rounded border">
+                          <p className="font-medium mb-2">🔐 Delivery Confirmation Required</p>
+                          <p className="text-xs text-muted-foreground mb-3">
+                            When you deliver the item, ask the buyer for their 6-digit delivery code and enter it below to confirm delivery and release funds.
+                          </p>
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <Button
+                              onClick={() => {
+                                setOtpDialogOrder(order);
+                                setOtpInput("");
+                              }}
+                              className="flex-1"
+                            >
+                              Enter Buyer's Code
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => handleGenerateOtp(order.id, true)}
+                              disabled={saving}
+                              title="Resend a new code to the buyer (invalidates previous code)"
+                            >
+                              Resend Code to Buyer
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {order.status === "arrived" && (
-                      <div className="bg-muted rounded-lg p-4 text-sm">
-                        <p className="font-semibold mb-2">
+                      <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-4 text-sm border border-green-200 dark:border-green-800">
+                        <p className="font-semibold mb-2 text-green-900 dark:text-green-100">
                           {isPickup
-                            ? `Ready for Pickup (Marked ${order.shipped_at ? formatDistanceToNow(new Date(order.shipped_at), { addSuffix: true }) : "recently"})`
-                            : `Arrived ${order.shipped_at ? formatDistanceToNow(new Date(order.shipped_at), { addSuffix: true }) : "recently"}`
+                            ? `📍 Ready for Pickup (Marked ${order.shipped_at ? formatDistanceToNow(new Date(order.shipped_at), { addSuffix: true }) : "recently"})`
+                            : `✅ Delivered ${order.shipped_at ? formatDistanceToNow(new Date(order.shipped_at), { addSuffix: true }) : "recently"}`
                           }
                         </p>
                         {order.order_shipping_details?.courier_name && (
@@ -904,16 +1044,35 @@ const VendorOrders = () => {
                         {order.order_shipping_details?.tracking_number && (
                           <p>Tracking: {order.order_shipping_details.tracking_number}</p>
                         )}
-                        {!isPickup && (
-                          <p className="text-muted-foreground mt-2">
-                            Escrow auto-release scheduled for {order.auto_release_at ? new Date(order.auto_release_at).toLocaleString() : "24 hours after arrival"}.
+
+                        {/* OTP Confirmation for arrived/pickup orders */}
+                        <div className="mt-4 p-3 bg-white dark:bg-background rounded border">
+                          <p className="font-medium mb-2">🔐 Confirm Delivery with Buyer's Code</p>
+                          <p className="text-xs text-muted-foreground mb-3">
+                            {isPickup
+                              ? "When the buyer comes to pick up, ask for their 6-digit code and enter it below."
+                              : "Enter the 6-digit code the buyer shared with you to confirm delivery."}
                           </p>
-                        )}
-                        {isPickup && (
-                          <p className="text-muted-foreground mt-2">
-                            Buyer has been notified. Waiting for them to collect and confirm.
-                          </p>
-                        )}
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <Button
+                              onClick={() => {
+                                setOtpDialogOrder(order);
+                                setOtpInput("");
+                              }}
+                              className="flex-1"
+                            >
+                              Enter Buyer's Code
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => handleGenerateOtp(order.id, true)}
+                              disabled={saving}
+                              title="Resend a new code to the buyer (invalidates previous code)"
+                            >
+                              Resend Code
+                            </Button>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </CardContent>
@@ -969,6 +1128,81 @@ const VendorOrders = () => {
               className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90 md:w-auto text-sm px-4 py-2"
             >
               {saving ? "Processing..." : "Can't Fulfill"}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* OTP Entry Dialog - Vendor enters buyer's code */}
+      <AlertDialog open={!!otpDialogOrder} onOpenChange={(open) => { if (!open) { setOtpDialogOrder(null); setOtpInput(""); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>🔐 Enter Buyer's Delivery Code</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <p>
+                  Enter the 6-digit code the buyer shared with you to confirm delivery of order <strong>#{otpDialogOrder?.id.slice(0, 8)}</strong>.
+                </p>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Delivery Code:</label>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={6}
+                    placeholder="Enter 6-digit code"
+                    value={otpInput}
+                    onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="text-center text-2xl tracking-widest font-mono"
+                    autoFocus
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Once verified, funds will be released to your account immediately.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex flex-col-reverse gap-2 sm:gap-3 mt-6 w-full md:flex-row md:justify-end">
+            <AlertDialogCancel disabled={otpVerifying} className="w-full mt-0 md:w-auto">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleVerifyOtp();
+              }}
+              disabled={otpVerifying || otpInput.length !== 6}
+              className="w-full md:w-auto"
+            >
+              {otpVerifying ? "Verifying..." : "Confirm Delivery"}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Generated OTP Confirmation Dialog */}
+      <AlertDialog open={showGeneratedOtp} onOpenChange={setShowGeneratedOtp}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>✅ Delivery Code Sent to Buyer</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <p>
+                  A 6-digit delivery code has been sent to the buyer via email and is visible on their Orders page.
+                </p>
+                <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <p className="text-sm text-blue-900 dark:text-blue-100">
+                    <strong>🔐 How it works:</strong> When you deliver the item, ask the buyer to share their code with you. Enter it to confirm delivery and release your payment.
+                  </p>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  <strong>Note:</strong> Only the buyer knows the code. This protects both of you by ensuring funds are only released after confirmed delivery.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end mt-6">
+            <AlertDialogAction onClick={() => setShowGeneratedOtp(false)}>
+              Got it!
             </AlertDialogAction>
           </div>
         </AlertDialogContent>
