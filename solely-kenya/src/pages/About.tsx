@@ -4,9 +4,20 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/solely-logo.svg";
 import { SEO } from "@/components/SEO";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
 
 const About = () => {
   const { isVendor } = useAuth();
+  const storyRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: storyRef,
+    offset: ["start start", "end end"]
+  });
+
+  // Transform scroll progress to Y position for the founder section
+  const founderY = useTransform(scrollYProgress, [0, 1], ["0%", "60%"]);
+
   return (
     <div className="min-h-screen py-12">
       <SEO
@@ -29,24 +40,6 @@ const About = () => {
           <p className="text-xl text-muted-foreground leading-relaxed">
             Kenya's friendly shoe marketplace where buying and selling shoes is simple, safe, and exciting. We're on a mission to connect shoe lovers with amazing vendors across Kenya.
           </p>
-        </div>
-
-        {/* Our Story */}
-        <div className="max-w-4xl mx-auto mb-20">
-          <div className="bg-gradient-card border-2 border-border rounded-2xl p-8 md:p-12 shadow-card">
-            <h2 className="text-3xl font-bold mb-6">Our Story</h2>
-            <div className="space-y-4 text-muted-foreground leading-relaxed">
-              <p>
-                Sole-ly Marketplace started with a simple idea: make buying and selling shoes in Kenya as easy as chatting with a friend, and as safe as a handshake. We noticed that finding quality shoes or reaching customers was often complicated, and honestly, sometimes risky.
-              </p>
-              <p>
-                That is why we built a platform with a single obsession: security. We wanted to create a space where trust isn't a luxury, but a guarantee. By focusing on a safe, secure environment, we protect both the buyer's money and the seller's product.
-              </p>
-              <p>
-                Whether you're a buyer looking for your dream sneakers or a seller wanting to grow your business, you can trade with total peace of mind here. Today, we're proud to connect buyers and sellers across Kenya, making shoe shopping transparent, secure, and accessible to everyone.
-              </p>
-            </div>
-          </div>
         </div>
 
         {/* Values */}
@@ -142,6 +135,111 @@ const About = () => {
           </div>
         </div>
 
+        {/* Our Story - Premium Design */}
+        <div className="mb-20" ref={storyRef}>
+          <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-amber-950/30 dark:via-orange-950/20 dark:to-yellow-950/30 rounded-3xl p-8 md:p-12 lg:p-16">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+              {/* Left: Story Content */}
+              <div className="space-y-8">
+                <h2 className="text-4xl font-bold text-foreground">Our Story</h2>
+
+                {/* Genesis Section */}
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-amber-300 dark:border-amber-700 bg-white/50 dark:bg-black/20">
+                    <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                    <span className="text-sm font-medium text-amber-800 dark:text-amber-300">Genesis</span>
+                  </div>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Buying online in Kenya often feels less like retail therapy and more like an extreme sport. A customer sends money for shoes seen on Instagram or WhatsApp, hoping they aren't about to learn a painful lesson. When the goods don't arrive, the customer loses money, but the market loses something more valuable: <span className="font-semibold text-foreground">Trust</span>.
+                  </p>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Yet, the narrative isn't just about the scammers. It's about the silent majority of honest vendors:
+                  </p>
+                  <ul className="space-y-2 text-muted-foreground pl-4">
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-500 mt-1">•</span>
+                      The student running a thrift store from their hostel.
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-500 mt-1">•</span>
+                      The parent looking to put food on the table.
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-500 mt-1">•</span>
+                      The legitimate stall owner fighting to be seen.
+                    </li>
+                  </ul>
+                  <p className="text-muted-foreground leading-relaxed">
+                    These aren't faceless entities; they are entrepreneurs who genuinely care. They are ready to do business, but they are fighting an uphill battle against a reputation they didn't earn.
+                  </p>
+                </div>
+
+                <div className="border-t border-amber-200 dark:border-amber-800"></div>
+
+                {/* The Solution Section */}
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-amber-300 dark:border-amber-700 bg-white/50 dark:bg-black/20">
+                    <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                    <span className="text-sm font-medium text-amber-800 dark:text-amber-300">The Solution</span>
+                  </div>
+                  <p className="text-muted-foreground leading-relaxed">
+                    We built Sole-ly to change that. When you buy on Sole-ly, your payment is held safely in escrow — not released to the vendor until you confirm your order arrived. If the shoes never come, you get your money back automatically. If the vendor delivers, they get paid fairly.
+                  </p>
+                  <p className="text-muted-foreground leading-relaxed">
+                    And for vendors? No website to build, no tech skills needed — just list your products and start selling. Your first online store, ready in minutes.
+                  </p>
+                </div>
+
+                <div className="border-t border-amber-200 dark:border-amber-800"></div>
+
+                {/* The Vision Section */}
+                <div className="space-y-4">
+                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-amber-300 dark:border-amber-700 bg-white/50 dark:bg-black/20">
+                    <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                    <span className="text-sm font-medium text-amber-800 dark:text-amber-300">The Vision</span>
+                  </div>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Every order that goes right creates a ripple. A buyer shops without fear. A vendor earns a living. A family is supported. Trust grows. And slowly, the way Kenya buys and sells shoes begins to change.
+                  </p>
+                  <p className="text-foreground font-medium italic">
+                    We believe you should only pay for what you love. And if you deliver with honesty and care, you deserve to be trusted.
+                  </p>
+                </div>
+              </div>
+
+              {/* Right: Founder Photo - Scroll-animated */}
+              <motion.div
+                className="hidden lg:flex flex-col items-end gap-6 self-start pb-8"
+                style={{ y: founderY }}
+              >
+                {/* Minimalist frame with dark border */}
+                <div className="relative group">
+                  {/* Subtle glow on hover */}
+                  <div className="absolute -inset-1 bg-slate-800/30 rounded-2xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                  {/* Clean dark border matching FAQ section */}
+                  <div className="relative p-1.5 bg-[#1f1f1f] rounded-2xl shadow-xl">
+                    <img
+                      src="/founder.png"
+                      alt="Asaph Isweka - Founder & CEO of Sole-ly"
+                      className="w-72 h-auto md:w-80 lg:w-96 rounded-xl object-cover"
+                    />
+                  </div>
+                </div>
+
+                {/* Founder Info & Personal Story */}
+                <div className="text-center lg:text-right max-w-sm">
+                  <h3 className="text-xl font-bold text-foreground mb-1">Asaph Isweka</h3>
+                  <p className="text-amber-600 dark:text-amber-400 font-medium text-sm mb-3">Founder & CEO</p>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    A young entrepreneur who got tired of seeing friends (and himself) lose money to online scammers. After one too many trips to ghost stores and shoes that never arrived, he decided to build a platform where trust isn't optional — it's built in. When he's not coding, you'll find him hunting for the freshest kicks around town.
+                  </p>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+
         {/* CTA Section */}
         <div className="text-center max-w-2xl mx-auto">
           <h2 className="text-3xl font-bold mb-6">Join Our Community</h2>
@@ -167,7 +265,7 @@ const About = () => {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
