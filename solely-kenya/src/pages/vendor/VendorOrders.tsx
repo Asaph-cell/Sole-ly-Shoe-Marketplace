@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
-import { clearBadge } from "@/lib/badge";
+import { clearAppBadge } from "@/lib/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -177,7 +177,7 @@ const VendorOrders = () => {
       loadOrders();
 
       // Clear PWA badge when viewing orders (notification seen)
-      clearBadge();
+      clearAppBadge();
 
       const channel = supabase
         .channel('vendor-orders-updates')
