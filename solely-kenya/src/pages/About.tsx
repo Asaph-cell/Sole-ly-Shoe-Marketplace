@@ -183,10 +183,10 @@ const About = () => {
                     <span className="text-sm font-medium text-amber-800 dark:text-amber-300">The Solution</span>
                   </div>
                   <p className="text-muted-foreground leading-relaxed">
-                    We built Sole-ly to change that. When you buy on Sole-ly, your payment is held safely in escrow — not released to the vendor until you confirm your order arrived. If the shoes never come, you get your money back automatically. If the vendor delivers, they get paid fairly.
+                    We built Sole-ly to change that. When you buy on Sole-ly, your payment is held safely in escrow, not released to the vendor until you confirm your order arrived. If the shoes never come, you get your money back automatically. If the vendor delivers, they get paid fairly.
                   </p>
                   <p className="text-muted-foreground leading-relaxed">
-                    And for vendors? No website to build, no tech skills needed — just list your products and start selling. Your first online store, ready in minutes.
+                    And for vendors? No website to build, no tech skills needed, just list your products and start selling. Your first online store, ready in minutes.
                   </p>
                 </div>
 
@@ -221,7 +221,7 @@ const About = () => {
                   <div className="relative p-1.5 bg-[#1f1f1f] rounded-2xl shadow-xl">
                     <img
                       src="/founder.png"
-                      alt="Asaph Isweka - Founder & CEO of Sole-ly"
+                      alt="Asaph Wenslause - Founder & CEO of Sole-ly"
                       className="w-72 h-auto md:w-80 lg:w-96 rounded-xl object-cover"
                     />
                   </div>
@@ -229,10 +229,10 @@ const About = () => {
 
                 {/* Founder Info & Personal Story */}
                 <div className="text-center lg:text-right max-w-sm">
-                  <h3 className="text-xl font-bold text-foreground mb-1">Asaph Isweka</h3>
+                  <h3 className="text-xl font-bold text-foreground mb-1">Asaph Wenslause</h3>
                   <p className="text-amber-600 dark:text-amber-400 font-medium text-sm mb-3">Founder & CEO</p>
                   <p className="text-muted-foreground text-sm leading-relaxed">
-                    A young entrepreneur who got tired of seeing friends (and himself) lose money to online scammers. After one too many trips to ghost stores and shoes that never arrived, he decided to build a platform where trust isn't optional — it's built in. When he's not coding, you'll find him hunting for the freshest kicks around town.
+                    A young entrepreneur who got tired of seeing friends (and himself) lose money to online scammers. After one too many trips to ghost stores and shoes that never arrived, he decided to build a platform where trust isn't optional, it's built in. When he's not coding, you'll find him hunting for the freshest kicks around town.
                   </p>
                 </div>
               </motion.div>
