@@ -45,9 +45,27 @@ self.addEventListener('push', function (event) {
     };
 
     event.waitUntil(
-        self.registration.showNotification(data.title, options)
+        Promise.all([
+            self.registration.showNotification(data.title, options),
+            // Update PWA app badge (shows number on app icon like WhatsApp)
+            updateAppBadge()
+        ])
     );
 });
+
+// Update PWA badge with unread notification count
+async function updateAppBadge() {
+    try {
+        if ('setAppBadge' in navigator) {
+            // Increment badge count (we track count via notifications)
+            // For now, just set a badge to indicate there are unread notifications
+            await navigator.setAppBadge(1);
+            console.log('[SW] App badge set');
+        }
+    } catch (error) {
+        console.log('[SW] Error setting app badge:', error);
+    }
+}
 
 // Handle notification click
 self.addEventListener('notificationclick', function (event) {

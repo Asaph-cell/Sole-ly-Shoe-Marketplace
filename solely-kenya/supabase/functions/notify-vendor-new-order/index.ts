@@ -62,10 +62,31 @@ Deno.serve(async (req: Request) => {
             vendorId = payload.record.vendor_id;
             totalKsh = payload.record.total_ksh;
         } else if (body.orderId) {
-            // Direct call
+            // Direct call - fetch vendorId from order if not provided
             orderId = body.orderId;
-            vendorId = body.vendorId;
-            totalKsh = body.totalKsh;
+
+            if (body.vendorId) {
+                vendorId = body.vendorId;
+            } else {
+                // Fetch vendorId from the order record
+                const { data: orderRecord, error: orderFetchError } = await supabase
+                    .from("orders")
+                    .select("vendor_id")
+                    .eq("id", body.orderId)
+                    .single();
+
+                if (orderFetchError || !orderRecord) {
+                    console.error("Failed to fetch order for vendorId:", orderFetchError);
+                    return new Response(
+                        JSON.stringify({ error: "Order not found" }),
+                        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+                    );
+                }
+                vendorId = orderRecord.vendor_id;
+                console.log("Fetched vendorId from order:", vendorId);
+            }
+
+            totalKsh = body.totalKsh || 0;
         } else {
             return new Response(
                 JSON.stringify({ error: "Invalid payload" }),
