@@ -85,8 +85,8 @@ export function SmartInstallBanner() {
                             </div>
                         </div>
 
-                        {/* Actions */}
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                        {/* Actions - Install and X on same line */}
+                        <div className="flex items-center gap-1 flex-shrink-0 flex-nowrap">
                             <button
                                 onClick={handleInstall}
                                 className="px-4 py-1.5 text-sm font-semibold rounded-full bg-amber-500 hover:bg-amber-400 text-slate-900 transition-colors shadow-sm"
@@ -95,7 +95,7 @@ export function SmartInstallBanner() {
                             </button>
                             <button
                                 onClick={handleDismiss}
-                                className="p-1.5 rounded-full hover:bg-slate-700 transition-colors"
+                                className="p-1 rounded-full hover:bg-slate-700 transition-colors ml-1"
                                 aria-label="Dismiss"
                             >
                                 <X className="w-4 h-4 text-slate-400" />

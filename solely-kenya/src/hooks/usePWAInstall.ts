@@ -12,18 +12,25 @@ interface UsePWAInstallReturn {
 }
 
 const DISMISSED_KEY = 'pwa_install_dismissed';
+const INSTALLED_KEY = 'pwa_installed';
 
 export function usePWAInstall(): UsePWAInstallReturn {
     const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
     const [isInstalled, setIsInstalled] = useState(false);
 
     useEffect(() => {
-        // Check if already installed (standalone mode)
+        // Check if already installed (standalone mode OR previously recorded)
         const checkInstalled = () => {
             const isStandalone = window.matchMedia('(display-mode: standalone)').matches
                 || (window.navigator as any).standalone === true
-                || document.referrer.includes('android-app://');
+                || document.referrer.includes('android-app://')
+                || localStorage.getItem(INSTALLED_KEY) === 'true';
             setIsInstalled(isStandalone);
+
+            // If standalone, record it for future browser visits
+            if (isStandalone) {
+                localStorage.setItem(INSTALLED_KEY, 'true');
+            }
         };
 
         checkInstalled();
@@ -49,6 +56,7 @@ export function usePWAInstall(): UsePWAInstallReturn {
             console.log('[PWA] App installed');
             setDeferredPrompt(null);
             setIsInstalled(true);
+            localStorage.setItem(INSTALLED_KEY, 'true');
             localStorage.removeItem(DISMISSED_KEY);
         };
 

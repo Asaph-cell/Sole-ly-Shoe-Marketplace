@@ -53,18 +53,69 @@ self.addEventListener('push', function (event) {
     );
 });
 
-// Update PWA badge with unread notification count
+// Update PWA badge with actual unread notification count
 async function updateAppBadge() {
     try {
         if ('setAppBadge' in navigator) {
-            // Increment badge count (we track count via notifications)
-            // For now, just set a badge to indicate there are unread notifications
-            await navigator.setAppBadge(1);
-            console.log('[SW] App badge set');
+            // Get current badge count from IndexedDB
+            const db = await openBadgeDB();
+            const count = await getBadgeCount(db);
+            const newCount = count + 1;
+            await setBadgeCount(db, newCount);
+
+            await navigator.setAppBadge(newCount);
+            console.log('[SW] App badge set to:', newCount);
         }
     } catch (error) {
         console.log('[SW] Error setting app badge:', error);
+        // Fallback to showing 1
+        try {
+            await navigator.setAppBadge(1);
+        } catch (e) { }
     }
+}
+
+// IndexedDB helpers for badge count persistence
+function openBadgeDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('SolelyBadgeDB', 1);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('badge')) {
+                db.createObjectStore('badge');
+            }
+        };
+    });
+}
+
+function getBadgeCount(db) {
+    return new Promise((resolve) => {
+        try {
+            const tx = db.transaction('badge', 'readonly');
+            const store = tx.objectStore('badge');
+            const request = store.get('count');
+            request.onsuccess = () => resolve(request.result || 0);
+            request.onerror = () => resolve(0);
+        } catch (e) {
+            resolve(0);
+        }
+    });
+}
+
+function setBadgeCount(db, count) {
+    return new Promise((resolve, reject) => {
+        try {
+            const tx = db.transaction('badge', 'readwrite');
+            const store = tx.objectStore('badge');
+            const request = store.put(count, 'count');
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        } catch (e) {
+            reject(e);
+        }
+    });
 }
 
 // Handle notification click
