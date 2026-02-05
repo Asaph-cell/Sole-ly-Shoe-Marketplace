@@ -23,6 +23,7 @@ const About = () => {
       <SEO
         title="About Us"
         description="Kenya's friendly shoe marketplace. Learn about Sole-ly Marketplace's mission to connect shoe lovers with trusted vendors across Kenya through secure escrow-protected transactions."
+        canonical="https://solelyshoes.co.ke/about"
         breadcrumbs={[
           { name: "Home", url: "/" },
           { name: "About", url: "/about" }

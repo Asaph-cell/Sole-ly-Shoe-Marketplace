@@ -115,6 +115,7 @@ const Home = () => {
       <SEO
         title="Buy & Sell Shoes Online Kenya"
         description="Kenya's trusted online shoe marketplace. Shop authentic Nike, Adidas, Jordan sneakers. Buy formal, casual & sports shoes in Nairobi. Sell with escrow protection. Free Kenya-wide delivery."
+        canonical="https://solelyshoes.co.ke/"
         isHomepage={true}
       />
 

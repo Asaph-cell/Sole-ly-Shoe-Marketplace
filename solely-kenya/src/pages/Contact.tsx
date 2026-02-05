@@ -36,6 +36,7 @@ const Contact = () => {
       <SEO
         title="Contact Us"
         description="Contact Solely Marketplace for complaints, inquiries, or support. We respond to all inquiries within 24 hours. Email us at contact@solelyshoes.co.ke."
+        canonical="https://solelyshoes.co.ke/contact"
         breadcrumbs={[
           { name: "Home", url: "/" },
           { name: "Contact", url: "/contact" }

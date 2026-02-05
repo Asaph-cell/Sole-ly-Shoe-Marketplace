@@ -195,6 +195,7 @@ const Shop = () => {
           ? `Shop ${filteredProducts.length} shoe care products & accessories in Kenya. Cleaners, protectors, laces & more from trusted vendors.`
           : `Browse ${filteredProducts.length} ${selectedCategory !== "all" ? getCategoryName(selectedCategory).toLowerCase() : ""} shoes for sale in Nairobi & Kenya. Nike, Adidas, Jordan & more. Filter by brand, size, condition. Escrow-protected payments.`
         }
+        canonical={selectedCategory !== "all" ? `https://solelyshoes.co.ke/shop?category=${selectedCategory}` : "https://solelyshoes.co.ke/shop"}
         breadcrumbs={[
           { name: "Home", url: "/" },
           { name: "Shop", url: "/shop" },
