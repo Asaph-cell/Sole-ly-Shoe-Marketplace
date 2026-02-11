@@ -133,7 +133,8 @@ const VendorAddProduct = () => {
       // Upload images
       const imageUrls = await uploadImages();
 
-      const { error } = await supabase.from("products").insert({
+      // Insert as 'draft' first (RLS policy only allows draft inserts)
+      const { data: insertedProduct, error } = await supabase.from("products").insert({
         vendor_id: user?.id,
         name: formData.name,
         description: formData.description,
@@ -142,16 +143,23 @@ const VendorAddProduct = () => {
         brand: formData.brand,
         category: formData.category,
         key_features: keyFeaturesArray,
-        status: "active",
+        status: "draft",
         sizes: sizesArray,
         colors: colorsArray,
         images: imageUrls,
         video_url: videoUrl,
         condition: formData.condition,
         condition_notes: formData.condition_notes || null,
-      });
+      }).select('id').single();
 
       if (error) throw error;
+
+      // Now publish it (uses SECURITY DEFINER function to bypass RLS)
+      const { error: publishError } = await supabase.rpc('publish_product', {
+        product_id_to_publish: insertedProduct.id,
+      });
+
+      if (publishError) throw publishError;
 
       toast.success("Shoe listed successfully! It is now live on the marketplace.");
       navigate("/vendor/products");
