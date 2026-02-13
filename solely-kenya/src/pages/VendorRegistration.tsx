@@ -103,14 +103,9 @@ const VendorRegistration = () => {
 
       if (profileError) throw profileError;
 
-      // Add vendor role
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .insert({ user_id: user.id, role: "vendor" });
-
-      if (roleError && !roleError.message.includes("duplicate")) {
-        throw roleError;
-      }
+      // Add vendor role (uses SECURITY DEFINER function to bypass RLS)
+      const { error: roleError } = await supabase.rpc('register_as_vendor');
+      if (roleError) throw roleError;
 
       // Create IntaSend wallet for the vendor (non-blocking)
       supabase.functions.invoke('create-vendor-wallet', {
