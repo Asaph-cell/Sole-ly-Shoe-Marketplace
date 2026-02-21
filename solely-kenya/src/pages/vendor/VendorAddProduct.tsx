@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { compressImages, getFileSizeMB } from "@/lib/compressImage";
 import { VendorNavbar } from "@/components/vendor/VendorNavbar";
 import { VendorSidebar } from "@/components/vendor/VendorSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,18 +47,41 @@ const VendorAddProduct = () => {
     }
   }, [user, loading, navigate]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length + imageFiles.length > 4) {
       toast.error("Maximum 4 images allowed");
       return;
     }
 
-    setImageFiles([...imageFiles, ...files]);
+    // Show compressing indicator for large files
+    const hasLargeFiles = files.some(f => f.size > 1024 * 1024);
+    if (hasLargeFiles) {
+      toast.info("Compressing images for faster upload...");
+    }
 
-    // Create preview URLs
-    const newPreviews = files.map(file => URL.createObjectURL(file));
-    setImagePreview([...imagePreview, ...newPreviews]);
+    try {
+      const compressedFiles = await compressImages(files);
+
+      // Log compression results for debugging
+      compressedFiles.forEach((compressed, i) => {
+        const original = files[i];
+        if (compressed.size < original.size) {
+          console.log(
+            `Image compressed: ${getFileSizeMB(original)}MB → ${getFileSizeMB(compressed)}MB`
+          );
+        }
+      });
+
+      setImageFiles([...imageFiles, ...compressedFiles]);
+
+      // Create preview URLs
+      const newPreviews = compressedFiles.map(file => URL.createObjectURL(file));
+      setImagePreview([...imagePreview, ...newPreviews]);
+    } catch (error) {
+      console.error("Image compression failed:", error);
+      toast.error("Failed to process images. Please try again.");
+    }
   };
 
   const removeImage = (index: number) => {

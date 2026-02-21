@@ -17,7 +17,7 @@ const PrivacyPolicy = () => {
                 <div className="text-center mb-8">
                     <h1 className="text-4xl font-bold mb-4">Privacy Policy</h1>
                     <p className="text-muted-foreground">
-                        Last updated: January 2026
+                        Last updated: February 2026
                     </p>
                 </div>
 
@@ -61,6 +61,7 @@ const PrivacyPolicy = () => {
                             <li><strong>Device information:</strong> Browser type, operating system, device type</li>
                             <li><strong>Usage data:</strong> Pages visited, time spent on pages, click patterns</li>
                             <li><strong>Location data:</strong> Approximate location based on IP address (used for delivery fee calculation)</li>
+                            <li><strong>Push notification tokens:</strong> If you opt in, we store your device's push notification subscription to send you order updates and alerts</li>
                             <li><strong>Cookies:</strong> Session cookies, authentication tokens</li>
                         </ul>
 
@@ -69,6 +70,7 @@ const PrivacyPolicy = () => {
                             <li>Order history and purchase details</li>
                             <li>Payment transaction IDs (we do not store full card numbers)</li>
                             <li>M-Pesa payment references</li>
+                            <li>Delivery OTP codes (one-time passwords generated for secure delivery confirmation)</li>
                             <li>Dispute and refund records</li>
                         </ul>
                     </section>
@@ -97,6 +99,8 @@ const PrivacyPolicy = () => {
                         <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
                             <li>Sending order confirmations and updates</li>
                             <li>Notifying you about disputes and resolutions</li>
+                            <li>Sending delivery OTP codes to buyers for secure order confirmation</li>
+                            <li>Sending push notifications for order status updates (if opted in)</li>
                             <li>Sending payout notifications to vendors</li>
                             <li>Responding to customer support inquiries</li>
                             <li>Sending important service announcements</li>

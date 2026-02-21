@@ -18,7 +18,7 @@ const Terms = () => {
                 <div className="text-center mb-8">
                     <h1 className="text-4xl font-bold mb-4">Terms and Conditions</h1>
                     <p className="text-muted-foreground">
-                        Last updated: January 2026
+                        Last updated: February 2026
                     </p>
                 </div>
 
@@ -42,7 +42,7 @@ const Terms = () => {
                                     <Shield className="h-6 w-6 text-primary" />
                                     Welcome to Solely Marketplace
                                 </h2>
-                                <p className="text-sm text-muted-foreground mb-4">Last Updated: January 2026</p>
+                                <p className="text-sm text-muted-foreground mb-4">Last Updated: February 2026</p>
                                 <p className="text-muted-foreground leading-relaxed">
                                     Welcome to Sole-ly, Kenya's trusted online shoe marketplace. These Terms and Conditions constitute a legally binding agreement between you ("the Buyer") and Sole-ly ("the Platform"). By creating an account or purchasing products, you agree to these terms.
                                 </p>
@@ -84,7 +84,7 @@ const Terms = () => {
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li><strong>Payment:</strong> When you order, your money is held in a neutral escrow account—it is not sent directly to the vendor immediately</li>
                                     <li><strong>Protection:</strong> Your funds remain secured in escrow while the vendor processes and ships your order</li>
-                                    <li><strong>Release:</strong> Funds are released to the vendor only after you confirm delivery or the inspection window expires</li>
+                                    <li><strong>Release:</strong> Funds are released to the vendor only after delivery is confirmed via OTP verification or the auto-release period expires</li>
                                     <li><strong>Accepted Payment Methods:</strong> M-Pesa, Credit/Debit Cards, and Mobile Wallets</li>
                                 </ul>
                             </section>
@@ -115,27 +115,43 @@ const Terms = () => {
                             </section>
 
                             <section>
-                                <h3 className="text-xl font-semibold mb-3">4. Delivery Confirmation (Critical)</h3>
+                                <h3 className="text-xl font-semibold mb-3">4. Delivery Confirmation via OTP (Critical)</h3>
+                                <p className="text-muted-foreground mb-3">
+                                    Sole-ly uses a <strong>One-Time Password (OTP)</strong> system to securely confirm deliveries and protect both buyers and vendors:
+                                </p>
+
+                                <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-4">
+                                    <h4 className="font-semibold text-green-800 mb-2">🔐 How OTP Delivery Confirmation Works</h4>
+                                    <ol className="list-decimal pl-6 space-y-2 text-sm text-muted-foreground">
+                                        <li>When the vendor ships your order, you receive a <strong>6-digit OTP code</strong> via email</li>
+                                        <li>You can also view your OTP code in your <strong>Orders</strong> page on Sole-ly</li>
+                                        <li><strong>Keep this code private</strong> until you have inspected the shoes and are satisfied</li>
+                                        <li>Upon delivery, share the OTP code with the vendor/courier <strong>only after you have verified</strong> the shoes are correct</li>
+                                        <li>The vendor enters the code to confirm delivery — this <strong>immediately releases the escrowed funds</strong> to them</li>
+                                    </ol>
+                                </div>
+
                                 <p className="text-muted-foreground mb-3">
                                     When your order arrives, it is your responsibility to:
                                 </p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li><strong>Inspect:</strong> Check the shoes immediately for quality, size, and accuracy</li>
-                                    <li><strong>Confirm:</strong> Log in to Sole-ly and click "Confirm Delivery" if you are satisfied</li>
-                                    <li><strong>Report Issues:</strong> If there is a problem, file a dispute within your verification window</li>
+                                    <li><strong>Verify:</strong> Only share your OTP code with the vendor/courier <strong>after</strong> you are satisfied with the product</li>
+                                    <li><strong>Report Issues:</strong> If there is a problem, <strong>do NOT share your OTP</strong> — file a dispute instead</li>
                                 </ul>
+
                                 <div className="mt-4 bg-amber-50 border border-amber-200 p-4 rounded-lg">
                                     <h4 className="font-semibold text-foreground mb-2">⚠️ Verification & Auto-Release Policy</h4>
                                     <p className="text-sm text-muted-foreground mb-2">
-                                        Once the vendor marks your order as "Arrived":
+                                        Once the vendor marks your order as shipped:
                                     </p>
                                     <ul className="list-disc pl-6 space-y-1 text-sm text-muted-foreground">
-                                        <li><strong>Delivery Orders:</strong> You have <strong>24 hours</strong> to verify your shoes and either confirm delivery or file a dispute. If you take no action, funds are automatically released to the vendor</li>
-                                        <li><strong>Pickup Orders:</strong> No time limit - you can verify at your own pace</li>
-                                        <li><strong>Immediate Release:</strong> When you click "Confirm Delivery", funds are released to the vendor immediately</li>
+                                        <li><strong>OTP Confirmation:</strong> Sharing your OTP with the vendor immediately releases funds — <strong>this cannot be reversed</strong></li>
+                                        <li><strong>Delivery Orders:</strong> If no OTP is entered and no dispute is filed within <strong>24 hours</strong> of marking the order as "Arrived", funds are automatically released to the vendor</li>
+                                        <li><strong>Pickup Orders:</strong> No time limit — you can verify at your own pace before sharing the OTP</li>
                                     </ul>
                                     <p className="text-sm text-muted-foreground mt-2">
-                                        <strong>Note:</strong> Please ensure you are available to receive calls from the courier during the delivery window.
+                                        <strong>Note:</strong> Please ensure you are available to receive calls from the courier during the delivery window. If you lose your OTP, you can view it in your Orders page.
                                     </p>
                                 </div>
                             </section>
@@ -204,7 +220,7 @@ const Terms = () => {
                                     <Store className="h-6 w-6 text-primary" />
                                     Sole-ly Vendor Agreement
                                 </h2>
-                                <p className="text-sm text-muted-foreground mb-4">Last Updated: January 2026</p>
+                                <p className="text-sm text-muted-foreground mb-4">Last Updated: February 2026</p>
                                 <p className="text-muted-foreground leading-relaxed">
                                     By registering as a vendor on Sole-ly, you agree to provide high-quality products
                                     and excellent customer service. These terms govern your relationship with Sole-ly and buyers on the platform.
@@ -256,9 +272,21 @@ const Terms = () => {
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li><strong>Confirmation:</strong> Accept or reject new orders within <strong>48 hours</strong></li>
                                     <li><strong>Delivery:</strong> Deliver orders within <strong>5 days</strong> of confirmation</li>
-                                    <li><strong>Mark Arrived:</strong> Once delivered, mark the order as "Arrived" so the buyer can verify</li>
+                                    <li><strong>OTP Verification:</strong> Upon delivery, collect the buyer's <strong>6-digit OTP code</strong> and enter it on Sole-ly to confirm delivery and release funds</li>
                                     <li><strong>Tracking:</strong> Provide accurate courier names and tracking numbers/contact details</li>
                                 </ul>
+
+                                <div className="mt-4 bg-green-50 border border-green-200 p-4 rounded-lg mb-4">
+                                    <h4 className="font-semibold text-green-800 mb-2">🔐 OTP Delivery Confirmation</h4>
+                                    <ul className="list-disc pl-6 space-y-2 text-sm text-muted-foreground">
+                                        <li>When you mark an order as <strong>"Shipped"</strong>, a 6-digit OTP is automatically sent to the buyer via email</li>
+                                        <li>Upon delivery, <strong>ask the buyer for their OTP code</strong> after they have inspected the item</li>
+                                        <li>Enter the OTP on your Vendor Orders page to <strong>immediately confirm delivery and release funds</strong></li>
+                                        <li>If the buyer has lost their OTP, you can <strong>resend it</strong> from your orders page</li>
+                                        <li><strong>Do NOT</strong> pressure buyers into sharing the OTP before they have inspected the product</li>
+                                    </ul>
+                                </div>
+
                                 <div className="mt-4 space-y-3">
                                     <h4 className="font-semibold text-foreground">Order Automation Rules</h4>
                                     <p className="text-muted-foreground bg-red-50 border border-red-200 p-3 rounded-lg">
@@ -268,10 +296,10 @@ const Terms = () => {
                                         ⚠️ <strong>Auto-Dispute (5 days):</strong> If an order is confirmed but not marked as "Arrived" within 5 days, a dispute is automatically raised for admin review.
                                     </p>
                                     <p className="text-muted-foreground bg-green-50 border border-green-200 p-3 rounded-lg">
-                                        ✅ <strong>Auto-Release:</strong> For delivery orders, funds are released 24 hours after you mark the order as "Arrived" if the buyer takes no action. Pickup orders have no time limit.
+                                        ✅ <strong>Auto-Release:</strong> For delivery orders, if no OTP is entered and no dispute is filed within 24 hours of marking the order as "Arrived", funds are automatically released. Pickup orders have no time limit.
                                     </p>
                                     <p className="text-sm text-muted-foreground mt-2">
-                                        <strong>Immediate Release:</strong> When the buyer clicks "Confirm Delivery", funds are released to you immediately.
+                                        <strong>Immediate Release:</strong> When the buyer shares their OTP and you enter it successfully, funds are released to you immediately.
                                     </p>
                                 </div>
                             </section>
