@@ -84,7 +84,7 @@ const Terms = () => {
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li><strong>Payment:</strong> When you order, your money is held in a neutral escrow account—it is not sent directly to the vendor immediately</li>
                                     <li><strong>Protection:</strong> Your funds remain secured in escrow while the vendor processes and ships your order</li>
-                                    <li><strong>Release:</strong> Funds are released to the vendor only after delivery is confirmed via OTP verification or the auto-release period expires</li>
+                                    <li><strong>Release:</strong> Funds are released to the vendor <strong>only</strong> when the buyer shares their OTP after inspecting and accepting the item. No OTP = no payment, no exceptions</li>
                                     <li><strong>Accepted Payment Methods:</strong> M-Pesa, Credit/Debit Cards, and Mobile Wallets</li>
                                 </ul>
                             </section>
@@ -140,19 +140,14 @@ const Terms = () => {
                                     <li><strong>Report Issues:</strong> If there is a problem, <strong>do NOT share your OTP</strong> — file a dispute instead</li>
                                 </ul>
 
-                                <div className="mt-4 bg-amber-50 border border-amber-200 p-4 rounded-lg">
-                                    <h4 className="font-semibold text-foreground mb-2">⚠️ Verification & Auto-Release Policy</h4>
-                                    <p className="text-sm text-muted-foreground mb-2">
-                                        Once the vendor marks your order as shipped:
-                                    </p>
+                                <div className="mt-4 bg-red-50 border border-red-200 p-4 rounded-lg">
+                                    <h4 className="font-semibold text-red-800 mb-2">🔒 OTP = Your Final Confirmation</h4>
                                     <ul className="list-disc pl-6 space-y-1 text-sm text-muted-foreground">
-                                        <li><strong>OTP Confirmation:</strong> Sharing your OTP with the vendor immediately releases funds — <strong>this cannot be reversed</strong></li>
-                                        <li><strong>Delivery Orders:</strong> If no OTP is entered and no dispute is filed within <strong>24 hours</strong> of marking the order as "Arrived", funds are automatically released to the vendor</li>
-                                        <li><strong>Pickup Orders:</strong> No time limit — you can verify at your own pace before sharing the OTP</li>
+                                        <li><strong>Inspect First, Share Second:</strong> Before handing over your OTP, physically inspect the shoes. Check the size, condition, and that they match your order</li>
+                                        <li><strong>Sharing = Satisfied:</strong> By giving your OTP to the vendor, you confirm you have received the correct item in acceptable condition. <strong>This cannot be undone</strong></li>
+                                        <li><strong>Problem? Don't share the OTP:</strong> If something is wrong, withhold the OTP and contact support to file a dispute. The vendor will take the shoes back and you will receive a full refund</li>
+                                        <li><strong>Lost your OTP?</strong> You can always view it in your <strong>Orders page</strong> on Sole-ly</li>
                                     </ul>
-                                    <p className="text-sm text-muted-foreground mt-2">
-                                        <strong>Note:</strong> Please ensure you are available to receive calls from the courier during the delivery window. If you lose your OTP, you can view it in your Orders page.
-                                    </p>
                                 </div>
                             </section>
 
@@ -244,7 +239,7 @@ const Terms = () => {
                                 </h3>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li>Sole-ly charges a <strong>10% commission</strong> on the product price of each completed sale</li>
-                                    <li>Payments are held in escrow until the buyer confirms delivery or the auto-release period expires</li>
+                                    <li>Payments are held in escrow until the buyer confirms delivery by sharing their OTP code</li>
                                     <li><strong>Withdrawals:</strong> You can withdraw your earnings to M-Pesa at any time. Standard M-Pesa transaction fees apply and are deducted from the withdrawal amount</li>
                                     <li><strong>Auto-Payout:</strong> If your balance exceeds KES 10,000, the system may automatically process a payout to your registered M-Pesa number</li>
                                     <li><strong>Payout Method:</strong> All payouts are sent via M-Pesa to your registered phone number</li>
@@ -296,10 +291,10 @@ const Terms = () => {
                                         ⚠️ <strong>Auto-Dispute (5 days):</strong> If an order is confirmed but not marked as "Arrived" within 5 days, a dispute is automatically raised for admin review.
                                     </p>
                                     <p className="text-muted-foreground bg-green-50 border border-green-200 p-3 rounded-lg">
-                                        ✅ <strong>Auto-Release:</strong> For delivery orders, if no OTP is entered and no dispute is filed within 24 hours of marking the order as "Arrived", funds are automatically released. Pickup orders have no time limit.
+                                        ✅ <strong>OTP Release (Only):</strong> Funds are released <strong>exclusively</strong> when the buyer provides their OTP after inspecting the item. There is no auto-release timer — the OTP is the only key.
                                     </p>
-                                    <p className="text-sm text-muted-foreground mt-2">
-                                        <strong>Immediate Release:</strong> When the buyer shares their OTP and you enter it successfully, funds are released to you immediately.
+                                    <p className="text-sm bg-blue-50 border border-blue-200 p-3 rounded-lg text-muted-foreground mt-2">
+                                        💡 <strong>Buyer refuses OTP?</strong> If a buyer withholds the OTP after receiving the correct item, raise a dispute immediately. Sole-ly admin will review and release funds in your favour. If the item was genuinely wrong or damaged, take it back — the buyer will be refunded and no commission is charged.
                                     </p>
                                 </div>
                             </section>
@@ -311,7 +306,7 @@ const Terms = () => {
                                 </h3>
                                 <h4 className="font-semibold text-foreground mb-2">Grounds for Dispute</h4>
                                 <p className="text-muted-foreground mb-3">
-                                    Buyers may file a dispute within their verification window (24 hours for delivery orders) for the following reasons:
+                                    Buyers may file a dispute <strong>before sharing their OTP</strong> for the following reasons:
                                 </p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
                                     <li><strong>Item Not Received:</strong> The package never arrived</li>
@@ -444,3 +439,4 @@ const Terms = () => {
 };
 
 export default Terms;
+
