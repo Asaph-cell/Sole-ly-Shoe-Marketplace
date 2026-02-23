@@ -1167,15 +1167,15 @@ const VendorOrders = () => {
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="flex flex-col-reverse gap-2 sm:gap-3 mt-6 w-full md:flex-row md:justify-end">
-            <AlertDialogCancel disabled={otpVerifying} className="w-full mt-0 md:w-auto">Cancel</AlertDialogCancel>
+          <div className="flex flex-row gap-2 mt-6 w-full">
+            <AlertDialogCancel disabled={otpVerifying} className="flex-1 mt-0 text-sm px-3 py-2">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
                 handleVerifyOtp();
               }}
               disabled={otpVerifying || otpInput.length !== 6}
-              className="w-full md:w-auto"
+              className="flex-1 text-sm px-3 py-2"
             >
               {otpVerifying ? "Verifying..." : "Confirm Delivery"}
             </AlertDialogAction>

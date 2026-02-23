@@ -2,11 +2,11 @@ import { Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
-import { NavLinks } from "./navbar/NavLinks";
 import { AuthButtons } from "./navbar/AuthButtons";
 import { MobileNav } from "./navbar/MobileNav";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, ShoppingBag, Store, Info, Mail } from "lucide-react";
+import { AnimeNavBar } from "@/components/ui/anime-navbar";
 import logo from "@/assets/solely-logo.svg";
 
 const Navbar = () => {
@@ -52,6 +52,14 @@ const Navbar = () => {
     { name: "Contact", path: "/contact" },
   ];
 
+  // Anime navbar items with icons
+  const animeNavItems = [
+    { name: "Shop", url: "/shop", icon: ShoppingBag },
+    { name: "Sell", url: "/vendor", icon: Store },
+    { name: "About", url: "/about", icon: Info },
+    { name: "Contact", url: "/contact", icon: Mail },
+  ];
+
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border shadow-soft">
       <div className="container mx-auto px-4 py-3 sm:py-4">
@@ -66,11 +74,9 @@ const Navbar = () => {
             <span className="text-[9px] sm:text-[10px] text-muted-foreground tracking-wide uppercase -mt-3 pl-1">the shoe marketplace</span>
           </Link>
 
-          {/* Desktop Navigation - Center */}
-          <div className="hidden md:flex items-center justify-center flex-1">
-            <div className="flex items-center gap-8">
-              <NavLinks links={navLinks} />
-            </div>
+          {/* Desktop Navigation - Center: Anime NavBar */}
+          <div className="hidden md:flex items-center justify-center flex-1 pt-2">
+            <AnimeNavBar items={animeNavItems} defaultActive="Shop" />
           </div>
 
           {/* Right side - Cart & Auth */}
@@ -111,4 +117,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
