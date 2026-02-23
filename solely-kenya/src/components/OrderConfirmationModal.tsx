@@ -111,7 +111,7 @@ export const OrderConfirmationModal = ({
         onClose();
     };
 
-    // Handle satisfied confirmation - release escrow
+    // Handle satisfied confirmation - submit reviews only (payment is released via OTP)
     const handleConfirmSatisfied = async () => {
         if (rating === 0) {
             toast.error("Please rate the vendor before confirming");
@@ -127,7 +127,7 @@ export const OrderConfirmationModal = ({
 
         setSubmitting(true);
         try {
-            // 1. Submit product reviews first
+            // 1. Submit product reviews
             const productReviewPromises = orderItems
                 .filter(item => productRatings[item.product_id] > 0)
                 .map(item =>
@@ -146,31 +146,41 @@ export const OrderConfirmationModal = ({
                 const reviewErrors = reviewResults.filter(r => r.error);
                 if (reviewErrors.length > 0) {
                     console.error("Product review errors:", reviewErrors.map(r => r.error));
-                    // Don't block the confirmation, but warn the user
                     toast.warning(`Note: ${reviewErrors.length} product review(s) may not have been saved.`);
                 } else {
                     console.log("Product reviews saved successfully:", reviewResults.length);
                 }
             }
 
-            // 2. Confirm order via Edge Function (handles vendor rating, escrow, payout)
-            const { data, error } = await supabase.functions.invoke('confirm-order', {
-                body: {
-                    orderId,
-                    rating,
-                    review: feedback || null
-                }
+            // 2. Submit vendor rating
+            const { error: ratingError } = await supabase.from("vendor_ratings").insert({
+                order_id: orderId,
+                buyer_id: customerId,
+                vendor_id: vendorId,
+                rating,
+                review: feedback || null,
             });
 
-            if (error) throw new Error(error.message || "Failed to confirm order");
-            if (!data?.success) throw new Error(data?.error || "Failed to process confirmation");
+            if (ratingError) {
+                console.warn("Vendor rating save warning:", ratingError);
+            }
 
-            toast.success("Order confirmed! Payment released to vendor. Thank you for your reviews!");
+            // 3. Mark buyer_confirmed on the order
+            const { error: orderError } = await supabase
+                .from("orders")
+                .update({ buyer_confirmed: true })
+                .eq("id", orderId);
+
+            if (orderError) {
+                console.warn("Order update warning:", orderError);
+            }
+
+            toast.success("Thank you for your review! Your feedback helps the community.");
             onSuccess();
             handleClose();
         } catch (error: any) {
-            console.error("Confirmation error:", error);
-            toast.error(error.message || "Failed to confirm order");
+            console.error("Review submission error:", error);
+            toast.error(error.message || "Failed to submit review");
         } finally {
             setSubmitting(false);
         }
@@ -319,7 +329,7 @@ export const OrderConfirmationModal = ({
                     </DialogTitle>
                     <DialogDescription>
                         {step === "choice" && "How was your order experience?"}
-                        {step === "satisfied" && "Rate the vendor and release payment"}
+                        {step === "satisfied" && "Rate the vendor and products"}
                         {step === "issue" && "Describe the problem and we'll help resolve it"}
                     </DialogDescription>
                 </DialogHeader>
@@ -338,8 +348,8 @@ export const OrderConfirmationModal = ({
                             </div>
                             <span className="text-sm text-muted-foreground leading-snug">
                                 {isPickup
-                                    ? "I have collected my order and checked it. Release payment to vendor."
-                                    : "I received my order and I'm satisfied. Release payment to vendor."}
+                                    ? "I have collected my order and checked it."
+                                    : "I received my order and I'm satisfied."}
                             </span>
                         </Button>
 
@@ -430,7 +440,7 @@ export const OrderConfirmationModal = ({
                         </div>
 
                         <div className="bg-green-50 border border-green-200 p-3 rounded-lg text-sm text-green-800">
-                            <strong>✅ By confirming:</strong> Your payment will be released to the vendor and the order will be marked as completed.
+                            <strong>✅ By confirming:</strong> Your review will be submitted and the order will be marked as completed. Payment was already handled via your delivery code.
                         </div>
 
                         <div className="flex gap-3">
@@ -442,7 +452,7 @@ export const OrderConfirmationModal = ({
                                 onClick={handleConfirmSatisfied}
                                 disabled={submitting || rating === 0 || (orderItems.length > 0 && !orderItems.some(item => productRatings[item.product_id] > 0))}
                             >
-                                {submitting ? "Processing..." : "Confirm & Release Payment"}
+                                {submitting ? "Processing..." : "Submit Review"}
                             </Button>
                         </div>
                     </div>
