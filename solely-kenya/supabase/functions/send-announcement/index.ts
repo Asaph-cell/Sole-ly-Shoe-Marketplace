@@ -155,51 +155,43 @@ serve(async (req) => {
       </html>
     `;
 
-        // Send emails in batches of 10 (Resend rate limit friendly)
-        const BATCH_SIZE = 10;
+        // Send emails one at a time with delay to respect Resend's 2 req/s rate limit
         let sent = 0;
         let failed = 0;
 
-        for (let i = 0; i < emails.length; i += BATCH_SIZE) {
-            const batch = emails.slice(i, i + BATCH_SIZE);
+        for (let i = 0; i < emails.length; i++) {
+            const email = emails[i];
+            try {
+                const response = await fetch("https://api.resend.com/emails", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${RESEND_API_KEY}`,
+                    },
+                    body: JSON.stringify({
+                        from: "Sole-ly Kenya <notifications@solelyshoes.co.ke>",
+                        to: [email],
+                        subject: subject,
+                        html: styledHtml,
+                    }),
+                });
 
-            // Send to each recipient individually (Resend BCC has limits)
-            const sendPromises = batch.map(async (email) => {
-                try {
-                    const response = await fetch("https://api.resend.com/emails", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": `Bearer ${RESEND_API_KEY}`,
-                        },
-                        body: JSON.stringify({
-                            from: "Sole-ly Kenya <notifications@solelyshoes.co.ke>",
-                            to: [email],
-                            subject: subject,
-                            html: styledHtml,
-                        }),
-                    });
-
-                    if (response.ok) {
-                        return { success: true };
-                    } else {
-                        const error = await response.json();
-                        console.error(`Failed to send to ${email}:`, error);
-                        return { success: false };
-                    }
-                } catch (error) {
-                    console.error(`Error sending to ${email}:`, error);
-                    return { success: false };
+                if (response.ok) {
+                    sent++;
+                    console.log(`Sent to ${email} (${i + 1}/${emails.length})`);
+                } else {
+                    const error = await response.json();
+                    console.error(`Failed to send to ${email}:`, error);
+                    failed++;
                 }
-            });
+            } catch (error) {
+                console.error(`Error sending to ${email}:`, error);
+                failed++;
+            }
 
-            const results = await Promise.all(sendPromises);
-            sent += results.filter(r => r.success).length;
-            failed += results.filter(r => !r.success).length;
-
-            // Small delay between batches to respect rate limits
-            if (i + BATCH_SIZE < emails.length) {
-                await new Promise(resolve => setTimeout(resolve, 100));
+            // Wait 600ms between sends to stay under Resend's 2 req/s limit
+            if (i < emails.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, 600));
             }
         }
 
