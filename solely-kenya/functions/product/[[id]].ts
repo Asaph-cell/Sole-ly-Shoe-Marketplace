@@ -47,65 +47,62 @@ export const onRequest: PagesFunction = async (context) => {
         const title = `${product.name} | Sole-ly`;
         const description = (product.description || `Buy ${product.name} on Sole-ly for KES ${product.price_ksh.toLocaleString()}`).substring(0, 197) + "...";
 
-        // FIX: Ensure this is a FULL URL.
-        // The bucket is 'product-images' based on previous context.
-        // user's snippet suggested: https://YOUR_SUPABASE_ID.supabase.co/storage/v1/object/public/product-images/
-        // My previous code used: https://solelyshoes.co.ke + image path if it started with /
-        // Let's use the explicit Supabase Storage URL for maximum safety if it's a relative path in DB.
-        // But usually in this app images are stored as full relative paths "/uploads/..." or filenames?
-        // Looking at previous valid code: `let imageUrl = product.images?.[0] || ...`
-        // Let's stick to the logic that served us well but use the FULL supabase URL if needed.
-        // Actually, looking at the user's snippet, they want to handle the specific case.
+        // Build the OG image URL — points to the dynamic OG image generator
+        const ogImageUrl = `${SUPABASE_URL}/functions/v1/generate-og-image?id=${productId}`;
 
+        // Also resolve the raw product image as fallback
         let imageValue = product.images?.[0];
-        let imageUrl = "https://solelyshoes.co.ke/og-image.png";
+        let rawImageUrl = "https://solelyshoes.co.ke/og-image.png";
 
         if (imageValue) {
             if (imageValue.startsWith("http")) {
-                imageUrl = imageValue;
+                rawImageUrl = imageValue;
+            } else if (imageValue.startsWith("/")) {
+                rawImageUrl = `https://solelyshoes.co.ke${imageValue}`;
             } else {
-                // If it starts with a slash, append to domain (as per my previous working code) -> this is likely correct for this app
-                // User suggestion was: https://YOUR_SUPABASE_ID.supabase.co/storage/v1/object/public/product-images/${product.images}
-                // I will support BOTH: if it looks like a filename, use storage. If it looks like a path, use domain.
-                if (imageValue.startsWith("/")) {
-                    imageUrl = `https://solelyshoes.co.ke${imageValue}`;
-                } else {
-                    // Assume it's a filename in the product-images bucket
-                    imageUrl = `${SUPABASE_URL}/storage/v1/object/public/product-images/${imageValue}`;
-                }
+                rawImageUrl = `${SUPABASE_URL}/storage/v1/object/public/product-images/${imageValue}`;
             }
         }
 
-        // 4. Inject
+        // Use the dynamic OG image generator URL
+        const finalImageUrl = ogImageUrl;
+
+        // 4. Inject — remove existing OG/Twitter tags and inject fresh ones
         return new HTMLRewriter()
+            // Remove existing OG tags from the HTML shell to prevent duplicates
+            .on('meta[property^="og:"]', {
+                element(el) {
+                    el.remove();
+                }
+            })
+            .on('meta[name^="twitter:"]', {
+                element(el) {
+                    el.remove();
+                }
+            })
             .on("head", {
                 element(element) {
                     const tags = `
+            <meta property="og:type" content="product">
             <meta property="og:title" content="${title}">
             <meta property="og:description" content="${description}">
             <meta property="og:url" content="${request.url}">
             <meta property="og:site_name" content="Sole-ly Kenya">
+            <meta property="og:image" content="${finalImageUrl}">
+            <meta property="og:image:width" content="1200">
+            <meta property="og:image:height" content="630">
             <meta property="product:price:amount" content="${product.price_ksh}">
             <meta property="product:price:currency" content="KES">
             
             <meta name="twitter:card" content="summary_large_image">
+            <meta name="twitter:site" content="@solely_kenya">
             <meta name="twitter:title" content="${title}">
             <meta name="twitter:description" content="${description}">
+            <meta name="twitter:image" content="${finalImageUrl}">
             
             <meta name="x-debug-worker" content="active"> 
           `;
                     element.append(tags, { html: true });
-                }
-            })
-            // Overwrite the existing default logo or previous tags
-            .on('meta[property="og:image"]', {
-                element(el) {
-                    el.setAttribute("content", imageUrl);
-                }
-            })
-            .on('meta[name="twitter:image"]', {
-                element(el) {
-                    el.setAttribute("content", imageUrl);
                 }
             })
             .transform(response);
