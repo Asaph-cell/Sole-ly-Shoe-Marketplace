@@ -44,8 +44,8 @@ export const onRequest: PagesFunction = async (context) => {
         if (!product) return response;
 
         // 3. Prepare Data
-        const title = `${product.name} | Sole-ly`;
-        const description = (product.description || `Buy ${product.name} on Sole-ly for KES ${product.price_ksh.toLocaleString()}`).substring(0, 197) + "...";
+        const title = `Buy ${product.name} Online in Kenya | Sole-ly`;
+        const description = (product.description || `Buy ${product.name} online in Kenya for KES ${product.price_ksh.toLocaleString()}. Escrow-protected payment. Verified seller.`).substring(0, 197) + "...";
 
         // Build the OG image URL — points to the dynamic OG image generator
         const ogImageUrl = `${SUPABASE_URL}/functions/v1/generate-og-image?id=${productId}`;

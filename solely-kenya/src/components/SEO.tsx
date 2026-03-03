@@ -30,6 +30,7 @@ interface SEOProps {
     breadcrumbs?: BreadcrumbItem[];
     isHomepage?: boolean;
     canonical?: string;
+    price?: number;
 }
 
 const SITE_NAME = "Solely Kenya";
@@ -53,9 +54,28 @@ export const SEO = ({
     breadcrumbs,
     isHomepage = false,
     canonical,
+    price,
 }: SEOProps) => {
     const currentUrl = url || (typeof window !== 'undefined' ? window.location.href : SITE_URL);
-    const fullTitle = isHomepage ? `${SITE_NAME} - Buy & Sell Shoes in Kenya` : `${title} | ${SITE_NAME}`;
+
+    // Build title with buyer-intent keywords for product pages
+    let fullTitle: string;
+    if (isHomepage) {
+        fullTitle = `${SITE_NAME} - Buy & Sell Shoes in Kenya`;
+    } else if (type === "product" && price) {
+        // Rotate through buyer-intent title patterns based on product name hash
+        const hash = title.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+        const priceFormatted = price.toLocaleString();
+        const patterns = [
+            `Buy ${title} Online in Kenya | ${SITE_NAME}`,
+            `${title} - Under KES ${priceFormatted} | ${SITE_NAME}`,
+            `${title} for Sale in Kenya | ${SITE_NAME}`,
+        ];
+        fullTitle = patterns[hash % patterns.length];
+    } else {
+        fullTitle = `${title} | ${SITE_NAME}`;
+    }
+
     const fullImageUrl = image.startsWith('http') ? image : `${SITE_URL}${image}`;
     const canonicalUrl = canonical || currentUrl;
 

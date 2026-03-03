@@ -247,9 +247,10 @@ const Product = () => {
       {product && (
         <SEO
           title={product.name}
-          description={product.description || `Buy ${product.name} at Sole-ly. ${product.brand ? `Brand: ${product.brand}.` : ''} Price: KES ${product.price_ksh.toLocaleString()}.`}
+          description={product.description || `Buy ${product.name} online in Kenya for KES ${product.price_ksh.toLocaleString()}. ${product.brand ? `Brand: ${product.brand}.` : ''} Escrow-protected payment. Verified seller.`}
           image={product.images?.[0]}
           type="product"
+          price={product.price_ksh}
           canonical={`https://solelyshoes.co.ke/product/${product.id}`}
           product={{
             name: product.name,
