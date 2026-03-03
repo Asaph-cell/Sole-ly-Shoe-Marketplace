@@ -18,6 +18,32 @@ export default {
             });
         }
 
+        // Dynamic sitemap: proxy the Supabase generate-sitemap edge function
+        if (url.pathname === '/sitemap.xml') {
+            try {
+                const SUPABASE_URL = 'https://cqcklvdblhcdowisjnsf.supabase.co';
+                const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxY2tsdmRibGhjZG93aXNqbnNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3Njc0MDMsImV4cCI6MjA3NzM0MzQwM30.XEDVTzEQIG2LyEVkVV88vNIJTqVHX6aHXut6BVSP6-g';
+                const sitemapResponse = await fetch(SUPABASE_URL + '/functions/v1/generate-sitemap', {
+                    headers: {
+                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                if (sitemapResponse.ok) {
+                    var xml = await sitemapResponse.text();
+                    return new Response(xml, {
+                        headers: {
+                            'Content-Type': 'application/xml',
+                            'Cache-Control': 'public, max-age=3600',
+                        },
+                    });
+                }
+            } catch (e) {
+                // Fall through to static assets on error
+            }
+            return env.ASSETS.fetch(request);
+        }
+
         // Only intercept /product/* routes for OG tag injection
         if (url.pathname.startsWith('/product/')) {
             try {
@@ -65,11 +91,11 @@ export default {
                     return newResponse;
                 }
 
-                // Prepare OG data
-                var title = product.name + ' | Sole-ly';
+                // Prepare OG data with buyer-intent keywords
+                var title = 'Buy ' + product.name + ' Online in Kenya | Sole-ly';
                 var desc = (
                     product.description ||
-                    'Buy ' + product.name + ' on Sole-ly for KES ' + product.price_ksh
+                    'Buy ' + product.name + ' online in Kenya for KES ' + product.price_ksh + '. Escrow-protected payment. Verified seller.'
                 );
                 if (desc.length > 197) {
                     desc = desc.substring(0, 197) + '...';
