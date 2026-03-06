@@ -11,7 +11,7 @@ const ParallaxHero = ({ children }: ParallaxHeroProps) => {
     return (
         <section
             ref={containerRef}
-            className="relative flex items-end overflow-hidden min-h-[55vh] sm:min-h-[70vh]"
+            className="relative flex items-end overflow-hidden min-h-[40vh] sm:min-h-[70vh]"
         >
             {/* Hero Background Image */}
             <div className="absolute inset-0 pointer-events-none bg-black">
