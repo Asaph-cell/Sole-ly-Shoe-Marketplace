@@ -1,0 +1,1 @@
+This folder contains the built output assets for the worker "sole-ly" generated at 2026-03-03T11:13:21.442Z.

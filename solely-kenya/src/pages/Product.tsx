@@ -15,6 +15,7 @@ import { SEO } from "@/components/SEO";
 import { ShoeSizeChart } from "@/components/ShoeSizeChart";
 import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
+import ProductCard from "@/components/ProductCard";
 import {
   WhatsappShareButton,
   FacebookShareButton,
@@ -55,6 +56,8 @@ const Product = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [product, setProduct] = useState<any>(null);
   const [vendorProfile, setVendorProfile] = useState<any>(null);
+  const [similarProducts, setSimilarProducts] = useState<any[]>([]);
+  const [similarLoading, setSimilarLoading] = useState(false);
   const [reviewStats, setReviewStats] = useState({ count: 0, average: 0 }); // Added review stats state
   const [loading, setLoading] = useState(true);
   const [priceAlertActive, setPriceAlertActive] = useState(false);
@@ -73,6 +76,12 @@ const Product = () => {
       fetchProduct();
     }
   }, [id]);
+
+  useEffect(() => {
+    if (product) {
+      fetchSimilarProducts();
+    }
+  }, [product?.id]); // Refetch similar when main product id changes
 
   const fetchProduct = async () => {
     try {
@@ -126,6 +135,88 @@ const Product = () => {
       toast.error("Failed to load product");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSimilarProducts = async () => {
+    if (!product) return;
+    try {
+      setSimilarLoading(true);
+
+      let similarData: any[] = [];
+
+      // 1. Try finding same brand first
+      if (product.brand) {
+        const { data: brandData, error: brandError } = await supabase
+          .from("products")
+          .select("*")
+          .eq("status", "active")
+          .neq("id", product.id)
+          .eq("brand", product.brand)
+          .limit(10);
+
+        if (!brandError && brandData) {
+          similarData = brandData;
+        }
+      }
+
+      // 2. If we found fewer than 4 items, try backfilling with the same category
+      if (similarData.length < 4 && product.category) {
+        let query = supabase
+          .from("products")
+          .select("*")
+          .eq("status", "active")
+          .neq("id", product.id)
+          .eq("category", product.category)
+          .limit(10 - similarData.length);
+
+        // If we already have some items, exclude them so we don't get duplicates
+        if (similarData.length > 0) {
+          const existingIds = similarData.map(p => p.id);
+          query = query.not("id", "in", `(${existingIds.join(',')})`);
+        }
+
+        const { data: categoryData, error: categoryError } = await query;
+
+        if (!categoryError && categoryData) {
+          similarData = [...similarData, ...categoryData];
+        }
+      }
+
+      // 3. If still nothing found, exit
+      if (similarData.length === 0) {
+        setSimilarProducts([]);
+        return;
+      }
+
+      // Fetch reviews for the similar products to show stars
+      const productIds = similarData.map(p => p.id);
+      const { data: reviewsData } = await supabase
+        .from("reviews")
+        .select("product_id, rating")
+        .in("product_id", productIds);
+
+      const stats: Record<string, { sum: number; count: number }> = {};
+      (reviewsData || []).forEach(r => {
+        if (!stats[r.product_id]) stats[r.product_id] = { sum: 0, count: 0 };
+        stats[r.product_id].sum += r.rating;
+        stats[r.product_id].count += 1;
+      });
+
+      const processed = similarData.map(p => {
+        const pStats = stats[p.id];
+        return {
+          ...p,
+          averageRating: pStats ? pStats.sum / pStats.count : null,
+          reviewCount: pStats ? pStats.count : 0,
+        };
+      });
+
+      setSimilarProducts(processed);
+    } catch (err) {
+      console.error("Error fetching similar products:", err);
+    } finally {
+      setSimilarLoading(false);
     }
   };
 
@@ -720,6 +811,56 @@ const Product = () => {
           </div>
         </div>
       </div>
+
+      {/* Similar Products Section */}
+      {similarProducts.length > 0 && (
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 border-t border-border mt-8">
+          <div className="flex items-center justify-between mb-5 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold">Similar Products</h2>
+            <Link to={product?.brand ? `/shop?search=${encodeURIComponent(product.brand)}` : `/shop?category=${product?.category || ''}`} className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
+              View All <ChevronRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="relative group">
+            {similarLoading ? (
+              <div className="flex justify-center p-8">
+                <SneakerLoader message="Loading..." size="sm" fullScreen={false} />
+              </div>
+            ) : (
+              <Swiper
+                modules={[Navigation, FreeMode]}
+                spaceBetween={12}
+                slidesPerView={2}
+                navigation
+                freeMode={true}
+                breakpoints={{
+                  640: { slidesPerView: 2, spaceBetween: 16 },
+                  768: { slidesPerView: 3, spaceBetween: 20 },
+                  1024: { slidesPerView: 4, spaceBetween: 24 },
+                }}
+                className="pb-6 !px-1 select-none"
+              >
+                {similarProducts.map((simProd) => (
+                  <SwiperSlide key={simProd.id} className="h-auto py-1">
+                    <ProductCard
+                      id={simProd.id}
+                      name={simProd.name}
+                      price={simProd.price_ksh}
+                      image={simProd.images?.[0] || "/placeholder.svg"}
+                      brand={simProd.brand}
+                      averageRating={simProd.averageRating}
+                      reviewCount={simProd.reviewCount}
+                      createdAt={simProd.created_at}
+                      condition={simProd.condition}
+                      videoUrl={simProd.video_url}
+                    />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Product Reviews Section */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">

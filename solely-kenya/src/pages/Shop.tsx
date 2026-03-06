@@ -43,6 +43,12 @@ const Shop = () => {
 
     fetchProducts();
 
+    // Set search from URL params if present (from hero search bar)
+    const searchParam = searchParams.get('search');
+    if (searchParam) {
+      setSearchQuery(searchParam);
+    }
+
     // Set category from URL params if present
     const categoryParam = searchParams.get('category');
     if (categoryParam) {
