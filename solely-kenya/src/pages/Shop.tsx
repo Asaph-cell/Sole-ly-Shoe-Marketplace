@@ -188,8 +188,18 @@ const Shop = () => {
     setSelectedBrand("all");
     setSelectedCategory("all");
     setSelectedSize("all");
+    setSelectedCondition("all");
     setSelectedAccessoryType("all");
-    setSortBy("newest");
+    setSortBy("smart");
+    setPage(1);
+
+    // Clear URL parameters
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete("search");
+    newParams.delete("category");
+    if (newParams.toString() !== searchParams.toString()) {
+      window.history.replaceState({}, '', `${window.location.pathname}?${newParams}`);
+    }
   };
 
   // Determine if we're showing accessories
@@ -363,7 +373,7 @@ const Shop = () => {
                 />
               </div>
 
-              <Button className="w-full" variant="outline" onClick={resetFilters}>
+              <Button className="w-full mt-2" variant="outline" onClick={resetFilters}>
                 Reset Filters
               </Button>
             </div>
