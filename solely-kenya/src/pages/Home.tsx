@@ -15,6 +15,7 @@ import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { SEO } from "@/components/SEO";
 import { Input } from "@/components/ui/input";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { rankBySearchHistory, saveSearch } from "@/lib/searchHistory";
 // Swiper
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay, FreeMode } from 'swiper/modules';
@@ -85,7 +86,8 @@ const Home = () => {
         });
       }
 
-      setPopularProducts(productsWithStats);
+      // Apply personalised + shuffled ranking
+      setPopularProducts(rankBySearchHistory(productsWithStats));
     } catch (error) {
       console.error("Error fetching products:", error);
     } finally {
@@ -120,6 +122,7 @@ const Home = () => {
   const handleHeroSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (heroSearch.trim()) {
+      saveSearch(heroSearch.trim());
       navigate(`/shop?search=${encodeURIComponent(heroSearch.trim())}`);
     }
   };

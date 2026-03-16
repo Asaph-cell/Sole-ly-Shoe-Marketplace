@@ -12,6 +12,7 @@ import { ACCESSORY_TYPES, getAccessoryTypeName } from "@/lib/accessoryTypes";
 import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { SEO } from "@/components/SEO";
 import { Input } from "@/components/ui/input";
+import { saveSearch, rankBySearchHistory } from "@/lib/searchHistory";
 
 const Shop = () => {
   const [searchParams] = useSearchParams();
@@ -25,7 +26,7 @@ const Shop = () => {
   const [selectedSize, setSelectedSize] = useState("all");
   const [selectedCondition, setSelectedCondition] = useState("all");
   const [selectedAccessoryType, setSelectedAccessoryType] = useState("all");
-  const [sortBy, setSortBy] = useState("newest");
+  const [sortBy, setSortBy] = useState("smart");
   const [page, setPage] = useState(1);
   const itemsPerPage = 20;
 
@@ -47,6 +48,7 @@ const Shop = () => {
     const searchParam = searchParams.get('search');
     if (searchParam) {
       setSearchQuery(searchParam);
+      saveSearch(searchParam);
     }
 
     // Set category from URL params if present
@@ -157,6 +159,9 @@ const Shop = () => {
       filtered = filtered.filter((p) => p.condition === selectedCondition);
     }
 
+    // Save active search query to history
+    if (searchQuery.trim()) saveSearch(searchQuery.trim());
+
     // Sort
     switch (sortBy) {
       case "price-low":
@@ -168,7 +173,9 @@ const Shop = () => {
       case "newest":
         filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         break;
+      case "smart":
       default:
+        filtered = rankBySearchHistory(filtered);
         break;
     }
 
@@ -538,6 +545,7 @@ const Shop = () => {
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="smart">✨ For You</SelectItem>
                     <SelectItem value="newest">Newest First</SelectItem>
                     <SelectItem value="price-low">Price: Low to High</SelectItem>
                     <SelectItem value="price-high">Price: High to Low</SelectItem>

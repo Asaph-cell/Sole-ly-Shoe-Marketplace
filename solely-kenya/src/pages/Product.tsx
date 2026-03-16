@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Star, Shield, ArrowLeft, Bell, BellOff, X, ChevronLeft, ChevronRight, Share2, Copy } from "lucide-react";
+import { Star, Shield, ArrowLeft, Bell, BellOff, X, ChevronLeft, ChevronRight, Share2, Copy, BarChart2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ import { ShoeSizeChart } from "@/components/ShoeSizeChart";
 import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
 import ProductCard from "@/components/ProductCard";
+import { PriceCompareModal } from "@/components/PriceCompareModal";
 import {
   WhatsappShareButton,
   FacebookShareButton,
@@ -64,6 +65,7 @@ const Product = () => {
   const [alertLoading, setAlertLoading] = useState(false);
   const [videoAspect, setVideoAspect] = useState<"portrait" | "landscape" | "square">("square");
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [showCompareModal, setShowCompareModal] = useState(false);
   const { addItem, items } = useCart();
 
   // Scroll to top when page loads
@@ -738,6 +740,17 @@ const Product = () => {
                 Buy Now
               </Button>
 
+              {/* Compare Prices Button */}
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full min-h-[48px] border-primary/40 text-primary hover:bg-primary/5"
+                onClick={() => setShowCompareModal(true)}
+              >
+                <BarChart2 className="h-4 w-4 mr-2" />
+                Compare Prices
+              </Button>
+
               {/* Price Alert Button */}
               <Button
                 size="lg"
@@ -874,6 +887,17 @@ const Product = () => {
 
       {/* Floating Mobile Action Bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm rounded-t-3xl shadow-card p-4 z-40 safe-bottom">
+        <div className="flex gap-2 mb-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex-1 min-h-[40px] tap-active rounded-xl border-primary/40 text-primary text-xs"
+            onClick={() => setShowCompareModal(true)}
+          >
+            <BarChart2 className="h-3.5 w-3.5 mr-1" />
+            Compare Prices
+          </Button>
+        </div>
         <div className="flex gap-3">
           <Button
             size="lg"
@@ -894,6 +918,21 @@ const Product = () => {
           </Button>
         </div>
       </div>
+      {/* Price Compare Modal */}
+      {product && (
+        <PriceCompareModal
+          open={showCompareModal}
+          onClose={() => setShowCompareModal(false)}
+          currentProduct={{
+            id: product.id,
+            name: product.name,
+            price_ksh: product.price_ksh,
+            brand: product.brand,
+            category: product.category,
+            images: product.images ?? [],
+          }}
+        />
+      )}
     </div>
   );
 };
