@@ -304,6 +304,15 @@ All colors MUST be HSL.
   }
 }
 
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
 .floating-shoe {
   animation: float-gentle 6s ease-in-out infinite;
   will-change: transform;

@@ -42,7 +42,7 @@ const Home = () => {
         .select("*")
         .eq("status", "active")
         .order("created_at", { ascending: false })
-        .limit(12);
+        .limit(24);
 
       if (error) throw error;
 
@@ -138,24 +138,47 @@ const Home = () => {
 
       <PendingOrdersBanner />
 
-      {/* ─── HERO ─── */}
-      <ParallaxHero>
-        {/* Floating Shoes - Desktop Only */}
-        <FloatingShoes />
+      {/* ─── VENDOR TICKER BANNER ─── */}
+      {!isVendor && (
+        <Link to="/vendor" className="block bg-secondary text-secondary-foreground hover:opacity-90 transition-opacity">
+          <div className="overflow-hidden whitespace-nowrap py-1.5">
+            <div className="inline-block animate-[scroll_25s_linear_infinite]">
+              <span className="inline-block px-8 text-xs sm:text-sm font-medium">
+                👟 Got shoes to sell? List them here — zero upfront fees!
+              </span>
+              <span className="inline-block px-8 text-xs sm:text-sm font-medium">
+                🔥 Are you a shoe vendor? Start selling with escrow protection today!
+              </span>
+              <span className="inline-block px-8 text-xs sm:text-sm font-medium">
+                💰 Turn your shoe closet into cash - join Sole-ly as a vendor!
+              </span>
+              <span className="inline-block px-8 text-xs sm:text-sm font-medium">
+                🚀 Sell shoes online in Kenya — 10% commission, no hidden fees!
+              </span>
+              <span className="inline-block px-8 text-xs sm:text-sm font-medium">
+                👟 Got shoes to sell? List them here — zero upfront fees!
+              </span>
+              <span className="inline-block px-8 text-xs sm:text-sm font-medium">
+                🔥 Are you a shoe vendor? Start selling with escrow protection today!
+              </span>
+              <span className="inline-block px-8 text-xs sm:text-sm font-medium">
+                💰 Turn your shoe closet into cash -join Sole-ly as a vendor!
+              </span>
+              <span className="inline-block px-8 text-xs sm:text-sm font-medium">
+                🚀 Sell shoes online in Kenya — 10% commission, no hidden fees!
+              </span>
+            </div>
+          </div>
+        </Link>
+      )}
 
-        <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 pb-8 sm:pb-12 pt-16 sm:pt-24 pointer-events-none">
-          <div className="container mx-auto pointer-events-auto">
-            <div className="max-w-xl">
-              {/* Verified Sellers Badge */}
-              <div className="mb-4">
-                <span className="inline-flex items-center gap-1.5 bg-primary/90 text-primary-foreground text-xs font-semibold px-3 py-1.5 rounded-full backdrop-blur-sm">
-                  <CheckCircle className="h-3.5 w-3.5" />
-                  VERIFIED SELLERS
-                </span>
-              </div>
-
-              {/* Dynamic Headline */}
-              <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white mb-3 leading-tight">
+      {/* ─── COMPACT HERO STRIP ─── */}
+      <section className="bg-gradient-hero text-primary-foreground">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5">
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6">
+            {/* Left: Tagline */}
+            <div className="flex-1 text-center sm:text-left">
+              <h1 className="text-lg sm:text-xl font-bold leading-snug">
                 <DynamicHeroText
                   texts={[
                     "Find Your Perfect Sole",
@@ -163,274 +186,115 @@ const Home = () => {
                     "Sell with Zero Upfront Fees",
                     "Guaranteed Authenticity"
                   ]}
-                  className="block"
+                  className="inline"
                 />
               </h1>
-              <p className="text-sm sm:text-base text-white/80 mb-5 sm:mb-6 max-w-md">
-                Authentic shoes from verified vendors with escrow protection.
-              </p>
-
-              {/* Search Bar */}
-              <form onSubmit={handleHeroSearch} className="w-full max-w-md">
-                <div className="flex items-center bg-white p-1.5 sm:p-2 rounded-full shadow-xl">
-                  <Search className="h-5 w-5 text-muted-foreground ml-3 sm:ml-4 shrink-0" />
-                  <Input
-                    type="text"
-                    placeholder="Search brands, styles..."
-                    value={heroSearch}
-                    onChange={(e) => setHeroSearch(e.target.value)}
-                    className="flex-1 border-0 shadow-none bg-transparent h-10 sm:h-12 px-3 text-foreground text-sm sm:text-base placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
-                  />
-                  <button
-                    type="submit"
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full h-10 w-10 sm:h-12 sm:w-12 flex items-center justify-center transition-colors shrink-0"
-                  >
-                    <ArrowRight className="h-5 w-5" strokeWidth={2} />
-                  </button>
-                </div>
-              </form>
-            </div>{/* end max-w-xl */}
+              <div className="flex items-center justify-center sm:justify-start gap-3 mt-1.5">
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-primary-foreground/70">
+                  <CheckCircle className="h-3 w-3" /> Verified Sellers
+                </span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-primary-foreground/70">
+                  <Lock className="h-3 w-3" /> Escrow Protected
+                </span>
+              </div>
+            </div>
+            {/* Right: Search */}
+            <form onSubmit={handleHeroSearch} className="w-full sm:w-auto sm:min-w-[320px]">
+              <div className="flex items-center bg-white/95 p-1 rounded-full shadow-lg">
+                <Search className="h-4 w-4 text-muted-foreground ml-3 shrink-0" />
+                <Input
+                  type="text"
+                  placeholder="Search brands, styles..."
+                  value={heroSearch}
+                  onChange={(e) => setHeroSearch(e.target.value)}
+                  className="flex-1 border-0 shadow-none bg-transparent h-9 px-2.5 text-foreground text-sm placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+                <button
+                  type="submit"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full h-8 w-8 flex items-center justify-center transition-colors shrink-0"
+                >
+                  <ArrowRight className="h-4 w-4" strokeWidth={2} />
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-      </ParallaxHero>
+      </section>
 
-      {/* ─── CTA BUTTONS + TRUST STRIP ─── */}
-      <section className="bg-background">
-        <ScrollReveal mode="fade-up">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            {/* CTA Buttons */}
-            <div className="flex justify-center gap-3 sm:gap-4 py-5 sm:py-6">
-              <Button size="lg" asChild className="flex-1 sm:flex-none rounded-full h-12 sm:h-14 gap-2 text-sm sm:text-base font-semibold shadow-sm tap-active sm:px-10">
-                <Link to="/shop">
-                  <ShoppingBag className="h-5 w-5" />
-                  Shop Now
+      {/* ─── QUICK ACTIONS ─── */}
+      <div className="bg-background border-b border-border">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-2 sm:gap-3 py-2.5 overflow-x-auto scrollbar-hide flex-nowrap">
+            <Button size="sm" asChild className="rounded-full gap-1.5 text-xs font-semibold shrink-0 h-8">
+              <Link to="/shop">
+                <ShoppingBag className="h-3.5 w-3.5" />
+                All Shoes
+              </Link>
+            </Button>
+            {isVendor ? (
+              <Button size="sm" variant="outline" asChild className="rounded-full gap-1.5 text-xs font-semibold shrink-0 h-8">
+                <Link to="/vendor/dashboard">
+                  <LayoutDashboard className="h-3.5 w-3.5" />
+                  Dashboard
                 </Link>
               </Button>
-              {isVendor ? (
-                <Button size="lg" variant="outline" asChild className="flex-1 sm:flex-none rounded-full h-12 sm:h-14 gap-2 text-sm sm:text-base font-semibold tap-active sm:px-10">
-                  <Link to="/vendor/dashboard">
-                    <LayoutDashboard className="h-5 w-5" />
-                    Dashboard
-                  </Link>
-                </Button>
-              ) : (
-                <Button size="lg" variant="outline" asChild className="flex-1 sm:flex-none rounded-full h-12 sm:h-14 gap-2 text-sm sm:text-base font-semibold tap-active sm:px-10">
-                  <Link to="/vendor">
-                    <Tag className="h-5 w-5" />
-                    Sell Yours
-                  </Link>
-                </Button>
-              )}
-            </div>
-          </div>
-        </ScrollReveal>
-      </section>
-
-
-
-      {/* ─── POPULAR PICKS ─── */}
-      <section className="py-6 sm:py-10 bg-muted/30">
-        <ScrollReveal mode="fade-up" delay={0.1}>
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between mb-5 sm:mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-                Popular Picks
-              </h2>
-              <Link to="/shop" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
-                View All <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-            <div className="relative group">
-              {loading ? (
-                <div className="flex justify-center p-8">
-                  <SneakerLoader message="Loading..." size="sm" fullScreen={false} />
-                </div>
-              ) : popularProducts.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No products available yet.
-                </div>
-              ) : (
-                <Swiper
-                  modules={[Navigation, Autoplay, FreeMode]}
-                  spaceBetween={12}
-                  slidesPerView={2}
-                  navigation
-                  autoplay={{ delay: 4000, disableOnInteraction: false }}
-                  freeMode={true}
-                  breakpoints={{
-                    640: { slidesPerView: 2, spaceBetween: 16 },
-                    768: { slidesPerView: 3, spaceBetween: 20 },
-                    1024: { slidesPerView: 4, spaceBetween: 24 },
-                  }}
-                  className="pb-6 !px-1 select-none"
-                >
-                  {popularProducts.map((product) => (
-                    <SwiperSlide key={product.id} className="h-auto py-1">
-                      <ProductCard
-                        id={product.id}
-                        name={product.name}
-                        price={product.price_ksh}
-                        image={product.images?.[0] || "/placeholder.svg"}
-                        brand={product.brand}
-                        averageRating={product.averageRating}
-                        reviewCount={product.reviewCount}
-                        createdAt={product.created_at}
-                        condition={product.condition}
-                        videoUrl={product.video_url}
-                      />
-                    </SwiperSlide>
-                  ))}
-                </Swiper>
-              )}
-            </div>
-          </div>
-        </ScrollReveal>
-      </section>
-
-      {/* ─── SHOP BY STYLE ─── */}
-      <section className="py-6 sm:py-10">
-        <ScrollReveal mode="fade-up" delay={0.1}>
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between mb-5 sm:mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold">Shop by Style</h2>
-              <Link to="/shop" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
-                See All <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
-              {MAIN_CATEGORIES.map((category) => (
-                <Link
-                  key={category.name}
-                  to={`/shop?category=${category.key}`}
-                  className="group block"
-                  onClick={() => window.scrollTo(0, 0)}
-                >
-                  <div className="bg-card border border-border rounded-xl p-4 sm:p-6 text-center hover:shadow-md hover:border-primary/50 transition-all duration-200 min-h-[80px] sm:min-h-[100px] flex flex-col justify-center">
-                    <h3 className="text-sm sm:text-base font-semibold mb-0.5 group-hover:text-primary transition-colors">
-                      {category.name}
-                    </h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      {categoryCounts[category.key] || 0} {categoryCounts[category.key] === 1 ? 'item' : 'items'}
-                    </p>
-                  </div>
+            ) : (
+              <Button size="sm" variant="outline" asChild className="rounded-full gap-1.5 text-xs font-semibold shrink-0 h-8">
+                <Link to="/vendor">
+                  <Tag className="h-3.5 w-3.5" />
+                  Sell Yours
                 </Link>
+              </Button>
+            )}
+            {CATEGORIES.map((cat) => (
+              <Button key={cat.key} size="sm" variant="ghost" asChild className="rounded-full text-xs font-medium shrink-0 h-8 text-muted-foreground hover:text-foreground">
+                <Link to={`/shop?category=${cat.key}`}>
+                  {cat.name}
+                </Link>
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ─── PRODUCT GRID ─── */}
+      <section className="py-6 sm:py-10 bg-muted/30">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-5 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+              Popular Picks
+            </h2>
+            <Link to="/shop" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
+              View All <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          {loading ? (
+            <div className="flex justify-center p-8">
+              <SneakerLoader message="Loading..." size="sm" fullScreen={false} />
+            </div>
+          ) : popularProducts.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No products available yet.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+              {popularProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  name={product.name}
+                  price={product.price_ksh}
+                  image={product.images?.[0] || "/placeholder.svg"}
+                  brand={product.brand}
+                  averageRating={product.averageRating}
+                  reviewCount={product.reviewCount}
+                  createdAt={product.created_at}
+                  condition={product.condition}
+                  videoUrl={product.video_url}
+                />
               ))}
-              <Link to="/shop" className="group block">
-                <div className="bg-card border border-border rounded-xl p-4 sm:p-6 text-center hover:shadow-md hover:border-primary/50 transition-all duration-200 min-h-[80px] sm:min-h-[100px] flex flex-col justify-center">
-                  <MoreHorizontal className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors mx-auto mb-1" />
-                  <h3 className="text-sm sm:text-base font-semibold mb-0.5 group-hover:text-primary transition-colors">
-                    Other
-                  </h3>
-                  <p className="text-[11px] sm:text-xs text-muted-foreground">
-                    School, Open, Boots & More
-                  </p>
-                </div>
-              </Link>
             </div>
-          </div>
-        </ScrollReveal>
-      </section>
-
-      {/* ─── THE SOLE-LY GUARANTEE ─── */}
-      <section className="py-8 sm:py-12 bg-muted/30">
-        <ScrollReveal mode="fade-up" delay={0.1}>
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
-            <h2 className="text-xl sm:text-2xl font-bold text-center mb-2">The Sole-ly Guarantee</h2>
-            <p className="text-center text-sm text-muted-foreground mb-6 sm:mb-8">Your money is protected at every step.</p>
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              <div className="bg-card border rounded-xl p-4 sm:p-5">
-                <div className="flex items-center gap-2 mb-2">
-                  <Lock className="h-4 w-4 text-primary flex-shrink-0" />
-                  <h3 className="font-semibold text-sm sm:text-base">Secure Holding</h3>
-                </div>
-                <p className="text-muted-foreground text-xs sm:text-sm">Payments held in our safety vault, not sent to sellers directly.</p>
-              </div>
-              <div className="bg-card border rounded-xl p-4 sm:p-5">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="h-4 w-4 text-primary flex-shrink-0" />
-                  <h3 className="font-semibold text-sm sm:text-base">Check the Fit</h3>
-                </div>
-                <p className="text-muted-foreground text-xs sm:text-sm">See your shoes in person before funds are released.</p>
-              </div>
-              <div className="bg-card border rounded-xl p-4 sm:p-5">
-                <div className="flex items-center gap-2 mb-2">
-                  <Shield className="h-4 w-4 text-primary flex-shrink-0" />
-                  <h3 className="font-semibold text-sm sm:text-base">Your Final Say</h3>
-                </div>
-                <p className="text-muted-foreground text-xs sm:text-sm">We release funds only after you confirm you're happy.</p>
-              </div>
-              <div className="bg-card border rounded-xl p-4 sm:p-5">
-                <div className="flex items-center gap-2 mb-2">
-                  <RefreshCw className="h-4 w-4 text-primary flex-shrink-0" />
-                  <h3 className="font-semibold text-sm sm:text-base">Got Your Back</h3>
-                </div>
-                <p className="text-muted-foreground text-xs sm:text-sm">Our team resolves disputes quickly and fairly.</p>
-              </div>
-            </div>
-          </div>
-        </ScrollReveal>
-      </section>
-
-      {/* ─── FOR VENDORS ─── */}
-      <section className="py-8 sm:py-12 bg-muted/30">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
-          <ScrollReveal mode="fade-up" delay={0.2}>
-            <h2 className="text-xl sm:text-2xl font-bold text-center mb-2">Grow Your Shoe Business</h2>
-            <p className="text-center text-sm text-muted-foreground mb-6 sm:mb-8">Zero upfront costs. 10% commission only on sales.</p>
-          </ScrollReveal>
-          <ScrollReveal mode="fade-up" delay={0.3}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 py-4 sm:py-6">
-              {/* Escrow Protection */}
-              <div className="flex items-center justify-start md:justify-center gap-3 sm:gap-4">
-                <div className="bg-primary/10 rounded-full p-2.5 sm:p-3 shrink-0">
-                  <Lock className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm sm:text-base font-semibold text-foreground">Escrow Protection</span>
-                  <span className="text-xs sm:text-sm text-muted-foreground">Your payment is held safely until delivery</span>
-                </div>
-              </div>
-
-              {/* Trusted Vendors */}
-              <div className="flex items-center justify-start md:justify-center gap-3 sm:gap-4">
-                <div className="bg-primary/10 rounded-full p-2.5 sm:p-3 shrink-0">
-                  <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm sm:text-base font-semibold text-foreground">Trusted Vendors</span>
-                  <span className="text-xs sm:text-sm text-muted-foreground">Verified sellers with ratings</span>
-                </div>
-              </div>
-
-              {/* Fair Commission */}
-              <div className="flex items-center justify-start md:justify-center gap-3 sm:gap-4">
-                <div className="bg-primary/10 rounded-full p-2.5 sm:p-3 shrink-0">
-                  <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                </div>
-                <div className="flex flex-col text-left">
-                  <span className="text-sm sm:text-base font-semibold text-foreground">Fair Commission</span>
-                  <span className="text-xs sm:text-sm text-muted-foreground">10% commission, no hidden fees</span>
-                </div>
-              </div>
-            </div>
-            <div className="text-center mt-6">
-              {isVendor ? (
-                <Button asChild className="rounded-full h-11 px-6 gap-2">
-                  <Link to="/vendor/dashboard">
-                    <LayoutDashboard className="h-4 w-4" />
-                    Vendor Dashboard
-                  </Link>
-                </Button>
-              ) : (
-                <Button asChild className="rounded-full h-11 px-6 gap-2">
-                  <Link to="/vendor">
-                    <Tag className="h-4 w-4" />
-                    Start Selling
-                  </Link>
-                </Button>
-              )}
-            </div>
-          </ScrollReveal>
+          )}
         </div>
       </section>
 
