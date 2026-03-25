@@ -3,10 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, Users, DollarSign, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/solely-logo.svg";
+import { SEO } from "@/components/SEO";
 
 const Vendor = () => {
   return (
     <div className="min-h-screen py-12">
+      <SEO 
+        title="Sell Shoes Online Kenya | Become a Vendor"
+        description="Join Kenya's secure shoe marketplace. Sell authentic sneakers, formal shoes & more with zero upfront fees. Reach thousands of buyers across Kenya with escrow protection."
+        canonical="https://solelyshoes.co.ke/vendor"
+      />
       <div className="container mx-auto px-4">
         {/* Hero Section */}
         <div className="max-w-3xl mx-auto text-center mb-16">

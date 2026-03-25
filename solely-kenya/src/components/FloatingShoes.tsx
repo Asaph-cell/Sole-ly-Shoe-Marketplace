@@ -193,7 +193,7 @@ const FloatingShoes = () => {
                             {/* Product image */}
                             <img
                                 src={product.images[0]}
-                                alt={product.name}
+                                alt={`${product.name} - Buy Shoes Online Kenya`}
                                 style={{
                                     width: '100%',
                                     height: '100%',

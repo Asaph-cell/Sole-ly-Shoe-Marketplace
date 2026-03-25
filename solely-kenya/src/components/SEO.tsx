@@ -61,7 +61,7 @@ export const SEO = ({
     // Build title with buyer-intent keywords for product pages
     let fullTitle: string;
     if (isHomepage) {
-        fullTitle = `${SITE_NAME} - Buy & Sell Shoes in Kenya`;
+        fullTitle = `Buy & Sell Shoes Online Kenya | ${SITE_NAME}`;
     } else if (type === "product" && price) {
         // Rotate through buyer-intent title patterns based on product name hash
         const hash = title.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
@@ -70,6 +70,7 @@ export const SEO = ({
             `Buy ${title} Online in Kenya | ${SITE_NAME}`,
             `${title} - Under KES ${priceFormatted} | ${SITE_NAME}`,
             `${title} for Sale in Kenya | ${SITE_NAME}`,
+            `Original ${title} Price in Kenya | ${SITE_NAME}`,
         ];
         fullTitle = patterns[hash % patterns.length];
     } else {
@@ -87,10 +88,23 @@ export const SEO = ({
         "alternateName": "Solely Shoes Kenya",
         "url": SITE_URL,
         "logo": `${SITE_URL}/favicon.ico`,
-        "description": "Kenya's friendly shoe marketplace. Buy quality shoes from trusted vendors or start selling your shoes today.",
+        "description": "Kenya's trusted online shoe marketplace. Discover authentic sneakers, formal shoes, and boots from verified vendors with secure escrow protection.",
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Nairobi",
+            "addressCountry": "KE"
+        },
         "areaServed": {
             "@type": "Country",
             "name": "Kenya"
+        },
+        "hasOfferCatalog": {
+            "@type": "OfferCatalog",
+            "name": "Shoe Marketplace Catalog",
+            "itemListElement": [
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Buyer Protection Escrow" } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Vendor Sales Platform" } }
+            ]
         },
         "sameAs": [
             "https://twitter.com/solely_kenya"
