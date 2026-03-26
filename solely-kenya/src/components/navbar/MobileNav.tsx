@@ -96,10 +96,10 @@ export const MobileNav = ({ navLinks, user, isVendor, isVendorPage, onLogout, ca
             {!user ? (
               <>
                 <Button variant="outline" size="sm" asChild>
-                  <Link to="/auth" onClick={handleLinkClick}>Login</Link>
+                  <Link to={`/auth?redirect=${window.location.pathname}`} onClick={handleLinkClick}>Login</Link>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link to="/vendor" onClick={handleLinkClick}>Become a Vendor</Link>
+                  <Link to={`/auth?redirect=/vendor/register`} onClick={handleLinkClick}>Become a Vendor</Link>
                 </Button>
               </>
             ) : isVendor ? (

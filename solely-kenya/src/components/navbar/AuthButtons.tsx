@@ -26,10 +26,10 @@ export const AuthButtons = ({ user, isVendor, isVendorPage, onLogout }: AuthButt
       {!user ? (
         <>
           <Button variant="outline" size="sm" asChild>
-            <Link to="/auth">Login</Link>
+            <Link to={`/auth?redirect=${window.location.pathname}`}>Login</Link>
           </Button>
           <Button size="sm" asChild>
-            <Link to="/vendor">Become a Vendor</Link>
+            <Link to={`/auth?redirect=/vendor/register`}>Become a Vendor</Link>
           </Button>
         </>
       ) : isVendor ? (

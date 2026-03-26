@@ -36,7 +36,7 @@ const VendorRegistration = () => {
     const checkVendorStatus = async () => {
       if (!authLoading && !user) {
         toast.error("Please log in first to register as a vendor");
-        navigate("/auth");
+        navigate("/auth?redirect=/vendor/register");
         return;
       }
 
@@ -79,7 +79,7 @@ const VendorRegistration = () => {
 
     if (!user) {
       toast.error("Please log in first");
-      navigate("/auth");
+      navigate("/auth?redirect=/vendor/register");
       return;
     }
 
