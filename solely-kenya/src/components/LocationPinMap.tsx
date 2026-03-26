@@ -20,7 +20,7 @@ L.Icon.Default.mergeOptions({
     shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
 });
 
-const LOCATIONIQ_API_KEY = import.meta.env.VITE_LOCATIONIQ_API_KEY;
+const LOCATIONIQ_API_KEY = import.meta.env.VITE_LOCATIONIQ_API_KEY || "pk.2b634b704d19e634a5f2466959347388";
 
 // Nairobi center as default
 const DEFAULT_CENTER: [number, number] = [-1.2921, 36.8219];
