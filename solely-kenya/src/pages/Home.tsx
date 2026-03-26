@@ -22,6 +22,7 @@ import { Navigation, Autoplay, FreeMode } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/free-mode';
+import { Badge } from "@/components/ui/badge";
 
 
 const Home = () => {
@@ -298,6 +299,8 @@ const Home = () => {
         </div>
       </section>
 
+
+
       {/* ─── FINAL CTA ─── */}
       <section className="py-12 sm:py-16 bg-gradient-hero text-primary-foreground">
         <ScrollReveal mode="fade-up" delay={0.2}>
@@ -332,6 +335,14 @@ const Home = () => {
                   <Link to="/vendor">Become a Vendor</Link>
                 </Button>
               )}
+              <Button
+                size="lg"
+                variant="outline"
+                className="rounded-full bg-transparent border-2 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
+                asChild
+              >
+                <Link to="/blog">Read our Blog</Link>
+              </Button>
             </div>
           </div>
         </ScrollReveal>

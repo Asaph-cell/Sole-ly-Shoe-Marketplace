@@ -7,7 +7,8 @@ import { VendorNavbar } from "@/components/vendor/VendorNavbar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Package, Users, DollarSign, AlertCircle, Eye, TrendingUp, Clock,
-  CheckCircle, Truck, ArrowUpRight, Mail, Send, Trash2, Pause, Play, Image
+  CheckCircle, Truck, ArrowUpRight, Mail, Send, Trash2, Pause, Play, Image,
+  MessageCircle, Lightbulb
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -55,6 +56,7 @@ const AdminDashboard = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [openDisputes, setOpenDisputes] = useState<any[]>([]);
+  const [feedbackItems, setFeedbackItems] = useState<any[]>([]);
   const [dailyRevenue, setDailyRevenue] = useState<{ date: string, revenue: number, orders: number }[]>([]);
 
   // Announcement state
@@ -123,6 +125,7 @@ const AdminDashboard = () => {
         { data: recentOrdersData },
         { data: disputesData },
         { data: dailyOrdersData },
+        { data: blogSuggestionsData },
       ] = await Promise.all([
         supabase.from("products").select("*", { count: "exact", head: true }),
         supabase.from("products").select("*", { count: "exact", head: true }).eq("status", "active"),
@@ -145,11 +148,15 @@ const AdminDashboard = () => {
           .select(`id, reason, opened_at, order_id, customer:customer_id (full_name)`)
           .in("status", ["open", "under_review"])
           .limit(5),
-        // Daily orders for graph (last 30 days)
         supabase.from("orders")
           .select("created_at, total_ksh")
           .gte("created_at", thirtyDaysAgo)
           .order("created_at", { ascending: true }),
+        // Company feedback
+        supabase.from("company_feedback")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(20),
       ]);
 
       // Fetch products separately with explicit error handling
@@ -198,6 +205,7 @@ const AdminDashboard = () => {
 
       setRecentOrders(recentOrdersData || []);
       setOpenDisputes(disputesData || []);
+      setFeedbackItems(blogSuggestionsData || []);
       setDailyRevenue(dailyRevenueArray);
     } catch (error) {
       console.error("Error loading data:", error);
@@ -257,6 +265,32 @@ const AdminDashboard = () => {
   };
 
   const formatStatus = (status: string) => status.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+
+  const updateFeedbackStatus = async (id: string, status: string) => {
+    try {
+      const { error } = await supabase
+        .from("company_feedback")
+        .update({ status })
+        .eq("id", id);
+      
+      if (error) throw error;
+      toast({ title: "Success", description: "Feedback updated" });
+      loadData();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const deleteFeedback = async (id: string) => {
+    try {
+      const { error } = await supabase.from("company_feedback").delete().eq("id", id);
+      if (error) throw error;
+      toast({ title: "Deleted", description: "Feedback removed" });
+      loadData();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
 
   if (loading || !isAdmin) {
     return <SneakerLoader message="Loading admin dashboard..." />;
@@ -403,8 +437,11 @@ const AdminDashboard = () => {
                 <TabsTrigger value="announcements" className="flex items-center gap-1">
                   <Mail className="h-4 w-4" /> Email
                 </TabsTrigger>
+                <TabsTrigger value="community" className="flex items-center gap-1">
+                  <MessageCircle className="h-4 w-4" /> Community
+                </TabsTrigger>
                 <TabsTrigger value="disputes" className={stats.openDisputes > 0 ? "text-red-600" : ""}>
-                  Disputes
+                   Disputes
                 </TabsTrigger>
               </TabsList>
 
@@ -627,7 +664,51 @@ const AdminDashboard = () => {
                 </Card>
               </TabsContent>
 
-              {/* Disputes Tab */}
+              {/* Community/Blog Tab */}
+              <TabsContent value="community">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                       <Lightbulb className="h-5 w-5 text-primary" />
+                       Company Improvements & Feedback
+                    </CardTitle>
+                    <CardDescription>
+                       Direct feedback from the community on how to improve Solely.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {feedbackItems.length === 0 ? (
+                      <p className="text-muted-foreground text-center py-8">No feedback yet. Check back later! 🚀</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {feedbackItems.map((f) => (
+                          <div key={f.id} className="p-4 border rounded-xl bg-accent/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex-1">
+                              <p className="font-bold italic text-lg leading-tight">"{f.message}"</p>
+                              <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {new Date(f.created_at).toLocaleDateString()}</span>
+                                <Badge variant={f.status === 'pending' ? 'outline' : f.status === 'reviewed' ? 'default' : f.status === 'implemented' ? 'secondary' : 'destructive'}>
+                                  {f.status}
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {f.status === 'pending' && (
+                                <Button size="sm" onClick={() => updateFeedbackStatus(f.id, 'reviewed')}>
+                                  <CheckCircle className="h-4 w-4 mr-1" /> Reviewed
+                                </Button>
+                              )}
+                              <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-red-500" onClick={() => deleteFeedback(f.id)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
               <TabsContent value="disputes">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between">

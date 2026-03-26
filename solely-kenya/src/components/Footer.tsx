@@ -108,6 +108,11 @@ const Footer = () => {
                   Contact
                 </Link>
               </li>
+              <li>
+                <Link to="/blog" className="text-sm hover:text-primary transition-colors">
+                  Blog
+                </Link>
+              </li>
             </ul>
           </div>
 

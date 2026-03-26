@@ -31,6 +31,7 @@ interface SEOProps {
     isHomepage?: boolean;
     canonical?: string;
     price?: number;
+    keywords?: string[];
 }
 
 const SITE_NAME = "Solely Kenya";
@@ -55,6 +56,7 @@ export const SEO = ({
     isHomepage = false,
     canonical,
     price,
+    keywords = [],
 }: SEOProps) => {
     const currentUrl = url || (typeof window !== 'undefined' ? window.location.href : SITE_URL);
 
@@ -179,6 +181,25 @@ export const SEO = ({
                 "name": SITE_NAME
             }
         }
+    } : type === "article" ? {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": title.split(' | ')[0],
+        "image": [image],
+        "author": {
+            "@type": "Person",
+            "name": "Solely Expert"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": SITE_NAME,
+            "logo": {
+                "@type": "ImageObject",
+                "url": `${SITE_URL}/favicon.ico`
+            }
+        },
+        "url": canonicalUrl,
+        "description": description
     } : null;
 
     // Breadcrumb schema
@@ -198,6 +219,7 @@ export const SEO = ({
             {/* Standard metadata */}
             <title>{fullTitle}</title>
             <meta name="description" content={description} />
+            {keywords.length > 0 && <meta name="keywords" content={keywords.join(', ')} />}
             <link rel="canonical" href={canonicalUrl} />
 
             {/* Open Graph / Facebook */}

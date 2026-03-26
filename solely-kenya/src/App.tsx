@@ -63,6 +63,8 @@ const VendorRatings = lazyRetry(() => import("./pages/vendor/VendorRatings"));
 const VendorDisputes = lazyRetry(() => import("./pages/vendor/VendorDisputes"));
 const AdminDashboard = lazyRetry(() => import("./pages/admin/AdminDashboard"));
 const AdminDisputes = lazyRetry(() => import("./pages/admin/AdminDisputes"));
+const Blog = lazyRetry(() => import("./pages/Blog"));
+const BlogPost = lazyRetry(() => import("./pages/BlogPost"));
 const NotFound = lazyRetry(() => import("./pages/NotFound"));
 const WhatsAppButton = lazyRetry(() => import("./components/WhatsAppButton"));
 
@@ -115,6 +117,8 @@ const AnimatedRoutes = () => {
         <Route path="/admin" element={<PageWrapper><AdminDashboard /></PageWrapper>} />
         <Route path="/admin/dashboard" element={<PageWrapper><AdminDashboard /></PageWrapper>} />
         <Route path="/admin/disputes" element={<PageWrapper><AdminDisputes /></PageWrapper>} />
+        <Route path="/blog" element={<PageWrapper><Blog /></PageWrapper>} />
+        <Route path="/blog/:id" element={<PageWrapper><BlogPost /></PageWrapper>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
       </Routes>
