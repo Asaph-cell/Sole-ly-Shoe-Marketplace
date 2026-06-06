@@ -1,17 +1,8 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
+# Solely Kenya has moved to solelymarketplace.com
+# This domain only serves a redirect page.
 
 User-agent: *
-Allow: /
+Disallow: /
 
-# Sitemap
-Sitemap: https://solelyshoes.co.ke/sitemap.xml
+# Point crawlers to the new domain's sitemap
+Sitemap: https://solelymarketplace.com/sitemap.xml
