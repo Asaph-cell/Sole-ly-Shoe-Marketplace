@@ -12,6 +12,20 @@ export default {
     const ua = (request.headers.get('user-agent') || '').toLowerCase();
     const NEW_DOMAIN = 'https://solelymarketplace.com';
 
+    // ── Kill Old Service Workers ──
+    const pathname = url.pathname.toLowerCase();
+    if (pathname === '/sw.js' || pathname === '/service-worker.js') {
+      return new Response(
+        "self.addEventListener('install', (e) => { self.skipWaiting(); }); self.addEventListener('activate', (e) => { e.waitUntil(self.registration.unregister().then(() => self.clients.matchAll()).then((clients) => { clients.forEach((c) => c.navigate(c.url)); })); });",
+        {
+          headers: {
+            'Content-Type': 'application/javascript',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          }
+        }
+      );
+    }
+
     // ── Detect bots / crawlers ──
     const isBot = /bot|crawl|spider|slurp|facebookexternalhit|whatsapp|telegram|twitterbot|linkedinbot|googlebot|bingbot|yandex|baidu|duckduck/i.test(ua);
 
@@ -40,12 +54,25 @@ export default {
       // Rewrite the request to always serve index.html (the redirect page)
       const indexUrl = new URL('/', url.origin);
       const indexRequest = new Request(indexUrl.href, request);
-      return env.ASSETS.fetch(indexRequest);
+      const response = await env.ASSETS.fetch(indexRequest);
+      
+      // Clone response to modify headers for aggressive cache busting
+      const newResponse = new Response(response.body, response);
+      newResponse.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+      newResponse.headers.set('Pragma', 'no-cache');
+      newResponse.headers.set('Expires', '0');
+      newResponse.headers.set('Surrogate-Control', 'no-store');
+      newResponse.headers.set('Clear-Site-Data', '"cache", "cookies", "storage", "executionContexts"');
+      
+      return newResponse;
     } catch (e) {
       // Fallback: hard redirect if assets fail
       return new Response(null, {
         status: 302,
-        headers: { 'Location': NEW_DOMAIN },
+        headers: { 
+          'Location': NEW_DOMAIN,
+          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0'
+        },
       });
     }
   },
